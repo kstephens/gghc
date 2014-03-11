@@ -1,0 +1,220 @@
+{\rtf0\ansi{\fonttbl\f2\fswiss Helvetica;\f0\fmodern Ohlfs;\f1\fmodern Courier;}
+\paperw11400
+\paperh13820
+\margl120
+\margr120
+{\colortbl;\red0\green0\blue0;}
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f2\b0\i0\ulnone\fs20\fc0\cf0 Copyright 1993, 1994, Kurt A. Stephens\
+
+\f0 \
+
+\f2\b\fs48 1. KSHC runtime interface functions:\
+
+\f0\b0\fs20 \
+
+\f2\fs24 These functions define the interface between the output of KSHC and the runtime system using the definitions.\
+\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\b\fs36\fc0\cf0 1.1. Module definition blocks\
+
+\f1\fs24\fc1\cf1 \
+  
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\fc1\cf1 void
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\fc1\cf1  
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\fc1\cf1 kshc_begin_module(const char *modulename);
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\fc1\cf1 \
+  
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\fc1\cf1 void
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\fc1\cf1  
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\fc1\cf1 kshc_end_module(const char *modulename);\
+
+\f0\b0\fs20\fc0\cf0 \
+
+\f2\fs24\fc1\cf1   are called at the beginning and end of a module (or modules) ran through kshc.  The implementation can using this notify the user of the modules being loaded or to place different modules into different namespaces.\
+
+\f0\fs20\fc0\cf0 \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f2\b\fs36\fc0\cf0 1.2. Intrinsic types, typedefs and type references\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f0\b0\fs20\fc0\cf0 \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f2\b\fs32\fc0\cf0 1.2.1. Intrinsic types\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\b0\fs24\fc1\cf1 \
+  The runtime system must predefine the following following intrinsic types:\
+  \
+
+\f1\b   "char"\
+  "unsigned char"\
+  "short"\
+  "unsigned short"\
+  "int"\
+  "unsigned int"\
+  "long"\
+  "unsigned long"\
+  "long long"			
+\f2\b0 (if supported by the C compiler)\
+
+\f1\b   "unsigned long long"	
+\f2\b0 (if supported by the C compiler)\
+
+\f1\b   "float"\
+  "double"\
+  "long double"		
+\f2\b0 (if supported by the C compiler)\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\b\fs32\fc0\cf0 \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\fc0\cf0 1.2.2. Typedefs\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f1\fs24\fc1\cf1 \
+  void kshc_typedef(const char *symbol, KSHCT ctype);\
+
+\f0\b0\fs20\fc0\cf0 \
+
+\f2\fs24\fc1\cf1  binds a symbol to a C type object.  Generally the output of a typedef operation.\
+
+\f0\fs20\fc0\cf0 \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f2\b\fs32\fc0\cf0 1.2.3. Type references.\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f1\fs24\fc1\cf1 \
+  KSHCT kshc_type(const char *typename);\
+
+\f0\b0\fs20\fc0\cf0 \
+
+\f2\fs24\fc1\cf1 is called when a type is required by name. Should raise an error if the type is not yet defined.\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f0\fs20\fc0\cf0 \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f2\b\fs36\fc0\cf0 1.3. Composite types\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\b0\fs24\fc1\cf1 \
+ An implementation is free to cache composite types to reduce memory and preserve pointer equality.\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f0\fs20\fc0\cf0 \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f2\b\fs32\fc0\cf0 1.3.1. Enumerations\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f1\fs24\fc1\cf1 \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\fc1\cf1   KSHCT kshc_enum_type(const char *enumname);\
+  void kshc_enum_type_element(KSHCT enumtype, const char *name, int enumvalue);\
+  void kshc_enum_type_end(KSHCT enumtype);\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f0\b0\fs20\fc0\cf0 \
+
+\f2\fs24\fc1\cf1  creates a new C enum type and binds enumname to the type.  If the enumname is "", the enum type is anonymous.\
+
+\f0\fs20\fc0\cf0 \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f2\b\fs32\fc0\cf0 1.3.2. Pointers\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f1\fs24\fc1\cf1 \
+  KSHCT kshc_pointer_type(KSHCT elementtype);\
+
+\f0\b0\fs20\fc0\cf0 \
+
+\f2\fs24\fc1\cf1  creates a C pointer type.\
+
+\f0\fs20\fc0\cf0 \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f2\b\fs32\fc0\cf0 1.3.2. Arrays\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f1\fs24\fc1\cf1 \
+  KSHCT kshc_array_type(KSHCT elementtype, unsigned int length);\
+
+\f0\b0\fs20\fc0\cf0 \
+
+\f2\fs24\fc1\cf1  creates a C array type of a given length. if the array is of an undetermined length, 
+\f1\b length
+\f2\b0  is -1.\
+
+\f0\fs20\fc0\cf0 \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f2\b\fs32\fc0\cf0 1.3.2. Structures and Unions\
+
+\f1\fs24\fc1\cf1 \
+  KSHCT kshc_struct_type(const char *struct_or_union, const char *structname, size_t _sizeof);\
+  void kshc_struct_type_element(KSHCT structtype, KSHCT elementtype, const char *elementname, kshc_funcp getfunc, kshc_funcp setfunc);\
+  void kshc_struct_type_end(KSHCT structtype);\
+
+\f0\b0\fs20\fc0\cf0 \
+  
+\f1\b\fs24\fc1\cf1 kshc_struct_type()
+\f2\b0  returns a uninitalized C struct type and binds the supplied name to the type.  If the name is "", the struct type is anonymous.\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\fc1\cf1   \
+  The return value will be used in any self-referencing C struct or union types declarations such as:\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f1\b\fc1\cf1 \
+  struct somestruct \{\
+    int foo;\
+    struct somestruct *next;\
+  \};\
+  \
+
+\f2\b0   For a structure of this type, kshc will generate:\
+  \
+
+\f1\b   var = kshc_struct_type("somestruct", sizeof(struct somestruct));\
+  kshc_struct_type_element(var, "foo", kshc_type("int"), ...);\
+  kshc_struct_type_element(var, "next", kshc_pointer(var), ...);\
+  kshc_struct_type_end(var);\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f2\b0\fc1\cf1 \
+  The 
+\f1\b getfunc
+\f2\b0  and 
+\f1\b setfunc
+\f2\b0  for each element are declared as:\
+  \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f1\b\fc1\cf1   void (*getfunc)(
+\b0\i <struct>
+\b\i0  *structp, 
+\b0\i <elementtype>
+\b\i0  *dst);\
+  void (*setfunc)(
+\b0\i <struct>
+\b\i0  *structp, 
+\b0\i <elementtype> 
+\b\i0 *src);\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f2\b0\fc1\cf1   \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\fc1\cf1   Where 
+\f1\i <struct> 
+\f2\i0 and
+\f1\i  <elementtype>
+\f2\i0  are the C types of the struct and element respectively.\
+  \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\b\fs32\fc0\cf0 1.3.2. Functions\
+
+\f0\b0\fs20  \
+
+\f1\b\fs24\fc1\cf1   KSHCT kshc_function_type(KSHCT rtntype, KSHCT argtype, ...);\
+
+\f0\b0\fs20\fc0\cf0 \
+
+\f2\fs24\fc1\cf1   creates a C function type object with a return and a list of required argument types.  The argument type list is terminated with a 
+\f1\b KSHCT_NULL
+\f2\b0  object.  If the function takes a varable number of arguments the argument type list is terminated with a 
+\f1\b KSHCT_VARARGS
+\f2\b0  type object.\
+
+\f0\fs20\fc0\cf0  \
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f2\b\fs36\fc0\cf0 1.4. Globals\
+
+\pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600\f1\fs24\fc1\cf1 \
+  void kshc_global(const char *symbol, KSHCT ctype, void *address);\
+
+\f0\b0\fs20\fc0\cf0 \
+
+\f2\fs24\fc1\cf1  binds symbol to a new C object at an address.   This is called for each varable, array and function declaration.\
+
+\f0\fs20\fc0\cf0 \
+
+}
