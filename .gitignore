@@ -1,0 +1,5 @@
+*.o
+/cl.c
+/cy.c
+/cy.h
+/gghc
