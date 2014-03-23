@@ -101,6 +101,8 @@ int	yydebug = 0;
 
 %type	<u.cp>		enum_specifier enumerator_list enumerator
 
+%type   <u.cp>          constant_expression_opt
+
 %type	<u.decl>	declarator direct_declarator declarator_opt
 			init_declarator_list init_declarator_list_opt
 			init_declarator
@@ -114,7 +116,6 @@ int	yydebug = 0;
 
 %type	<u.cp>		abstract_declarator abstract_declarator_opt
 			direct_abstract_declarator direct_abstract_declarator_opt
-
 
 %%
 
