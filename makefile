@@ -58,7 +58,7 @@ KSHC_OFILES = \
   stdlib.o \
   stdio.o
 
-all : $(OFILE_DIR) $(PRODUCT) kshc_i.o $(KSHC_OFILES)
+all : $(OFILE_DIR) $(PRODUCT)
 
 debug : all
 	@(\
@@ -74,7 +74,7 @@ kshc_i.o : kshc_i.cc kshc_i.h
 $(KSHC_OFILES) : $(PRODUCT)
 
 stdlib.o: mod/stdlib.h
-	$(PRODUCT) -v -C++ -Wall -g mod/stdlib.h -o stdlib.o
+	./$(PRODUCT) -v -C++ -Wall -g mod/stdlib.h -o stdlib.o
 
 stdio.o: mod/stdio.h
-	$(PRODUCT) -v -C++ -Wall -g mod/stdio.h -o stdio.o
+	./$(PRODUCT) -v -C++ -Wall -g mod/stdio.h -o stdio.o

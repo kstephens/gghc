@@ -265,7 +265,7 @@ struct_declarator_list:
 struct_declarator:
 	  declarator						{ $$ = $1; TEXT1(); }
 
-	| declarator_opt ':' constant_expression		{ $$ = $1; $$->is_bit_field = 1; TEXT3(); }
+| declarator_opt ':' constant_expression		{ $$ = $1; $$->is_bit_field = 1; $$->bit_field_size = $<text>3; TEXT3(); }
 	;
 
 
@@ -426,7 +426,7 @@ type_qualifier_list_opt:
 
 parameter_type_list:
 	  parameter_list					{ $$ = $1; TEXT1(); }
-	| parameter_list ',' DDD				{ $$ = ssprintf("%s, KSHCT_VARARGS", $1); TEXT3(); }
+| parameter_list ',' DDD				{ $$ = ssprintf("%s%s KSHCT_VARARGS", $1, mode_c ? "," : ""); TEXT3(); }
 	;
 
 parameter_type_list_opt:
@@ -437,7 +437,7 @@ parameter_type_list_opt:
 
 parameter_list:
 	  parameter_declaration					{ $$ = $1; TEXT1(); }
-	| parameter_list ',' parameter_declaration		{ $$ = ssprintf("%s, %s", $1, $3); TEXT3(); }
+| parameter_list ',' parameter_declaration		{ $$ = ssprintf("%s%s %s", $1, mode_c ? "," : "", $3); TEXT3(); }
 	;
 
 parameter_declaration:

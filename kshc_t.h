@@ -33,6 +33,7 @@ struct	kshc_decl {
 	char*	type;
 	short	is_parenthised;
 	short	is_bit_field;
+        char* bit_field_size;
 	struct kshc_decl* next;
 } kshc_decl;
 
