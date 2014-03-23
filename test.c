@@ -28,7 +28,7 @@ struct {
 } unamed_struct;
 
 
-typedef int ESO;
+typedef void *ESO;
 
 extern char c;
 extern unsigned char C;
@@ -53,7 +53,9 @@ void	bar(unsigned, ESO x, ESO y);
 ESO	baz(ESO foo, double d, ESO bar);
 /* extern	void (*fp)(void); */
 
-void	shit(int foo, char bar, double d);
+void    func_fbd(int foo, char bar, double d);
+void    func_no_void();
+void    func_void(void);
 
 union ux {
 	char	c;

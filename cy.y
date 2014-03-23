@@ -384,7 +384,7 @@ direct_declarator:
 #endif
 }
 
-	| direct_declarator '(' parameter_type_list ')'	
+	| direct_declarator '(' parameter_type_list_opt ')'
 {
   $$ = $1;
   if ( $1->is_parenthised ) {
