@@ -50,7 +50,7 @@ DERIVED_HFILES = $(YFILES:.y=.h)
 OFILES = $(CFILES:.c=.o)
 
 $(OFILE_DIR) :
-	mkdirs $(OFILE_DIR)
+	mkdir -p $(OFILE_DIR)
 
 $(PRODUCT) : $(DERIVED_HFILES) $(OFILES) $(DERIVED_CFILES) $(DERIVED_CFILES:.c=.o) 
 	$(CC) -o $(PRODUCT) $(OFILES) $(DERIVED_CFILES:.c=.o) $(LIBS)
