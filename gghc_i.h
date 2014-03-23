@@ -10,8 +10,8 @@ extern "C" {
 
 #include <stddef.h>	/* size_t */
 
-#ifndef KSHCT
-typedef void *KSHCT;
+#ifndef GGHCT
+typedef void *GGHCT;
 #endif
 
 typedef	void	(*gghc_funcp)(void);
@@ -24,38 +24,38 @@ void	gghc_end_module(const char *module);
 void	gghc_pragma(const char *file, unsigned int line, const char *str);
 
 /* Create a typedef */
-void gghc_typedef(const char *symbol, KSHCT ctype);
+void gghc_typedef(const char *symbol, GGHCT ctype);
 
 /* Get a type by name */
-KSHCT gghc_type(const char *type_name);
+GGHCT gghc_type(const char *type_name);
 
 /* Create a enum type */
-KSHCT gghc_enum_type(const char *enumname);
-void gghc_enum_type_element(KSHCT enumtype, const char *name, int enumvalue);
-void gghc_enum_type_end(KSHCT enumtype);
+GGHCT gghc_enum_type(const char *enumname);
+void gghc_enum_type_element(GGHCT enumtype, const char *name, int enumvalue);
+void gghc_enum_type_end(GGHCT enumtype);
 
 /* Create a pointer type */
-KSHCT gghc_pointer_type(KSHCT elementtype);
+GGHCT gghc_pointer_type(GGHCT elementtype);
 
 /* Create an array type */
-KSHCT gghc_array_type(KSHCT elementtype, int length);
+GGHCT gghc_array_type(GGHCT elementtype, int length);
 
 /* Create a struct or union type */
-KSHCT gghc_struct_type(const char *struct_or_union, const char *structname, size_t _sizeof);
-void gghc_struct_type_element(KSHCT structtype, KSHCT elementtype, const char *elementname, gghc_funcp getfunc, gghc_funcp setfunc);
-void gghc_struct_type_end(KSHCT structtype);
+GGHCT gghc_struct_type(const char *struct_or_union, const char *structname, size_t _sizeof);
+void gghc_struct_type_element(GGHCT structtype, GGHCT elementtype, const char *elementname, gghc_funcp getfunc, gghc_funcp setfunc);
+void gghc_struct_type_end(GGHCT structtype);
 
 /* Create a function type */
-#ifndef KSHCT_NULL
-#define KSHCT_NULL (KSHCT)0
+#ifndef GGHCT_NULL
+#define GGHCT_NULL (GGHCT)0
 #endif
-#ifndef KSHCT_VARARGS
-#define KSHCT_VARARGS (KSHCT)-1
+#ifndef GGHCT_VARARGS
+#define GGHCT_VARARGS (GGHCT)-1
 #endif
-KSHCT gghc_function_type(KSHCT rtntype, ...);
+GGHCT gghc_function_type(GGHCT rtntype, ...);
 
 /* Define a global */
-void gghc_global(const char *symbol, KSHCT ctype, void *address);
+void gghc_global(const char *symbol, GGHCT ctype, void *address);
 
 /* Execute the initializers */
 void	gghc_init(void); 

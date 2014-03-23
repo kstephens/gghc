@@ -114,7 +114,7 @@ char*	gghc_enum_type(const char *name)
   (enum %s \"%s\"\n", name, current_enum->type, (current_enum->named ? name : ""));
   }
   if ( mode_c ) {
-  fprintf(gghc_precomp30, "  KSHCT %s;\n", current_enum->type);
+  fprintf(gghc_precomp30, "  GGHCT %s;\n", current_enum->type);
   
   /* Create the enum declaration initializer */
   fprintf(gghc_precomp3, "\
@@ -227,7 +227,7 @@ char *gghc_struct_type(const char *s_or_u, const char *name)
   fprintf(gghc_precomp3, "/* %s %s */\n", current_struct->struct_or_union, current_struct->name);
   
   /* Create a struct type variable declaration */
-  fprintf(gghc_precomp30, "  KSHCT %s;\n", current_struct->type);
+  fprintf(gghc_precomp30, "  GGHCT %s;\n", current_struct->type);
 
   fprintf(gghc_precomp2, "/* %s %s */\n", current_struct->struct_or_union, current_struct->name);
   
@@ -363,9 +363,9 @@ char *gghc_function_type(const char *rtntype, const char *argtypes)
   }
   if ( mode_c ) {
   if ( strcmp(argtypes, "gghc_type(\"void\")") == 0 ) {
-    argtypes = "KSHCT_NULL";
+    argtypes = "GGHCT_NULL";
   } else {
-    argtypes = ssprintf("%s, KSHCT_NULL", argtypes);
+    argtypes = ssprintf("%s, GGHCT_NULL", argtypes);
   }
   return ssprintf("gghc_function_type(%s, %s)", rtntype, argtypes);
   }

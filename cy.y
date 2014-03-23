@@ -426,7 +426,7 @@ type_qualifier_list_opt:
 
 parameter_type_list:
 	  parameter_list					{ $$ = $1; TEXT1(); }
-| parameter_list ',' DDD				{ $$ = ssprintf("%s%s KSHCT_VARARGS", $1, mode_c ? "," : ""); TEXT3(); }
+| parameter_list ',' DDD				{ $$ = ssprintf("%s%s GGHCT_VARARGS", $1, mode_c ? "," : ""); TEXT3(); }
 	;
 
 parameter_type_list_opt:
