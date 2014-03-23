@@ -1,26 +1,26 @@
 /*
 ** Copyright 1993, 1994 Kurt A. Stephens
 */
-#include "kshc_i.h"
+#include "gghc_i.h"
 
 /*
 ** Use C++ static constructors to keep a list of
-** kshc output modules linked in.
+** gghc output modules linked in.
 **
 ** This was the only "portable" way I could think of
-** to collect the kshc init functions at runtime.
+** to collect the gghc init functions at runtime.
 */
-static _kshcInitializer* inits = 0;
-_kshcInitializer::_kshcInitializer(kshc_funcp f)
+static _gghcInitializer* inits = 0;
+_gghcInitializer::_gghcInitializer(gghc_funcp f)
 {
   initfunc = f;
   next = inits;
   inits = this;
 }
 
-void	kshc_init(void)
+void	gghc_init(void)
 {
-  _kshcInitializer* l = inits;
+  _gghcInitializer* l = inits;
   while ( l ) {
     (*l->initfunc)();
     l = l->next;

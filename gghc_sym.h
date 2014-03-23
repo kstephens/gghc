@@ -1,11 +1,11 @@
-typedef struct kshc_symbol
+typedef struct gghc_symbol
 {
 	char *identifier;
 	char *value;
-	struct kshc_symbol *next;
-} kshc_symbol;
+	struct gghc_symbol *next;
+} gghc_symbol;
 
-kshc_symbol*	kshc_symbol_set(const char* identifier);
-kshc_symbol*	kshc_symbol_get(const char* identifier);
+gghc_symbol*	gghc_symbol_set(const char* identifier);
+gghc_symbol*	gghc_symbol_get(const char* identifier);
 
 

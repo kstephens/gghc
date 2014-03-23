@@ -12,18 +12,18 @@
 #include "gghc_o.h"
 #include "cy.h"
 
-extern	FILE*	kshc_input;
+extern	FILE*	gghc_input;
 
 void	yywarning(const char* s);
 
-char *kshc_parse_filename = 0;
-char *kshc_parse_top_level_filename = 0;
-int  kshc_parse_lineno = 1;
+char *gghc_parse_filename = 0;
+char *gghc_parse_top_level_filename = 0;
+int  gghc_parse_lineno = 1;
 
 #undef YY_INPUT
 #define YY_INPUT(buf,result,max_size) {\
   int	c; \
-  if ( (c = fgetc(kshc_input)) == '\n' ) kshc_parse_lineno ++; \
+  if ( (c = fgetc(gghc_input)) == '\n' ) gghc_parse_lineno ++; \
   result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
 }
 
@@ -232,18 +232,18 @@ PRAGMA	(pragma)
   if ( *s == 'l' )
     s += 4;
   
-  kshc_parse_lineno = _stod((const char**) &s);
+  gghc_parse_lineno = _stod((const char**) &s);
 
   if ( (s = strchr(s, '"')) ) {
     s ++;
     e = strrchr(s, '"');
 
-    free(kshc_parse_filename);
-    kshc_parse_filename = malloc(e - s + 1);
-    memcpy(kshc_parse_filename, s, e - s);
-    kshc_parse_filename[e - s] = '\0';
-    if ( kshc_parse_top_level_filename == 0 ) {
-      kshc_parse_top_level_filename =  strdup(kshc_parse_filename);
+    free(gghc_parse_filename);
+    gghc_parse_filename = malloc(e - s + 1);
+    memcpy(gghc_parse_filename, s, e - s);
+    gghc_parse_filename[e - s] = '\0';
+    if ( gghc_parse_top_level_filename == 0 ) {
+      gghc_parse_top_level_filename =  strdup(gghc_parse_filename);
     }
   }
 }
@@ -359,7 +359,7 @@ PRAGMA	(pragma)
   ** Is it a typedef name?
   */
   {
-  kshc_symbol* s = kshc_symbol_get(yylval.u.cp);
+  gghc_symbol* s = gghc_symbol_get(yylval.u.cp);
   if ( s && strcmp(s->value, "typedef") == 0 )
     return TYPEDEF_NAME;
   }
