@@ -14,6 +14,8 @@
 
 char*	kshc_parse_last_text = "";
 
+static int yylex ();
+
 void	yywarning(const char* s)
 {
 	fprintf(stderr, "kshc: %s in file %s: line %d\n",
@@ -100,8 +102,6 @@ int	yydebug = 0;
 %type	<u.cp>		struct_or_union_specifier struct_or_union
 
 %type	<u.cp>		enum_specifier enumerator_list enumerator
-
-%type   <u.cp>          constant_expression_opt
 
 %type	<u.decl>	declarator direct_declarator declarator_opt
 			init_declarator_list init_declarator_list_opt
@@ -225,8 +225,8 @@ type_qualifier:
 
 
 struct_or_union_specifier:
-	  struct_or_union IDENTIFIER_opt			{ $$ = kshc_struct_type($1, $2); }
-	  '{' struct_declaration_list '}'			{ $$ = kshc_struct_type_end(); }
+	  struct_or_union IDENTIFIER_opt			{ $<u.cp>$ = kshc_struct_type($1, $2); }
+	  '{' struct_declaration_list '}'			{ $<u.cp>$ = kshc_struct_type_end(); }
 
 	| struct_or_union IDENTIFIER				{ $$ = kshc_type(ssprintf("%s %s", $1, $2)); TEXT2(); }
 	;
@@ -275,7 +275,7 @@ struct_declarator:
 enum_specifier:
 	  ENUM IDENTIFIER_opt 
 {
-	$$ = kshc_enum_type($2);
+	$<u.cp>$ = kshc_enum_type($2);
 }
 '{' enumerator_list '}'
 {
@@ -372,15 +372,15 @@ direct_declarator:
 {
   $$ = $1;
   if ( $1->is_parenthised ) {
-    $$->declarator = ssprintf($1->declarator, kshc_array_type("%s", $3.text));
+    $$->declarator = ssprintf($1->declarator, kshc_array_type("%s", $<text>3));
   } else {
-    $$->declarator = kshc_array_type($1->declarator, $3.text);
+    $$->declarator = kshc_array_type($1->declarator, $<text>3);
   }
-  $$->declarator_text = ssprintf("%s[%s]", $1->declarator_text, $3.text);
+  $$->declarator_text = ssprintf("%s[%s]", $1->declarator_text, $<text>3);
   $$->type = "array";
   TEXT4();
 #if 0
-  printf("array '%s': $1->declarator = '%s'\n$3.text = '%s'\n\n", yyval.text, $1->declarator, $3.text);
+  printf("array '%s': $1->declarator = '%s'\n$3.text = '%s'\n\n", yyval.text, $1->declarator, $<text>3);
 #endif
 }
 
@@ -505,7 +505,7 @@ abstract_declarator_opt:
 direct_abstract_declarator:
 	  '(' abstract_declarator ')'				{ $$ = $2; TEXT3(); }
 	| direct_abstract_declarator_opt '[' constant_expression_opt ']'
-								{ $$ = kshc_array_type($1, $3.text); TEXT4(); }
+								{ $$ = kshc_array_type($1, $<text>3); TEXT4(); }
 	| direct_abstract_declarator_opt '(' parameter_type_list_opt ')'
 								{ $$ = kshc_function_type($1, $3); TEXT4(); }
 	;

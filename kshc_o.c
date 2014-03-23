@@ -71,7 +71,7 @@ char*	kshc_enum_type(const char *name)
   if ( ! en->named ) {
     name = ssprintf("_kshc_unamed_%d", unnamed_enum_id ++);
   }
-  en->name = name;
+  en->name = (char*) name;
   en->prev = current_enum;
   current_enum = en;
   
@@ -138,9 +138,9 @@ char *kshc_struct_type(const char *s_or_u, const char *name)
   s->prev = current_struct;
   current_struct = s;
 
-  s->struct_or_union = s_or_u;
+  s->struct_or_union = (char*) s_or_u;
   s->named = name ? 1 : 0;
-  s->name = name ? name : ssprintf("_kshc_unamed_%s_%d", s_or_u, unnamed_struct_id ++);
+  s->name = (char*) (name ? name : ssprintf("_kshc_unamed_%s_%d", s_or_u, unnamed_struct_id ++));
   s->slots = strdup("");
   s->slots_text = strdup("");
   fprintf(kshc_precomp3, "/* %s %s */\n", current_struct->struct_or_union, current_struct->name);

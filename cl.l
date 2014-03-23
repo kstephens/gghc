@@ -14,6 +14,8 @@
 
 extern	FILE*	kshc_input;
 
+void	yywarning(const char* s);
+
 char *kshc_parse_filename = 0;
 char *kshc_parse_top_level_filename = 0;
 int  kshc_parse_lineno = 1;
@@ -93,7 +95,7 @@ int	escape(int L, const char* s, int i, char* o)
 	s ++;
 	v = _stoh(&s);
       } else
-      if ( i = strchr(e, *s) ) {
+      if ( (i = strchr(e, *s)) ) {
 	v = i[1];
 	s ++;
       } else {
@@ -230,9 +232,9 @@ PRAGMA	(pragma)
   if ( *s == 'l' )
     s += 4;
   
-  kshc_parse_lineno = _stod(&s);
+  kshc_parse_lineno = _stod((const char**) &s);
 
-  if ( s = strchr(s, '"') ) {
+  if ( (s = strchr(s, '"')) ) {
     s ++;
     e = strrchr(s, '"');
 
@@ -400,11 +402,11 @@ L?\"[^\\\"]*\" {		/* a literal string */
 .	{
   return(yytext[0]);
 
-#undef	return()
+#undef	return
 }
 
 %%
 
 #undef yywrap
-static int yywrap() { return 1; }
+int yywrap() { return 1; }
 
