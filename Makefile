@@ -9,7 +9,7 @@ CFLAGS = $(OTHER_CFLAGS) -Wall -g '-DGGHC_LIB_DIR="'$(GGHC_LIB_DIR)'"' -DYYDEBUG
 YACCFLAGS = # -v
 LEXFLAGS = -f
 
-PRODUCT = gghc
+PRODUCT = ./gghc
 
 YFILES = cy.y
 LFILES = cl.l
@@ -24,14 +24,10 @@ LIBS = # -lMallocDebug
 
 ###################################################################
 
-.SUFFIXES: .y .l .c .cc .h .o
+.SUFFIXES: .y .l .c .h .o
 
 .c.o :
 	$(CC) -I. $(CFLAGS) -c $*.c -o $*.o
-.cc.o :
-	$(CC) -I. $(CFLAGS) -ObjC++ -c $*.cc -o $*.o
-.h.o :
-	$(PRODUCT) -C++ $< -o $*.o
 .y.h :
 	$(YACC) $(YACCFLAGS) -d $*.y && $(MV) $*.tab.c $*.c && $(MV) $*.tab.h $*.h
 .y.c :
@@ -50,15 +46,12 @@ $(PRODUCT) : $(DERIVED_HFILES) $(DERIVED_CFILES) $(OFILES)
 	$(CC) -o $(PRODUCT) $(OFILES) $(LIBS)
 
 clean :
-	rm -f $(DERIVED_FILES)
-
-
-USRINCLUDE=/usr/include/ansi
-GGHC_OFILES = \
-  stdlib.o \
-  stdio.o
+	rm -f $(DERIVED_FILES) gdbinit
 
 all : $(OFILE_DIR) $(PRODUCT)
+
+test : all
+	$(PRODUCT) -v -g test.c
 
 debug : all
 	@(\
@@ -68,13 +61,5 @@ debug : all
 	) > gdbinit
 	gdb $(PRODUCT) -x gdbinit
 
-gghc_i.o : gghc_i.cc gghc_i.h
-	$(CC) -I. $(CFLAGS) -c $*.cc -o $*.o
-
 $(GGHC_OFILES) : $(PRODUCT)
 
-stdlib.o: mod/stdlib.h
-	./$(PRODUCT) -v -C++ -Wall -g mod/stdlib.h -o stdlib.o
-
-stdio.o: mod/stdio.h
-	./$(PRODUCT) -v -C++ -Wall -g mod/stdio.h -o stdio.o
