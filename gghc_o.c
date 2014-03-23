@@ -47,6 +47,7 @@ char *  gghc_constant(const char *c_expr)
   ++ id;
 
   if ( mode_sexpr ) {
+    prefix = "gghc:";
     expr = ssprintf("%sconstant_%d #| %s |#", prefix, id, c_expr);
   }
   if ( mode_c ) {
@@ -61,7 +62,7 @@ void	gghc_typedef(const char *name, const char *type)
   if ( mode_sexpr ) {
   fprintf(gghc_precomp3,"\
   ;; typedef %s \n\
-  (typedef \"%s\" %s)\n", name, name, type);
+  (gghc:typedef \"%s\" %s)\n", name, name, type);
   }
   if ( mode_c ) {
   fprintf(gghc_precomp3,"\
@@ -76,7 +77,7 @@ void	gghc_typedef(const char *name, const char *type)
 char*	gghc_type(const char *name)
 {
   if ( mode_sexpr ) {
-  return ssprintf("(type \"%s\")", name);
+  return ssprintf("(gghc:type \"%s\")", name);
   }
   if ( mode_c ) {
   return ssprintf("gghc_type(\"%s\")", name);
@@ -111,7 +112,7 @@ char*	gghc_enum_type(const char *name)
   if ( mode_sexpr ) {
   fprintf(gghc_precomp3, "\
   ;; enum %s\n\
-  (enum %s \"%s\"\n", name, current_enum->type, (current_enum->named ? name : ""));
+  (gghc:enum %s \"%s\"\n", name, current_enum->type, (current_enum->named ? name : ""));
   }
   if ( mode_c ) {
   fprintf(gghc_precomp30, "  GGHCT %s;\n", current_enum->type);
@@ -129,7 +130,7 @@ char*	gghc_enum_type(const char *name)
 void	gghc_enum_type_element(const char *name)
 {
   if ( mode_sexpr ) {
-    fprintf(gghc_precomp3, "    (enum-element \"%s\" %s)\n",
+    fprintf(gghc_precomp3, "    (gghc:enum-element \"%s\" %s)\n",
             name,
             gghc_constant(name));
   }
@@ -167,7 +168,7 @@ void	gghc_enum_type_end(void)
 char*	gghc_pointer_type(const char *type)
 {
   if ( mode_sexpr ) {
-  return ssprintf("(pointer %s)", type);
+  return ssprintf("(gghc:pointer %s)", type);
   }
   if ( mode_c ) {
   return ssprintf("gghc_pointer_type(%s)", type);
@@ -182,7 +183,7 @@ char*	gghc_pointer_type(const char *type)
 char*	gghc_array_type(const char *type, const char *length)
 {
   if ( mode_sexpr ) {
-    return ssprintf("(array %s %s)", type, (length && length[0] ? gghc_constant(length) : "-1"));
+    return ssprintf("(gghc:array %s %s)", type, (length && length[0] ? gghc_constant(length) : "-1"));
   }
   if ( mode_c ) {
   return ssprintf("gghc_array_type(%s, %s)", type, (length && length[0] ? length : "-1"));
@@ -216,7 +217,7 @@ char *gghc_struct_type(const char *s_or_u, const char *name)
 
   if ( mode_sexpr ) {
   fprintf(gghc_precomp3, "  ;; %s %s {\n", current_struct->struct_or_union, current_struct->name);
-  fprintf(gghc_precomp3, "  (struct %s \"%s\" \"%s\" (sizeof %s))\n",
+  fprintf(gghc_precomp3, "  (gghc:struct %s \"%s\" \"%s\" (gghc:sizeof %s))\n",
           current_struct->type,
           current_struct->struct_or_union,
           current_struct->named ? current_struct->name : "",
@@ -267,9 +268,9 @@ void	gghc_struct_type_element(gghc_decl_spec *spec, gghc_decl *decl, const char 
   if ( mode_sexpr ) {
     estype = ssprintf(decl->declarator, spec->type);
     if ( decl->is_bit_field ) {
-      estype = ssprintf("(bitfield %s %s)", estype, gghc_constant(decl->bit_field_size));
+      estype = ssprintf("(gghc:bitfield %s %s)", estype, gghc_constant(decl->bit_field_size));
     }
-    fprintf(gghc_precomp3, "    (element %s \"%s\" %s (offsetof %s))\n",
+    fprintf(gghc_precomp3, "    (gghc:element %s \"%s\" %s (ggch:offsetof %s))\n",
             current_struct->type,
             decl->identifier,
             estype,
@@ -324,7 +325,7 @@ char *gghc_struct_type_end(void)
   char *type = current_struct->type;
   
   if ( mode_sexpr ) {
-  fprintf(gghc_precomp3, "  (struct-end %s)\n", current_struct->type);
+  fprintf(gghc_precomp3, "  (gghc:struct-end %s)\n", current_struct->type);
   fprintf(gghc_precomp3, "  ;; %s %s }\n\n", current_struct->struct_or_union, current_struct->name);
   }
   if ( mode_c ) {
@@ -359,7 +360,10 @@ char *gghc_struct_type_end(void)
 char *gghc_function_type(const char *rtntype, const char *argtypes)
 {
   if ( mode_sexpr ) {
-    return ssprintf("(function %s %s)", rtntype, argtypes);
+    if ( strcmp(argtypes, "(gghc:type \"void\")") == 0 ) {
+      argtypes = "";
+    }
+    return ssprintf("(gghc:function %s %s)", rtntype, argtypes);
   }
   if ( mode_c ) {
   if ( strcmp(argtypes, "gghc_type(\"void\")") == 0 ) {
@@ -418,7 +422,7 @@ void gghc_declaration(gghc_decl_spec *spec, gghc_decl *decl)
 void	gghc_global(const char *name, const char *type)
 {
   if ( mode_sexpr ) {
-    fprintf(gghc_precomp3, "  (global \"%s\" %s)\n", name, type);
+    fprintf(gghc_precomp3, "  (gghc:global \"%s\" %s)\n", name, type);
   }
   if ( mode_c ) {
   fprintf(gghc_precomp3, "  gghc_global(\"%s\", %s, (void*) &%s);\n", name, type, name);

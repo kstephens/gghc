@@ -211,7 +211,7 @@ int	main(int argc, char** argv)
   {
     char *fmt;
     if ( mode_sexpr) {
-      fmt = "  (constant constant_%d %ld \\\"%s\\\")";
+      fmt = "  (gghc:constant gghc:constant_%d %ld \\\"%s\\\")";
     }
     if ( mode_c ) {
       fmt = "static long _gghc_constant_%d = (long) (%ld); /* %%s */";
@@ -253,7 +253,7 @@ int	main(int argc, char** argv)
   fprintf(gghc_precomp3, "\n  gghc_begin_module(\"%s\");\n\n", files);
   }
   if ( mode_sexpr ) {
-  fprintf(gghc_precomp1, "\n(module \"%s\"\n\n", files);
+  fprintf(gghc_precomp1, "\n(gghc:module \"%s\"\n\n", files);
   }
 
   /* Parse the input file */
