@@ -9,24 +9,24 @@
 
 \f1 \
 
-\f0\b\fs48 1. KSHC runtime interface functions:\
+\f0\b\fs48 1. GGHC runtime interface functions:\
 
 \f1\b0\fs20 \
 
-\f0\fs24 These functions define the interface between the output of KSHC and the runtime system using the definitions.\
+\f0\fs24 These functions define the interface between the output of GGHC and the runtime system using the definitions.\
 \
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \b\fs36 \cf0 1.1. Module definition blocks\
 
 \f2\fs24 \
-  void kshc_begin_module(const char *modulename);\
-  void kshc_end_module(const char *modulename);\
+  void gghc_begin_module(const char *modulename);\
+  void gghc_end_module(const char *modulename);\
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f1\b0\fs20 \cf0 \
 
-\f0\fs24   are called at the beginning and end of a module (or modules) ran through kshc.  The implementation can use this to notify the user of the modules being loaded or to place different modules into different namespaces.\
+\f0\fs24   are called at the beginning and end of a module (or modules) ran through gghc.  The implementation can use this to notify the user of the modules being loaded or to place different modules into different namespaces.\
 
 \f1\fs20 \
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
@@ -70,7 +70,7 @@
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f2\fs24 \cf0 \
-  void kshc_typedef(const char *symbol, KSHCT ctype);\
+  void gghc_typedef(const char *symbol, gghcT ctype);\
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f1\b0\fs20 \cf0 \
@@ -84,7 +84,7 @@
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f2\fs24 \cf0 \
-  KSHCT kshc_type(const char *typename);\
+  gghcT gghc_type(const char *typename);\
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f1\b0\fs20 \cf0 \
@@ -107,9 +107,9 @@
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f2\fs24 \cf0 \
-  KSHCT kshc_enum_type(const char *enumname);\
-  void kshc_enum_type_element(KSHCT enumtype, const char *name, int enumvalue);\
-  void kshc_enum_type_end(KSHCT enumtype);\
+  gghcT gghc_enum_type(const char *enumname);\
+  void gghc_enum_type_element(gghcT enumtype, const char *name, int enumvalue);\
+  void gghc_enum_type_end(gghcT enumtype);\
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f1\b0\fs20 \cf0 \
@@ -127,7 +127,7 @@
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f2\fs24 \cf0 \
-  KSHCT kshc_pointer_type(KSHCT elementtype);\
+  gghcT gghc_pointer_type(gghcT elementtype);\
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f1\b0\fs20 \cf0 \
@@ -141,7 +141,7 @@
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f2\fs24 \cf0 \
-  KSHCT kshc_array_type(KSHCT elementtype, unsigned int length);\
+  gghcT gghc_array_type(gghcT elementtype, unsigned int length);\
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f1\b0\fs20 \cf0 \
@@ -157,14 +157,14 @@
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f2\fs24 \cf0 \
-  KSHCT kshc_struct_type(const char *struct_or_union, const char *structname, size_t _sizeof);\
-  void kshc_struct_type_element(KSHCT structtype, KSHCT elementtype, const char *elementname, kshc_funcp getfunc, kshc_funcp setfunc);\
-  void kshc_struct_type_end(KSHCT structtype);\
+  gghcT gghc_struct_type(const char *struct_or_union, const char *structname, size_t _sizeof);\
+  void gghc_struct_type_element(gghcT structtype, gghcT elementtype, const char *elementname, gghc_funcp getfunc, gghc_funcp setfunc);\
+  void gghc_struct_type_end(gghcT structtype);\
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f1\b0\fs20 \cf0 \
   
-\f2\b\fs24 kshc_struct_type()
+\f2\b\fs24 gghc_struct_type()
 \f0\b0  returns a uninitialized C struct type and binds the supplied name to the type.  If the name is "", the struct type is anonymous.\
   \
   The return value will be used in any self-referencing C struct or union types declarations such as:\
@@ -178,14 +178,14 @@
   \
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
-\f0\b0 \cf0   For a structure of this type, kshc will generate:\
+\f0\b0 \cf0   For a structure of this type, gghc will generate:\
   \
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
-\f2\b \cf0   var = kshc_struct_type("somestruct", sizeof(struct somestruct));\
-  kshc_struct_type_element(var, "foo", kshc_type("int"), ...);\
-  kshc_struct_type_element(var, "next", kshc_pointer(var), ...);\
-  kshc_struct_type_end(var);\
+\f2\b \cf0   var = gghc_struct_type("somestruct", sizeof(struct somestruct));\
+  gghc_struct_type_element(var, "foo", gghc_type("int"), ...);\
+  gghc_struct_type_element(var, "next", gghc_pointer(var), ...);\
+  gghc_struct_type_end(var);\
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f0\b0 \cf0 \
@@ -224,15 +224,15 @@
 \f1\b0\fs20 \cf0  \
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
-\f2\b\fs24 \cf0   KSHCT kshc_function_type(KSHCT rtntype, KSHCT argtype, ...);\
+\f2\b\fs24 \cf0   gghcT gghc_function_type(gghcT rtntype, gghcT argtype, ...);\
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f1\b0\fs20 \cf0 \
 
 \f0\fs24   creates a C function type object with a return and a list of required argument types.  The argument type list is terminated with a 
-\f2\b KSHCT_NULL
+\f2\b gghcT_NULL
 \f0\b0  object.  If the function takes a variable number of arguments the argument type list is terminated with a 
-\f2\b KSHCT_VARARGS
+\f2\b gghcT_VARARGS
 \f0\b0  type object.\
 
 \f1\fs20  \
@@ -241,7 +241,7 @@
 \f0\b\fs36 \cf0 1.4. Globals\
 
 \f2\fs24 \
-  void kshc_global(const char *symbol, KSHCT ctype, void *address);\
+  void gghc_global(const char *symbol, gghcT ctype, void *address);\
 \pard\tx960\tx1920\tx2880\tx3840\tx4800\tx5760\tx6720\tx7680\tx8640\tx9600
 
 \f1\b0\fs20 \cf0 \
