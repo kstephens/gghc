@@ -15,6 +15,7 @@ YFILES = cy.y
 LFILES = cl.l
 
 CFILES = \
+  malloc_debug.c \
   kshc.c \
   kshc_sym.c \
   kshc_o.c
