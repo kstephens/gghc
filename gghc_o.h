@@ -1,10 +1,10 @@
 /*
-** Copyright 1993, 1994 Kurt A. Stephens
+** Copyright 1993, 1994, 2014 Kurt A. Stephens
 */
-#ifndef _kshc_o_h
-#define	_kshc_o_h
+#ifndef _gghc_o_h
+#define	_gghc_o_h
 
-#include "kshc_t.h"
+#include "gghc_t.h"
 
 /*
 ** output functions for kshc

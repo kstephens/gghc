@@ -4,21 +4,21 @@ all:
 YACC = bison
 LEX = flex
 MV = mv
-KSHC_LIB_DIR=`pwd`/
-CFLAGS = $(OTHER_CFLAGS) -Wall -g '-DKSHC_LIB_DIR="'$(KSHC_LIB_DIR)'"' -DYYDEBUG # -DLEXDEBUG2 -DLEXDEBUG 
+GGHC_LIB_DIR=`pwd`/
+CFLAGS = $(OTHER_CFLAGS) -Wall -g '-DGGHC_LIB_DIR="'$(GGHC_LIB_DIR)'"' -DYYDEBUG # -DLEXDEBUG2 -DLEXDEBUG 
 YACCFLAGS = # -v
 LEXFLAGS = -f
 
-PRODUCT = kshc
+PRODUCT = gghc
 
 YFILES = cy.y
 LFILES = cl.l
 
 CFILES = \
   malloc_debug.c \
-  kshc.c \
-  kshc_sym.c \
-  kshc_o.c
+  gghc.c \
+  gghc_sym.c \
+  gghc_o.c
 
 LIBS = # -lMallocDebug
 
@@ -54,7 +54,7 @@ clean :
 
 
 USRINCLUDE=/usr/include/ansi
-KSHC_OFILES = \
+GGHC_OFILES = \
   stdlib.o \
   stdio.o
 
@@ -68,10 +68,10 @@ debug : all
 	) > gdbinit
 	gdb $(PRODUCT) -x gdbinit
 
-kshc_i.o : kshc_i.cc kshc_i.h
+gghc_i.o : gghc_i.cc gghc_i.h
 	$(CC) -I. $(CFLAGS) -c $*.cc -o $*.o
 
-$(KSHC_OFILES) : $(PRODUCT)
+$(GGHC_OFILES) : $(PRODUCT)
 
 stdlib.o: mod/stdlib.h
 	./$(PRODUCT) -v -C++ -Wall -g mod/stdlib.h -o stdlib.o

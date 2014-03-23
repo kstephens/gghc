@@ -8,8 +8,8 @@
 #include <ctype.h>
 #include <stddef.h>
 #include <limits.h>
-#include "kshc_sym.h"
-#include "kshc_o.h"
+#include "gghc_sym.h"
+#include "gghc_o.h"
 #include "cy.h"
 
 extern	FILE*	kshc_input;

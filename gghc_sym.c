@@ -1,7 +1,7 @@
 /*
-** Copyright 1993, 1994 Kurt A. Stephens
+** Copyright 1993, 1994, 2014 Kurt A. Stephens
 */
-#include "kshc_sym.h"
+#include "gghc_sym.h"
 #include <stdlib.h>
 #include <string.h>
 

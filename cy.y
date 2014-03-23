@@ -1,6 +1,6 @@
 %{
 /*
-** Copyright 1993, 1994 Kurt A. Stephens
+** Copyright 1993, 1994, 2014 Kurt A. Stephens
 */
 #include <stdlib.h>
 #include <stddef.h>
@@ -8,9 +8,9 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <string.h>	/* strstr() */
-#include "kshc.h"
-#include "kshc_sym.h"
-#include "kshc_o.h"
+#include "gghc.h"
+#include "gghc_sym.h"
+#include "gghc_o.h"
 
 char*	kshc_parse_last_text = "";
 

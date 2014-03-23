@@ -5,9 +5,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include "kshc_o.h"
-#include "kshc_sym.h"
-#include "kshc.h"	/* kshc_debug */
+#include "gghc_o.h"
+#include "gghc_sym.h"
+#include "gghc.h"	/* kshc_debug */
 #include "cy.h"
 
 extern	FILE*	kshc_precomp3;

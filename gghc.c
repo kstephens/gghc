@@ -8,9 +8,9 @@
 #include <unistd.h>     /* getpid() */
 #include <sys/types.h>  /* pid_t */
 #include <sys/param.h>  /* MAXPATHLEN */
-#include "kshc.h"
-#include "kshc_o.h"
-#include "kshc_sym.h"
+#include "gghc.h"
+#include "gghc_o.h"
+#include "gghc_sym.h"
 
 /*
 ** MAIN
@@ -227,7 +227,7 @@ int	main(int argc, char** argv)
   fprintf(kshc_precomp1, ";; Created by kshc 0.1, built %s %s */\n\n", __DATE__, __TIME__);
   }
   if ( mode_c ) {
-  fprintf(kshc_precomp1, "#include \"%skshc_i.h\"\n\n", KSHC_LIB_DIR);
+  fprintf(kshc_precomp1, "#include \"%sgghc_i.h\"\n\n", GGHC_LIB_DIR);
   }
 
   /* Create an initializer function */
