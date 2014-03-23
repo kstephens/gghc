@@ -27,7 +27,7 @@ void	kshc_pragma(const char *file, unsigned int line, const char *str);
 void kshc_typedef(const char *symbol, KSHCT ctype);
 
 /* Get a type by name */
-KSHCT kshc_type(const char *typename);
+KSHCT kshc_type(const char *type_name);
 
 /* Create a enum type */
 KSHCT kshc_enum_type(const char *enumname);

@@ -4,9 +4,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>	/* time() */
-#include <sys/types.h>	/* getpid() */
-#include <sys/param.h>	/* MAXPATHLEN */
+#include <time.h>       /* time() */
+#include <unistd.h>     /* getpid() */
+#include <sys/types.h>  /* pid_t */
+#include <sys/param.h>  /* MAXPATHLEN */
 #include "kshc_o.h"
 #include "kshc_sym.h"
 
@@ -214,13 +215,13 @@ int	main(int argc, char** argv)
     "" :
     output_pathname;
   
-  if ( t = strrchr(o, '/') )
+  if ( (t = strrchr(o, '/')) )
     t ++;
   else
     t = o;
   strcpy(initfuncname, "_kshc_initfunc_");
   strcat(initfuncname, t);
-  if ( t = strrchr(initfuncname, '.') )
+  if ( (t = strrchr(initfuncname, '.')) )
     *t = '\0';
   
   fprintf(kshc_precomp30, "\n\n%svoid %s(void) {\n", (cplusplus ? "static " : ""), initfuncname);
