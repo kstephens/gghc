@@ -52,6 +52,7 @@ all : $(OFILE_DIR) $(PRODUCT)
 
 test : all
 	$(PRODUCT) -v -g test.c
+	$(PRODUCT) stdlib.h
 
 debug : all
 	@(\

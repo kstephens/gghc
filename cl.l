@@ -345,6 +345,11 @@ PRAGMA	(pragma)
 "volatile"	{ return(VOLATILE); }
 "while"		{ return(WHILE); }
 
+"inline"            { return(GGHC_inline); }
+"__builtin_va_list" { return(GGHC___builtin_va_list); }
+"__attribute__" { return(GGHC___attribute__); }
+"__asm"         { return(GGHC___asm); }
+
 [A-Za-z_][A-Za-z_0-9]* {
   Symbol *s;
 

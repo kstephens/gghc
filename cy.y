@@ -16,6 +16,22 @@ char*	gghc_parse_last_text = "";
 
 static int yylex ();
 
+void *gghc_malloc0(size_t size)
+{
+   void *ptr = malloc(size);
+   memset(ptr, 0, size);
+   return ptr;
+}
+
+gghc_decl *make_decl() {
+  gghc_decl *x = gghc_malloc0(sizeof(gghc_decl));
+  x->identifier = "";
+  x->declarator = "%s";
+  x->declarator_text = "%s";
+  x->type = "variable";
+  return x;
+}
+
 void	yywarning(const char* s)
 {
 	fprintf(stderr, "gghc: %s in file %s: line %d\n",
@@ -90,6 +106,11 @@ int	yydebug = 0;
 
 %token		TYPEDEF_NAME
 
+%token GGHC_inline
+%token GGHC___builtin_va_list
+%token GGHC___attribute__
+%token GGHC___asm
+
 /*******************************************************************************************/
 
 %type	<u.cp>		IDENTIFIER IDENTIFIER_opt TYPEDEF_NAME
@@ -97,13 +118,14 @@ int	yydebug = 0;
 %type	<u.decl_spec>	declaration_specifiers declaration_specifiers_opt
 			specifier_qualifier_list specifier_qualifier_list_opt
 
-%type	<u.i>		storage_class_specifier
+%type	<u.i>		storage_class_specifier storage_class_specifier_basic
 %type	<u.cp>		type_specifier
 %type	<u.cp>		struct_or_union_specifier struct_or_union
 
 %type	<u.cp>		enum_specifier enumerator_list enumerator
 
 %type	<u.decl>	declarator direct_declarator declarator_opt
+                        direct_declarator_basic
 			init_declarator_list init_declarator_list_opt
 			init_declarator
 			declaration_list declaration_list_opt
@@ -147,8 +169,6 @@ declaration:
 	declaration_specifiers init_declarator_list_opt ';'
 	;
 
-
-
 declaration_list:
 	  declaration						{ TEXT1(); }
 	| declaration_list declaration				{ TEXT2(); }
@@ -170,8 +190,12 @@ declaration_specifiers_opt:
 	| declaration_specifiers				{ $$ = $1; TEXT1(); }
 	;
 
-
 storage_class_specifier:
+    storage_class_specifier_basic             { $$ = $1; TEXT1(); }
+  | storage_class_specifier_basic GGHC_inline { $$ = $1; TEXT2(); }
+  ;
+
+storage_class_specifier_basic:
 	  AUTO							{ $$ = AUTO;		TEXT1(); }
 	| REGISTER						{ $$ = REGISTER;	TEXT1(); }
 	| STATIC						{ $$ = STATIC;		TEXT1(); }
@@ -197,6 +221,7 @@ type_specifier:
 	| struct_or_union_specifier				{ $$ = $1; TEXT1(); }
 	| enum_specifier					{ $$ = $1; TEXT1(); }
 	| TYPEDEF_NAME						{ $$ = gghc_type($1); TEXT1(); }
+        | GGHC___builtin_va_list                                { $$ = gghc_type("__builtin_va_list"); TEXT1(); }
 	;
 
 /* Reduce to unique types */
@@ -263,9 +288,9 @@ struct_declarator_list:
 	;
 
 struct_declarator:
-	  declarator						{ $$ = $1; TEXT1(); }
-
-| declarator_opt ':' constant_expression		{ $$ = $1; $$->is_bit_field = 1; $$->bit_field_size = $<text>3; TEXT3(); }
+  declarator                          { $$ = $1; TEXT1(); }
+| declarator ':' constant_expression  { $$ = $1;          $$->is_bit_field = 1; $$->bit_field_size = $<text>3; TEXT3(); }
+|            ':' constant_expression  { $$ = make_decl(); $$->is_bit_field = 1; $$->bit_field_size = $<text>2; TEXT2(); }
 	;
 
 
@@ -315,9 +340,6 @@ init_declarator:
 	| declarator '=' initializer				{ $$ = $1; TEXT3(); }
 	;
 
-
-
-
 declarator:
 	  direct_declarator					{ $$ = $1; TEXT1(); }
 	| pointer direct_declarator
@@ -347,16 +369,16 @@ declarator_opt:
 	;
 
 direct_declarator:
+      direct_declarator_basic                  { $$ = $1; TEXT1(); }
+    | direct_declarator_basic __attribute__    { $$ = $1; TEXT2(); }
+    | direct_declarator_basic __asm            { $$ = $1; TEXT2(); }
+    ;
+
+direct_declarator_basic:
 	  IDENTIFIER
 {
-  $$ = malloc(sizeof(gghc_decl));
+  $$ = make_decl();
   $$->identifier = $1;
-  $$->declarator = "%s";
-  $$->declarator_text = "%s";
-  $$->type = "variable";
-  $$->is_bit_field = 0;
-  $$->is_parenthised = 0;
-  $$->next = 0;
   TEXT1();
 }
 
@@ -368,7 +390,7 @@ direct_declarator:
   TEXT3();
 }
 
-	| direct_declarator '[' constant_expression_opt ']'
+	| direct_declarator_basic '[' constant_expression_opt ']'
 {
   $$ = $1;
   if ( $1->is_parenthised ) {
@@ -384,7 +406,7 @@ direct_declarator:
 #endif
 }
 
-	| direct_declarator '(' parameter_type_list_opt ')'
+	| direct_declarator_basic '(' parameter_type_list_opt ')'
 {
   $$ = $1;
   if ( $1->is_parenthised ) {
@@ -398,7 +420,20 @@ direct_declarator:
   TEXT4();
 }
 
-	| direct_declarator '(' identifier_list_opt ')'		{ TEXT4(); }
+	| direct_declarator_basic '(' identifier_list_opt ')'
+{ 
+  $$ = $1;
+  if ( $1->is_parenthised ) {
+    $$->declarator = ssprintf($1->declarator, gghc_function_type("%s", ""));
+  } else {
+    $$->declarator = gghc_function_type($1->declarator, "");
+  }
+
+  $$->declarator_text = ssprintf("%s(%s)", $1->declarator_text, yyvsp[-1].text);
+  $$->type = "function";
+  TEXT4();
+  TEXT4();
+}
 	;
 
 
@@ -504,17 +539,42 @@ abstract_declarator_opt:
 
 direct_abstract_declarator:
 	  '(' abstract_declarator ')'				{ $$ = $2; TEXT3(); }
-	| direct_abstract_declarator_opt '[' constant_expression_opt ']'
+	| direct_abstract_declarator_opt '[' array_size ']'
 								{ $$ = gghc_array_type($1, $<text>3); TEXT4(); }
 	| direct_abstract_declarator_opt '(' parameter_type_list_opt ')'
 								{ $$ = gghc_function_type($1, $3); TEXT4(); }
 	;
+
+array_size: unary_expression_opt ;
 
 direct_abstract_declarator_opt:
 	  /* EMPTY */						{ $$ = "%s"; TEXT0(); }
 	| direct_abstract_declarator				{ $$ = $1; TEXT1(); }
 	;
 
+__attribute__ :
+          GGHC___attribute__ '(' '(' attr ')' ')'
+          ;
+
+attr :
+       /* EMPTY */                          { TEXT0(); }
+     | attr_ident '(' attr_arg_list ')'     { TEXT4(); }
+     ;
+attr_arg_list :
+            /* EMPTY */                     { TEXT0(); }
+          | attr_arg                        { TEXT1(); }
+          | attr_arg ',' attr_arg_list      { TEXT3(); }
+          ;
+attr_arg :
+            attr_ident                               { TEXT1(); }
+          | attr_ident '=' constant_expression       { TEXT3(); }
+          ;
+
+attr_ident : IDENTIFIER { TEXT1(); }
+
+__asm :
+   GGHC___asm '(' constant_str ')' { TEXT4(); }
+ ;
 
 typedef_name:
 	TYPEDEF_NAME						{ TEXT1(); }
@@ -687,6 +747,11 @@ unary_expression:
 	| SIZEOF '(' type_name ')'					{ TEXT4(); }
 	;
 
+unary_expression_opt:
+    /* EMPTY */      { TEXT0(); }
+  | unary_expression { TEXT1(); }
+  ;
+
 unary_operator:
 	  '&'								{ TEXT1(); }
 	| '*'								{ TEXT1(); }
@@ -722,26 +787,42 @@ argument_expression_list_opt:
 	| argument_expression_list					{ TEXT1(); }
 	;
 
-constant:
+constant_int :
 	  WCHAR_CONSTANT						{ TEXT1(); }
 	| CHAR_CONSTANT							{ TEXT1(); }
 	| INT_CONSTANT							{ TEXT1(); }
 	| UNSIGNED_INT_CONSTANT						{ TEXT1(); }
 	| LONG_INT_CONSTANT						{ TEXT1(); }
 	| UNSIGNED_LONG_INT_CONSTANT					{ TEXT1(); }
+        ;
+
+constant_num:
+          constant_int							{ TEXT1(); }
 	| FLOAT_CONSTANT						{ TEXT1(); }
 	| DOUBLE_CONSTANT						{ TEXT1(); }
 	| LONG_DOUBLE_CONSTANT						{ TEXT1(); }
-	| ENUM_CONSTANT							{ TEXT1(); }
+        ;
+
+constant_str_atom:
 	| STRING_CONSTANT						{ TEXT1(); }
 	| WSTRING_CONSTANT						{ TEXT1(); }
+        ;
+
+constant_str:
+    constant_str_atom constant_str_atom { TEXT2(); }
+  ;
+
+constant:
+          constant_num							{ TEXT1(); }
+        | constant_str							{ TEXT1(); }
+	| ENUM_CONSTANT							{ TEXT1(); }
 	;
 
 /******* ADDED ********/
 
 constant_expression:
-	  expression							{ TEXT1(); }
-	| constant							{ TEXT1(); }
+	  constant							{ TEXT1(); }
+	| unary_expression						{ TEXT1(); }
 	;
 
 constant_expression_opt:

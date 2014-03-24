@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+ARGV.each do | filename |
+  lineno = 0
+  ast = `clang -Xclang -ast-dump -fsyntax-only #{filename}`
+  puts ast
+  puts "============================="
+
+  sexpr_indent = -1
+
+  ast.split("\n").each do | line |
+    lineno += 1
+    line.gsub!(/\e[^m]*m/, '')
+    line =~ /^([-| `]*)(.*)/
+    indent = $1
+    node = $2
+    indent = indent.split('-', 2).first
+    indent = ((indent || "").size + 1) / 2
+    if node =~ /(RecordDecl)\s+(0x[0-9a-f]+)\s+(<<[^>]+>>|<[^>]+>)\s+(\w+)\s+(\w+)\s+(\w+)/
+      ntype, addr, loc, type, name = $1, $2, $3, $4, $5
+      name = '' if $6 != 'definition'
+    else
+      node =~ /(\w+)\s+(0x[0-9a-f]+)\s+(<<[^>]+>>|<[^>]+>)\s+(\w+)\s+'([^\']+)'/
+      ntype, addr, loc, name, type = $1, $2, $3, $4, $5
+    end
+    if false
+      puts "  ;; indent = #{indent.inspect}"
+      puts "  ;; node = #{node.inspect}"
+      puts "  ;; ntype = #{type.inspect}"
+      puts "  ;; name = #{name.inspect}"
+      puts "  ;; type = #{type.inspect}"
+    end
+    if sexpr_indent < indent
+      while sexpr_indent < indent
+        sexpr_indent += 1
+        $stdout.write "  " * sexpr_indent
+        puts "("
+      end
+    else
+      while sexpr_indent > indent
+        sexpr_indent -= 1
+        $stdout.write "  " * sexpr_indent
+        puts ")"
+      end
+    end
+    $stdout.write "  " * sexpr_indent
+    puts "(#{ntype} #{name.inspect} #{type.inspect}"
+  end
+end

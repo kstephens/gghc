@@ -71,3 +71,7 @@ struct sy {
 	struct sy *xp;
 };
 
+struct sy *sy_func(int x)
+{
+  return 0;
+}
