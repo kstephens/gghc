@@ -11,11 +11,11 @@
 #include <ctype.h>
 #include <stddef.h>
 #include <limits.h>
+#include "gghc.h"
+#include "gghc_t.h"
 #include "gghc_sym.h"
 #include "gghc_o.h"
 #include "cy.h"
-
-extern	FILE*	gghc_input;
 
  void	yywarning(const char* s);
  void	yyerror(const char* s);

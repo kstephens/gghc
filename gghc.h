@@ -5,6 +5,9 @@
 #define	_gghc_h_
 
 #include <stdio.h> /* FILE */
+#include "mm_buf.h"
+
+extern mm_buf *gghc_mb;
 
 extern
 FILE	*gghc_input,	/* preprocessed header file */

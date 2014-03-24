@@ -22,6 +22,8 @@ FILE	*gghc_input,	/* preprocessed header file */
 	*gghc_precomp30, /* initializer declaration */
 	*gghc_precomp3; /* ES initializers */
 
+mm_buf *gghc_mb;
+
 static	char*	dump = 0;
 
 /*
@@ -109,6 +111,7 @@ int	main(int argc, char** argv)
 /*	char*	dump = 0; */
   int	i;
   int pid = (int) getpid();
+  mm_buf mb;
 
   gghc_precomp0_filename  = ssprintf("/tmp/gghc_%d_constants.c", pid);
   gghc_precomp0x_filename = ssprintf("/tmp/gghc_%d_constants.exe", pid);
@@ -259,8 +262,12 @@ int	main(int argc, char** argv)
   }
 
   /* Parse the input file */
-
+  gghc_mb = &mb;
+  mm_buf_open(gghc_mb, gghc_input_filename);
   yyparse();
+  mm_buf_close(gghc_mb);
+  gghc_mb = 0;
+
   if ( gghc_error_code ) exit(gghc_error_code);
  
   fprintf(gghc_precomp0, "  printf(\"\\n\");\n\n");
