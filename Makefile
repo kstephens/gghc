@@ -16,6 +16,7 @@ LFILES = cl.l
 
 CFILES = \
   malloc_debug.c \
+  mm_buf.c \
   gghc.c \
   gghc_sym.c \
   gghc_o.c
