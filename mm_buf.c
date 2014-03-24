@@ -72,8 +72,9 @@ int mm_buf_token_begin(mm_buf_token *t, mm_buf *mb)
 
 int mm_buf_token_end(mm_buf_token *t, mm_buf *mb, size_t size)
 {
+  assert(t->mb == mb);
   t->text = malloc(size + 1);
-  memcpy(t->text, mb->s.pos, size);
+  memcpy(t->text, t->beg.pos, size);
   t->text[size] = 0;
 
   t->beg.size = t->end.size = size;
