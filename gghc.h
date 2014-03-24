@@ -18,8 +18,8 @@ FILE	*gghc_input,	/* preprocessed header file */
 	*gghc_precomp3; /* initializers */
 
 extern	int	gghc_parse_lineno;
-extern	char*	gghc_parse_filename;
-extern  char*   gghc_parse_top_level_filename;
+extern	const char*	gghc_parse_filename;
+extern  const char*   gghc_parse_top_level_filename;
 extern	int	gghc_error_code;
 typedef enum gghc_mode {
   gghc_mode_UNDEF = 0,

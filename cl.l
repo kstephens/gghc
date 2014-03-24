@@ -24,9 +24,13 @@ static int comment();
 static int check_type();
 static void count();
 
-char *gghc_parse_filename = 0;
-char *gghc_parse_top_level_filename = 0;
-int  gghc_parse_lineno = 1;
+#if 0
+#undef fgetc
+#define fgetc(IN) mm_buf_getc(gghc_mb)
+#undef ugetc
+#define ungetc(IN,C) mm_buf_ungetc(gghc_mb, (C))
+#else
+#endif
 
 #undef YY_INPUT
 #define YY_INPUT(buf,result,max_size)                                   \
@@ -90,6 +94,7 @@ PRAGMA	(pragma)
 \#[ \t]*{LINE}?[ \t]*[0-9]+([ \t]*\".*\")?.*\n {
   char*	s;
   char*	e;
+  char* filename;
 
   /* skip over #[ \t]* */
   s = (char*) yytext + 1; s = (char*) _eatwhitespace(s); /* skip over '#[ \t]+' */
@@ -104,10 +109,12 @@ PRAGMA	(pragma)
     s ++;
     e = strrchr(s, '"');
 
+    filename = malloc(e - s + 1);
+    memcpy(filename, s, e - s);
+    filename[e - s] = '\0';
+
     free(gghc_parse_filename);
-    gghc_parse_filename = malloc(e - s + 1);
-    memcpy(gghc_parse_filename, s, e - s);
-    gghc_parse_filename[e - s] = '\0';
+    gghc_parse_filename = filename;
     if ( gghc_parse_top_level_filename == 0 ) {
       gghc_parse_top_level_filename =  strdup(gghc_parse_filename);
     }

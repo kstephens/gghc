@@ -24,18 +24,13 @@ FILE	*gghc_input,	/* preprocessed header file */
 
 mm_buf *gghc_mb;
 
+const char *gghc_parse_filename;
+const char *gghc_parse_top_level_filename;
+int   gghc_parse_lineno;
+
 static	char*	dump = 0;
 
-/*
-** output file (gghc_input_filename) must have a different name each time
-** because C++ (on NEXTSTEP) generates the static initializers for
-** each module as a function based on the name of the source file.
-** i.e. "__GLOBAL_$I$_tmp_gghc_input_c"
-** So if we want to link in multiple gghc generated object files using
-** the -C++ option the C++ output files must have different names.
-*/
-char	gghc_input_filename_template[MAXPATHLEN+1] = "/tmp/gghc_input%x.c";
-char	gghc_input_filename[MAXPATHLEN+1];
+char*	gghc_input_filename;
 char*	gghc_precomp0_filename;
 char*	gghc_precomp0x_filename;
 char*   gghc_constants_filename;
@@ -54,10 +49,19 @@ extern int yydebug;
 extern	int	yyparse(void);
 
 
+void gghc_reset(const char *filename)
+{
+  filename = strdup(filename);
+  gghc_parse_filename = filename;
+  gghc_parse_top_level_filename = filename;
+  gghc_parse_lineno = 1;
+  gghc_reset_state();
+}
+
 static
 void	gghc_system(const char* cmd)
 {
-  if ( gghc_debug || gghc_verbose ) 
+  if ( gghc_debug || gghc_verbose )
     fprintf(stderr, "gghc: %s\n", cmd);
   
   gghc_error_code = system(cmd);
@@ -91,6 +95,7 @@ void	gghc_cleanup(void)
     unlink(gghc_precomp3_filename);
   }
 
+  free(gghc_input_filename);
   free(gghc_precomp0_filename);
   free(gghc_precomp0x_filename);
   free(gghc_constants_filename);
@@ -113,6 +118,7 @@ int	main(int argc, char** argv)
   int pid = (int) getpid();
   mm_buf mb;
 
+  gghc_input_filename     = ssprintf("/tmp/gghc_%d_input.c", pid);
   gghc_precomp0_filename  = ssprintf("/tmp/gghc_%d_constants.c", pid);
   gghc_precomp0x_filename = ssprintf("/tmp/gghc_%d_constants.exe", pid);
   gghc_constants_filename = ssprintf("/tmp/gghc_%d_constants.out", pid);
@@ -167,11 +173,9 @@ int	main(int argc, char** argv)
     }
   }
 
-  gghc_reset_state();
+  /* Reset state. */
+  gghc_reset(filev[0]);
 
-  /* Generate unique file output file name */
-  sprintf(gghc_input_filename, gghc_input_filename_template, getpid() ^ time(0));
-  
   /* Run the specified header files through CPP */
   gghc_precomp1 = fopen(gghc_precomp1_filename, "w+");
   for ( i = 0; i < filen; i ++ ) {
