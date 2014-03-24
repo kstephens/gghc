@@ -60,13 +60,13 @@ static int _input(char *buf, size_t max_size)
 
  static void _prepare_token(char *yytext, int yyleng)
  {
-     static mm_buf_token token;
+     static mm_buf_region token;
 
      if ( yydebug ) fprintf(stderr, "  gghc: lex: matched '%s'\n", yytext);
 
-     mm_buf_token_begin(&token, gghc_mb_token);
+     mm_buf_region_begin(&token, gghc_mb_token);
      mm_buf_read(gghc_mb_token, 0, yyleng);
-     mm_buf_token_end(&token, gghc_mb_token, yyleng);
+     mm_buf_region_end(&token, gghc_mb_token, yyleng);
      gghc_last_token = &token;
 
      yylval.t = token;

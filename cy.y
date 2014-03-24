@@ -43,7 +43,7 @@ gghc_decl *make_decl()
 
 void	yywarning(const char* s)
 {
-  mm_buf_token *t = gghc_last_token;
+  mm_buf_region *t = gghc_last_token;
   if ( t ) {
     fprintf(stderr, "gghc: %s:%d:%d %s\n",
           t->beg.src.filename ? t->beg.src.filename : "UNKNOWN",
@@ -71,7 +71,7 @@ static char *_to_expr(YYSTYPE *yyvsp)
 {
   if ( yyvsp->expr ) return yyvsp->expr;
   if ( yyvsp->type ) return yyvsp->type;
-  return yyvsp->expr = mm_buf_token_str(&(yyvsp->t));
+  return yyvsp->expr = mm_buf_region_str(&(yyvsp->t));
 }
 #define EXPR(YYV) _to_expr((void*)&(YYV))
 
@@ -79,7 +79,7 @@ static char *_to_type(YYSTYPE *yyvsp)
 {
   if ( yyvsp->type ) return yyvsp->type;
   if ( yyvsp->expr ) return yyvsp->expr;
-  return yyvsp->type = mm_buf_token_str(&(yyvsp->t));
+  return yyvsp->type = mm_buf_region_str(&(yyvsp->t));
 }
 #define TYPE(YYV) _to_type((void*)&(YYV))
 
@@ -87,22 +87,22 @@ static char *_to_type(YYSTYPE *yyvsp)
 static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 {
   int i;
-  mm_buf_token t, *dst = &yyvalp->t, *src;
+  mm_buf_region t, *dst = &yyvalp->t, *src;
   int verbose = 0;
 
-  mm_buf_token_init(&t);
+  mm_buf_region_init(&t);
   if ( verbose >= 2 ) {
     fprintf(stderr, "  yyn=%d yylen=%d yyvalp=%p yyvsp=%p\n", yyn, yylen, yyvalp, yyvsp);
     fprintf(stderr, "    tokens: ");
   }
   for ( i = 1 - yylen; i <= 0; ++ i ) {
     src = &(yyvsp[i].t);
-    if ( verbose >= 3 ) fprintf(stderr, "'%s' ", mm_buf_token_str(src));
-    mm_buf_token_union(&t, &t, src);
+    if ( verbose >= 3 ) fprintf(stderr, "'%s' ", mm_buf_region_str(src));
+    mm_buf_region_union(&t, &t, src);
   }
   if ( verbose >= 2 ) fprintf(stderr, "\n ");
   if ( verbose >= 1 ) {
-    fprintf(stderr, "    = '%s'\n", mm_buf_token_str(&t));
+    fprintf(stderr, "    = '%s'\n", mm_buf_region_str(&t));
   }
   *dst = t;
 }

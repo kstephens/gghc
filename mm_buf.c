@@ -99,12 +99,12 @@ int mm_buf_read(mm_buf *mb, void *ptr, int size)
   return l;
 }
 
-void mm_buf_token_init(mm_buf_token *mt)
+void mm_buf_region_init(mm_buf_region *mt)
 {
   memset(mt, 0, sizeof(*mt));
 }
 
-int mm_buf_token_begin(mm_buf_token *t, mm_buf *mb)
+int mm_buf_region_begin(mm_buf_region *t, mm_buf *mb)
 {
   t->mb = mb;
   t->text = 0;
@@ -116,7 +116,7 @@ int mm_buf_token_begin(mm_buf_token *t, mm_buf *mb)
   return 0;
 }
 
-int mm_buf_token_end(mm_buf_token *t, mm_buf *mb, size_t size)
+int mm_buf_region_end(mm_buf_region *t, mm_buf *mb, size_t size)
 {
   assert(t->mb == mb);
 
@@ -133,7 +133,7 @@ int mm_buf_token_end(mm_buf_token *t, mm_buf *mb, size_t size)
   return 0;
 }
 
-mm_buf_token * mm_buf_token_union(mm_buf_token *mt, mm_buf_token *mt0, mm_buf_token *mt1)
+mm_buf_region * mm_buf_region_union(mm_buf_region *mt, mm_buf_region *mt0, mm_buf_region *mt1)
 {
   if ( mt0->beg.pos > mt1->end.pos ) {
     void *tmp = mt0; mt1 = mt0; mt1 = tmp;
@@ -154,7 +154,7 @@ mm_buf_token * mm_buf_token_union(mm_buf_token *mt, mm_buf_token *mt0, mm_buf_to
   return mt;
 }
 
-char *mm_buf_token_str(mm_buf_token *mt)
+char *mm_buf_region_str(mm_buf_region *mt)
 {
   if ( ! mt->text ) {
     mt->text = malloc(mt->beg.size + 1);

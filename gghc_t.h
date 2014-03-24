@@ -70,7 +70,7 @@ typedef struct gghc_YYSTYPE {
   } u;
   int token;
   int leng;
-  mm_buf_token t;
+  mm_buf_region t;
   char *text;
   char *type;
   char *expr;

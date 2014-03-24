@@ -24,7 +24,7 @@ FILE
 
 mm_buf *gghc_mb; /* preprocessed header file */
 mm_buf *gghc_mb_token; /* token tracking stream. */
-mm_buf_token *gghc_last_token; 
+mm_buf_region *gghc_last_token; 
 
 const char *gghc_parse_filename;
 const char *gghc_parse_top_level_filename;

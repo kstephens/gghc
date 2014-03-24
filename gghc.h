@@ -9,7 +9,7 @@
 
 extern mm_buf *gghc_mb; /* preprocessed header file */
 extern mm_buf *gghc_mb_token; /* token tracking stream. */
-extern mm_buf_token *gghc_last_token;
+extern mm_buf_region *gghc_last_token;
 
 extern
 FILE
