@@ -107,7 +107,7 @@ void mm_buf_region_init(mm_buf_region *mt)
 int mm_buf_region_begin(mm_buf_region *t, mm_buf *mb)
 {
   t->mb = mb;
-  t->text = 0;
+  t->cstr = 0;
   t->beg = mb->s;
   t->beg.beg  = t->beg.end  = mb->s.pos;
   t->beg.size = 0;
@@ -138,9 +138,9 @@ mm_buf_region * mm_buf_region_union(mm_buf_region *mt, mm_buf_region *mt0, mm_bu
   if ( mt0->beg.pos > mt1->end.pos ) {
     void *tmp = mt0; mt1 = mt0; mt1 = tmp;
   }
-  if ( mt->text ) {
-    free(mt->text);
-    mt->text = 0;
+  if ( mt->cstr ) {
+    free(mt->cstr);
+    mt->cstr = 0;
   }
   if ( mt0->beg.pos ) {
     *mt = *mt0;
@@ -154,13 +154,13 @@ mm_buf_region * mm_buf_region_union(mm_buf_region *mt, mm_buf_region *mt0, mm_bu
   return mt;
 }
 
-char *mm_buf_region_str(mm_buf_region *mt)
+char *mm_buf_region_cstr(mm_buf_region *mt)
 {
-  if ( ! mt->text ) {
-    mt->text = malloc(mt->beg.size + 1);
-    memcpy(mt->text, mt->beg.beg, mt->beg.size);
-    mt->text[mt->beg.size] = 0;
+  if ( ! mt->cstr ) {
+    mt->cstr = malloc(mt->beg.size + 1);
+    memcpy(mt->cstr, mt->beg.beg, mt->beg.size);
+    mt->cstr[mt->beg.size] = 0;
   }
-  return mt->text;
+  return mt->cstr;
 }
 

@@ -71,7 +71,7 @@ static char *_to_expr(YYSTYPE *yyvsp)
 {
   if ( yyvsp->expr ) return yyvsp->expr;
   if ( yyvsp->type ) return yyvsp->type;
-  return yyvsp->expr = mm_buf_region_str(&(yyvsp->t));
+  return yyvsp->expr = mm_buf_region_cstr(&(yyvsp->t));
 }
 #define EXPR(YYV) _to_expr((void*)&(YYV))
 
@@ -79,7 +79,7 @@ static char *_to_type(YYSTYPE *yyvsp)
 {
   if ( yyvsp->type ) return yyvsp->type;
   if ( yyvsp->expr ) return yyvsp->expr;
-  return yyvsp->type = mm_buf_region_str(&(yyvsp->t));
+  return yyvsp->type = mm_buf_region_cstr(&(yyvsp->t));
 }
 #define TYPE(YYV) _to_type((void*)&(YYV))
 
@@ -97,12 +97,12 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
   }
   for ( i = 1 - yylen; i <= 0; ++ i ) {
     src = &(yyvsp[i].t);
-    if ( verbose >= 3 ) fprintf(stderr, "'%s' ", mm_buf_region_str(src));
+    if ( verbose >= 3 ) fprintf(stderr, "'%s' ", mm_buf_region_cstr(src));
     mm_buf_region_union(&t, &t, src);
   }
   if ( verbose >= 2 ) fprintf(stderr, "\n ");
   if ( verbose >= 1 ) {
-    fprintf(stderr, "    = '%s'\n", mm_buf_region_str(&t));
+    fprintf(stderr, "    = '%s'\n", mm_buf_region_cstr(&t));
   }
   *dst = t;
 }
