@@ -25,6 +25,7 @@ struct {
 	char*	b;
 	int	bits : 4;
 	int	d[5][3];
+  int w[sizeof(double)/sizeof(char)];
 } unamed_struct;
 
 
