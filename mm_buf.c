@@ -99,6 +99,11 @@ int mm_buf_read(mm_buf *mb, void *ptr, int size)
   return l;
 }
 
+void mm_buf_token_init(mm_buf_token *mt)
+{
+  memset(mt, 0, sizeof(*mt));
+}
+
 int mm_buf_token_begin(mm_buf_token *t, mm_buf *mb)
 {
   t->mb = mb;
@@ -116,7 +121,7 @@ int mm_buf_token_end(mm_buf_token *t, mm_buf *mb, size_t size)
   assert(t->mb == mb);
 
   t->beg.end  = mb->s.pos;
-  t->beg.size = size;
+  t->beg.size = t->beg.end - t->beg.beg;
 
   t->end.fpos = mb->s.fpos;
   t->end.beg  = mb->s.pos;
@@ -137,9 +142,15 @@ mm_buf_token * mm_buf_token_union(mm_buf_token *mt, mm_buf_token *mt0, mm_buf_to
     free(mt->text);
     mt->text = 0;
   }
-  *mt = *mt0;
-  mt->end = mt1->end;
-  mt->beg.size = mt1->end.pos - mt0->beg.pos;
+  if ( mt0->beg.pos ) {
+    *mt = *mt0;
+    mt->end = mt1->end;
+    mt->beg.size = mt1->end.end - mt0->beg.beg;
+    // fprintf(stderr, "  merged  %p: [%p,%p)\n", mt, mt->beg.beg, mt->end.beg);
+  } else {
+    *mt = *mt1;
+    // fprintf(stderr, "  initial %p: [%p,%p)\n", mt, mt->beg.beg, mt->end.beg);
+  }
   return mt;
 }
 
@@ -147,7 +158,7 @@ char *mm_buf_token_str(mm_buf_token *mt)
 {
   if ( ! mt->text ) {
     mt->text = malloc(mt->beg.size + 1);
-    memcpy(mt->text, mt->beg.pos, mt->beg.size);
+    memcpy(mt->text, mt->beg.beg, mt->beg.size);
     mt->text[mt->beg.size] = 0;
   }
   return mt->text;

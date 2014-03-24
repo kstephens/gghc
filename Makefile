@@ -29,10 +29,9 @@ LIBS = # -lMallocDebug
 
 .c.o :
 	$(CC) -I. $(CFLAGS) -c $*.c -o $*.o
-.y.h :
+.y.c .y.h :
 	$(YACC) $(YACCFLAGS) -d $*.y && $(MV) $*.tab.c $*.c && $(MV) $*.tab.h $*.h
-.y.c :
-	$(YACC) $(YACCFLAGS) -d $*.y && $(MV) $*.tab.c $*.c && $(MV) $*.tab.h $*.h
+	tool/yy_action $*.c
 .l.c :
 	$(LEX) -t $*.l | sed 's?debug = 0;?debug = 1;?' > $*.c
 

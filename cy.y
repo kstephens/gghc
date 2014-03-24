@@ -15,7 +15,8 @@
 #include "gghc_sym.h"
 #include "gghc_o.h"
 
-extern int yylex_column;
+#define YYDEBUG 1
+#define YYPRINT(output, toknum, value) ((void) toknum)
 
 extern int yylex();
 
@@ -66,21 +67,37 @@ void	yyerror(const char* s)
 
 int	yydebug = 0;
 
-#if 0
-#define _DEBUG
-#endif
-#ifdef _DEBUG
-#define	TEXT_PRINT() printf("TEXT:%s\n", yyval.text)
+#if 1
+#define	TEXT_PRINT(N) printf("  TEXT%d()=%s\n", N, yyval.text)
 #else
-#define	TEXT_PRINT() while ( 0 )
+#define	TEXT_PRINT(N) while ( 0 )
 #endif
 
-#define TEXT0()	{ yyval.text = ""; TEXT_PRINT(); }
-#define	TEXT1()	{ yyval.text = yyvsp[0].text; TEXT_PRINT(); }
-#define	TEXT2()	{ yyval.text = ssprintf("%s %s", yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
-#define	TEXT3() { yyval.text = ssprintf("%s %s %s", yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
-#define	TEXT4() { yyval.text = ssprintf("%s %s %s %s", yyvsp[-3].text, yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
-#define	TEXT5() { yyval.text = ssprintf("%s %s %s %s %s", yyvsp[-4].text, yyvsp[-3].text, yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
+#define TEXT0()	{ yyval.text = ""; TEXT_PRINT(0); }
+#define	TEXT1()	{ yyval.text = yyvsp[0].text; TEXT_PRINT(1); }
+#define	TEXT2()	{ yyval.text = ssprintf("%s %s", yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(2); }
+#define	TEXT3() { yyval.text = ssprintf("%s %s %s", yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(3); }
+#define	TEXT4() { yyval.text = ssprintf("%s %s %s %s", yyvsp[-3].text, yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(4); }
+#define	TEXT5() { yyval.text = ssprintf("%s %s %s %s %s", yyvsp[-4].text, yyvsp[-3].text, yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(5); }
+
+#define YY_USER_ACTION(yyn) token_merge(yyn, yylen, &yyval, yyvsp);
+static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
+{
+  int i;
+  mm_buf_token t, *dst = &yyvalp->t, *src;
+
+  mm_buf_token_init(&t);
+  fprintf(stderr, "  yyn=%d yylen=%d yyvalp=%p yyvsp=%p\n", yyn, yylen, yyvalp, yyvsp);
+  fprintf(stderr, "    tokens: ");
+  for ( i = 1 - yylen; i <= 0; ++ i ) {
+    src = &(yyvsp[i].t);
+    fprintf(stderr, "'%s' ", mm_buf_token_str(src));
+    mm_buf_token_union(&t, &t, src);
+  }
+  fprintf(stderr, "\n ");
+  fprintf(stderr, "    = '%s' ", mm_buf_token_str(&t));
+}
+
 %}
 
 %token IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
@@ -781,4 +798,11 @@ function_definition
 	;
 
 %%
+
+int gghc_yyparse_y(mm_buf *mb)
+{
+  extern int yydebug;
+  yydebug = 1;
+  return yyparse();
+}
 

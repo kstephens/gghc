@@ -1,0 +1,2 @@
+#!/bin/sh
+exec perl -i'' -pe 's/^(\s*switch\s*\(\s*yyn\s*\)\s*)$/YY_USER_ACTION(yyn) $1 /;' "$@"

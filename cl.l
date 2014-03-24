@@ -39,7 +39,7 @@ int gghc_yyparse(mm_buf *mb)
     gghc_mb_token = &mb_token;
     *gghc_mb_token = *gghc_mb;
 
-    result = yyparse();
+    result = gghc_yyparse_y(mb);
     gghc_mb = gghc_mb_token = 0;
 
     return result;
