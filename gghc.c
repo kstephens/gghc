@@ -179,7 +179,7 @@ int	main(int argc, char** argv)
   }
   fclose(gghc_precomp1); gghc_precomp1 = 0;
   
-  sprintf(cmd, "cc -E %s '-D__gghc__' '%s' >> '%s'", options, gghc_precomp1_filename, gghc_input_filename);
+  sprintf(cmd, "cc -E %s '-D__gghc__' '%s' > '%s'", options, gghc_precomp1_filename, gghc_input_filename);
   gghc_system(cmd);
   gghc_input = fopen(gghc_input_filename, "r");
 
