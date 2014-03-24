@@ -24,7 +24,7 @@ static int comment();
 static int check_type();
 static void count();
 
-#if 0
+#if 1
 #undef fgetc
 #define fgetc(IN) mm_buf_getc(gghc_mb)
 #undef ugetc

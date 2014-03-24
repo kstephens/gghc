@@ -602,6 +602,7 @@ pointer
 type_qualifier_list
 	: type_qualifier
 	| type_qualifier_list type_qualifier
+        { TEXT2(); }
 	;
 
 
