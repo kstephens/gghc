@@ -1,5 +1,9 @@
-%{ /* -*- c -*- */
+%{ /* -*- flex-mode -*- */
 /* From http://www.lysator.liu.se/c/ANSI-C-grammar-y.html. */
+
+/*
+** Changes: Copyright 1993, 1994, 2014 Kurt A. Stephens
+*/
 
 #include <stdio.h>
 #include <string.h>
@@ -215,6 +219,7 @@ L?\"(\\.|[^\\"])*\"	{ _return(STRING_LITERAL); }
 .			{ /* ignore bad characters */ }
 
 %%
+// ' emacs
 
 static int yywrap()
 {

@@ -1,5 +1,10 @@
-%{ /* -*- c -*- */
-  /* From http://www.lysator.liu.se/c/ANSI-C-grammar-y.html. */
+%{ /* -*- bison-mode -*- */
+/* From http://www.lysator.liu.se/c/ANSI-C-grammar-y.html. */
+
+/*
+** Changes: Copyright 1993, 1994, 2014 Kurt A. Stephens
+*/
+
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
