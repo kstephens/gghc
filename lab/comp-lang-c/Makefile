@@ -16,7 +16,9 @@ YFILES = cy.y
 LFILES = cl.l
 
 CFILES = \
-  ../../gghc_sym.c
+  ../../gghc_sym.c \
+  ../../gghc_o.c \
+  ../../malloc_debug.c
 
 LIBS = # -lMallocDebug
 

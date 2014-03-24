@@ -1,10 +1,68 @@
 %{
   /* From http://www.lysator.liu.se/c/ANSI-C-grammar-y.html. */
+#include <stdlib.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <string.h>	/* strstr() */
+#include "gghc.h"
+#include "gghc_sym.h"
+#include "gghc_o.h"
+
+char*	gghc_parse_last_text = "";
+extern char yytext[];
+extern int yylex_column;
+ int gghc_error_code = 0;
 
 extern int yylex();
-static void yyerror(const char *s);
 
-#include "gghc_t.h"
+void *gghc_malloc0(size_t size)
+{
+   void *ptr = malloc(size);
+   memset(ptr, 0, size);
+   return ptr;
+}
+
+gghc_decl *make_decl()
+{
+  gghc_decl *x = gghc_malloc0(sizeof(gghc_decl));
+  x->identifier = "";
+  x->declarator = "%s";
+  x->declarator_text = "%s";
+  x->type = "variable";
+  return x;
+}
+
+void	yywarning(const char* s)
+{
+  fprintf(stderr, "gghc: %s:%d:%d %s\n",
+          gghc_parse_filename ? gghc_parse_filename : "UNKNOWN",
+          gghc_parse_lineno,
+          yylex_column,
+          s
+          );
+  fprintf(stderr, "gghc: near '%s'\n", gghc_parse_last_text);
+}
+
+void	yyerror(const char* s)
+{
+  yywarning(s);
+  gghc_error_code ++;
+}
+
+#ifdef _DEBUG
+#define	TEXT_PRINT() printf("TEXT:%s\n", yyval.text)
+#else
+#define	TEXT_PRINT() while ( 0 )
+#endif
+
+#define TEXT0()	{ gghc_parse_last_text = yyval.text = ""; TEXT_PRINT(); }
+#define	TEXT1()	{ gghc_parse_last_text = yyval.text = yyvsp[0].text; TEXT_PRINT(); }
+#define	TEXT2()	{ gghc_parse_last_text = yyval.text = ssprintf("%s %s", yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
+#define	TEXT3() { gghc_parse_last_text = yyval.text = ssprintf("%s %s %s", yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
+#define	TEXT4() { gghc_parse_last_text = yyval.text = ssprintf("%s %s %s %s", yyvsp[-3].text, yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
+#define	TEXT5() { gghc_parse_last_text = yyval.text = ssprintf("%s %s %s %s %s", yyvsp[-4].text, yyvsp[-3].text, yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
 %}
 
 %token IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
@@ -19,7 +77,17 @@ static void yyerror(const char *s);
 
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
+%token GGHC_inline
+%token GGHC___builtin_va_list
+%token GGHC___attribute__
+%token GGHC___asm
+
 %start translation_unit
+
+%type	<u.i>		storage_class_specifier
+%type	<u.cp>		type_specifier
+%type	<u.cp>		struct_or_union_specifier struct_or_union
+
 %%
 
 primary_expression
@@ -193,6 +261,8 @@ storage_class_specifier
 
 type_specifier
 	: VOID
+        { $$ = gghc_type(yyval.text = "void"); }
+/*
 	| CHAR
 	| SHORT
 	| INT
@@ -201,10 +271,56 @@ type_specifier
 	| DOUBLE
 	| SIGNED
 	| UNSIGNED
+*/
+	| char_specifier
+        { $$ = gghc_type(yyval.text = "char"); }
+        | uchar_specifer
+        { $$ = gghc_type(yyval.text = "unsigned char"); }
+	| sshort_specifer
+        { $$ = gghc_type(yyval.text = "short"); }
+	| ushort_specifer
+        { $$ = gghc_type(yyval.text = "unsigned short"); }
+	| int_specifier
+        { $$ = gghc_type(yyval.text = "int"); }
+	| uint_specifier
+        { $$ = gghc_type(yyval.text = "unsigned int"); }
+	| slong_specifier
+        { $$ = gghc_type(yyval.text = "long"); }
+	| ulong_specifier
+        { $$ = gghc_type(yyval.text = "unsigned long"); }
+	| slong_long_specifier
+        { $$ = gghc_type(yyval.text = "long long"); }
+	| ulong_long_specifier
+        { $$ = gghc_type(yyval.text = "unsigned long long"); }
+	| FLOAT
+        { $$ = gghc_type(yyval.text = "float"); }
+	| DOUBLE
+        { $$ = gghc_type(yyval.text = "double"); }
+        | ldouble_specifier
+        { $$ = gghc_type(yyval.text = "long double"); }
+        | GGHC___builtin_va_list
+        { $$ = gghc_type("__builtin_va_list"); TEXT1(); }
+
 	| struct_or_union_specifier
 	| enum_specifier
 	| TYPE_NAME
 	;
+
+/* Reduce to unique types */
+char_specifier : CHAR | SIGNED CHAR | CHAR SIGNED;
+uchar_specifer : UNSIGNED CHAR | CHAR UNSIGNED;
+short_specifer : SHORT | SHORT INT;
+sshort_specifer : short_specifer | SIGNED short_specifer;
+ushort_specifer : UNSIGNED short_specifer | short_specifer UNSIGNED;
+int_specifier : INT | SIGNED | SIGNED INT;
+uint_specifier : UNSIGNED INT | UNSIGNED | INT UNSIGNED;
+long_specifier : LONG | INT LONG | LONG INT;
+slong_specifier : long_specifier | SIGNED long_specifier;
+ulong_specifier : UNSIGNED long_specifier | long_specifier UNSIGNED;
+long_long_specifier : LONG LONG | LONG LONG INT | INT LONG LONG | LONG INT LONG;
+slong_long_specifier : long_long_specifier | SIGNED long_long_specifier;
+ulong_long_specifier : UNSIGNED long_long_specifier | long_long_specifier UNSIGNED;
+ldouble_specifier : LONG DOUBLE | DOUBLE LONG;
 
 struct_or_union_specifier
 	: struct_or_union IDENTIFIER '{' struct_declaration_list '}'
@@ -425,21 +541,6 @@ function_definition
 
 %%
 #include <stdio.h>
-
-extern char yytext[];
-extern int yylex_column;
-
-void	yywarning(const char* s)
-{
-	fflush(stdout);
-	fprintf(stderr, "\nwarning: \n%*s\n%*s\n", yylex_column, "^", yylex_column, s);
-}
-
-static void yyerror(const char *s)
-{
-	fflush(stdout);
-	fprintf(stderr, "\nerror: \n%*s\n%*s\n", yylex_column, "^", yylex_column, s);
-}
 
 int main(int argc, char **argv)
 {
