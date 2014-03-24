@@ -35,6 +35,7 @@ int mm_buf_ungetc(mm_buf *mb, int c);
 int mm_buf_read(mm_buf *mb, void *ptr, int size);
 int mm_buf_token_begin(mm_buf_token *mt, mm_buf *mb);
 int mm_buf_token_end(mm_buf_token *mt, mm_buf *mb, size_t size);
+mm_buf_token * mm_buf_token_union(mm_buf_token *mt, mm_buf_token *mt0, mm_buf_token *mt1);
 char *mm_buf_token_str(mm_buf_token *mt);
 
 #endif

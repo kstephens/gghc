@@ -69,12 +69,9 @@ typedef struct gghc_YYSTYPE {
     gghc_decl		*decl;
   } u;
   int token;
-  mm_buf_token t;
   char*	text;
-
-  const char *filename;
-  int fileline;
-  int filecol;
+  int leng;
+  mm_buf_token t;
 } gghc_YYSTYPE;
 
 #define	YYSTYPE gghc_YYSTYPE

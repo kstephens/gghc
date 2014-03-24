@@ -114,11 +114,6 @@ int mm_buf_token_begin(mm_buf_token *t, mm_buf *mb)
 int mm_buf_token_end(mm_buf_token *t, mm_buf *mb, size_t size)
 {
   assert(t->mb == mb);
-  if ( 0 ) {
-    t->text = malloc(size + 1);
-    memcpy(t->text, t->beg.pos, size);
-    t->text[size] = 0;
-  }
 
   t->beg.end  = mb->s.pos;
   t->beg.size = size;
@@ -133,11 +128,28 @@ int mm_buf_token_end(mm_buf_token *t, mm_buf *mb, size_t size)
   return 0;
 }
 
+mm_buf_token * mm_buf_token_union(mm_buf_token *mt, mm_buf_token *mt0, mm_buf_token *mt1)
+{
+  if ( mt0->beg.pos > mt1->end.pos ) {
+    void *tmp = mt0; mt1 = mt0; mt1 = tmp;
+  }
+  if ( mt->text ) {
+    free(mt->text);
+    mt->text = 0;
+  }
+  *mt = *mt0;
+  mt->end = mt1->end;
+  mt->beg.size = mt1->end.pos - mt0->beg.pos;
+  return mt;
+}
+
 char *mm_buf_token_str(mm_buf_token *mt)
 {
-  char *ptr = malloc(mt->beg.size + 1);
-  memcpy(ptr, mt->beg.pos, mt->beg.size);
-  ptr[mt->beg.size] = 0;
-  return ptr;
+  if ( ! mt->text ) {
+    mt->text = malloc(mt->beg.size + 1);
+    memcpy(mt->text, mt->beg.pos, mt->beg.size);
+    mt->text[mt->beg.size] = 0;
+  }
+  return mt->text;
 }
 

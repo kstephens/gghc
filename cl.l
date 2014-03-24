@@ -22,13 +22,13 @@
 static int yywrap();
 static int comment();
 static int check_type();
-static void count();
 
 #undef fgetc
 #define fgetc(IN) mm_buf_getc(gghc_mb)
 #undef ugetc
 #define ungetc(IN,C) mm_buf_ungetc(gghc_mb, (C))
 
+ extern int yydebug;
 int yyparse();
 int gghc_yyparse(mm_buf *mb)
 {
@@ -62,12 +62,16 @@ static int _input(char *buf, size_t max_size)
  {
      static mm_buf_token token;
 
+     if ( yydebug ) fprintf(stderr, "  gghc: lex: matched '%s'\n", yytext);
+
      mm_buf_token_begin(&token, gghc_mb_token);
      mm_buf_read(gghc_mb_token, 0, yyleng);
      mm_buf_token_end(&token, gghc_mb_token, yyleng);
      gghc_last_token = &token;
 
      yylval.t = token;
+     yylval.text = strdup(yytext);
+     yylval.leng = yyleng;
 
      if ( 0 ) {
          char buf[64];
@@ -84,25 +88,8 @@ static int _input(char *buf, size_t max_size)
 
 #define YY_USER_ACTION _prepare_token(yytext, yyleng);
 
-static void _text()
-{
-  extern int yydebug;
-  yylval.text = strdup(yytext);
-  // gghc_mb->s.lineno = yylineno;
-  if ( 0 ) {
-    fprintf(stderr, "  token: '%s' '", yytext);
-    fwrite(gghc_mb->s.pos, strlen(yytext), 1, stderr);
-    fprintf(stderr, "'\n");
-  }
-  if ( yydebug ) fprintf(stderr, "let: matched '%s'\n", yytext);
-}
-
-#define	TEXT() _text()
-
 #define _return(X)               \
   do {                           \
-    count();                     \
-    TEXT();                      \
     return (yylval.token = (X)); \
   } while(0)
 
@@ -142,7 +129,6 @@ PRAGMA	(pragma)
 
 \#[ \t]*{PRAGMA}.*\n {
   yywarning(yytext);
-  count();
 }
 
 \#[ \t]*{LINE}?[ \t]*[0-9]+([ \t]*\".*\")?.*\n {
@@ -179,8 +165,6 @@ PRAGMA	(pragma)
   gghc_mb->s.src.column = 0;
 
   gghc_mb_token->s.src = gghc_mb->s.src;
-
-  count();
 }
 
 "/*"			{ comment(); }
@@ -283,7 +267,7 @@ L?\"(\\.|[^\\"])*\"	{ _return(STRING_LITERAL); }
 "|"			{ _return('|'); }
 "?"			{ _return('?'); }
 
-[ \t\v\n\f]		{ count(); }
+[ \t\v\n\f]		{ }
 .			{ /* ignore bad characters */ }
 
 %%
@@ -313,25 +297,6 @@ loop:
 		putchar(c1);
 return 0;
 }
-
-#define column yylex_column
-int column = 0;
-
-static void count()
-{
-	int i;
-
-	for (i = 0; yytext[i] != '\0'; i++)
-		if (yytext[i] == '\n')
-			column = 0;
-		else if (yytext[i] == '\t')
-			column += 8 - (column % 8);
-		else
-			column++;
-
-	// ECHO;
-}
-#undef yylex_column
 
 static int check_type()
 {
