@@ -1,10 +1,13 @@
 #include "mm_buf.h"
 #include <stdlib.h> /* malloc(), free() */
+#include <stdio.h> /* EOF */
 #include <fcntl.h> /* open() */
 #include <string.h> /* memset() */
 #include <unistd.h> 
 #include <sys/mman.h> /* mmap(), munmap() */
 #include <sys/stat.h> /* stat() */
+#include <sys/errno.h> /* errno */
+#include <assert.h>
 
 int mm_buf_open(mm_buf *mb, const char *filename)
 {
@@ -14,18 +17,30 @@ int mm_buf_open(mm_buf *mb, const char *filename)
   memset(mb, 0, sizeof(*mb));
   mb->fd = -1;
   mb->s.filename = strdup(filename);
-  if ( (result = stat(filename, &sb)) )
-    return result;
+  mb->_errfunc = "stat";
+  if ( (result = stat(filename, &sb)) != 0 )
+    goto rtn;
   mb->s.size = sb.st_size;
+  mb->_errfunc = "open";
   if ( (result = mb->fd = open(filename, O_RDONLY)) < 0 )
-    return result;
-  mb->s.beg = mmap(0, mb->s.size, PROT_READ, MAP_PRIVATE, mb->fd, 0);
+    goto rtn;
+  mb->_errfunc = "mmap";
+  if ( (mb->s.beg = mmap(0, mb->s.size, PROT_READ, MAP_PRIVATE, mb->fd, 0)) == 0 ) {
+    result = -1;
+    goto rtn;
+  }
   mb->s.end = mb->s.beg + mb->s.size;
   mb->s.pos = mb->s.beg;
+  mb->s.lineno = 1;
   mb->s.column = 0;
-  mb->s.lineno = 0;
   mb->s.fpos = 0;
-  return 0;
+  mb->_errfunc = 0;
+
+ rtn:
+  if ( result ) {
+    mb->_errno = errno;
+  }
+  return result;
 }
 
 int mm_buf_close(mm_buf *mb)
@@ -33,18 +48,22 @@ int mm_buf_close(mm_buf *mb)
   munmap(mb->s.beg, mb->s.size);
   if ( mb->fd >= 0 ) {
     close(mb->fd);
-    mb->fd = -1;
   }
   // free((void*) mb->s.filename); // shared
   memset(mb, 0, sizeof(*mb));
+  mb->fd = -1;
   return 0;
 }
 
 int mm_buf_getc(mm_buf *mb)
 {
   int c;
-  if ( mb->s.pos >= mb->s.end )
-    return -1;
+
+  mb->s_prev = mb->s;
+  if ( mb->s.pos >= mb->s.end ) {
+    c = EOF;
+    goto rtn;
+  }
   mb->s.fpos ++;
   c = *(mb->s.pos ++);
   if ( c == '\n' ) {
@@ -52,8 +71,20 @@ int mm_buf_getc(mm_buf *mb)
     mb->s.column = 0;
   } else if ( c == '\t' ) {
     mb->s.column += 8 - (mb->s.column % 8);
+  } else {
+    mb->s.column ++;
   }
+
+ rtn:
+  mb->s.c = c;
   return c;
+}
+
+int mm_buf_ungetc(mm_buf *mb, int c)
+{
+  assert(c == mb->s.c);
+  mb->s = mb->s_prev;
+  return 0;
 }
 
 int mm_buf_token_begin(mm_buf_token *t, mm_buf *mb)
