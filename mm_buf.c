@@ -35,7 +35,7 @@ int mm_buf_close(mm_buf *mb)
     close(mb->fd);
     mb->fd = -1;
   }
-  free((void*) mb->s.filename);
+  // free((void*) mb->s.filename); // shared
   memset(mb, 0, sizeof(*mb));
   return 0;
 }
@@ -49,7 +49,9 @@ int mm_buf_getc(mm_buf *mb)
   c = *(mb->s.pos ++);
   if ( c == '\n' ) {
     mb->s.lineno ++;
-    mb->s.column = 1;
+    mb->s.column = 0;
+  } else if ( c == '\t' ) {
+    mb->s.column += 8 - (mb->s.column % 8);
   }
   return c;
 }
