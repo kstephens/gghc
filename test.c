@@ -30,6 +30,8 @@ struct {
   // int a3[sizeof(double)/sizeof(char)]; // FIXME
 } unamed_struct;
 
+typedef int (*funcp_t)(char, int, char*);
+extern funcp_t func_x;
 
 typedef void *ESO;
 

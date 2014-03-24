@@ -309,7 +309,7 @@ declaration_specifiers
         { $$.storage = $1; $$.type = $2.type; $$.type_text = $2.type_text; TEXT2(); }
 
 	| type_specifier
-        { $$.storage = 0; $$.type = gghc_type($$.type_text = "int"); TEXT1(); }
+        { $$.storage = 0; $$.type = $1; $$.type_text = $<text>1; TEXT1(); }
 
 	| type_specifier declaration_specifiers
         { $$.storage = $2.storage; $$.type = $1; $$.type_text = $<text>1; TEXT2(); }
