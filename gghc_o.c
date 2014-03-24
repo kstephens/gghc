@@ -37,6 +37,10 @@ char*	ssprintf(const char* format, ...)
   return buf;
 }
 
+void gghc_debug_stop()
+{
+}
+
 /***************************************************************************************************/
 
 static int constant_id = 0;
@@ -168,6 +172,9 @@ void	gghc_enum_type_end(void)
 */
 char*	gghc_pointer_type(const char *type)
 {
+  if ( ! (type && type[0]) ) {
+    gghc_debug_stop();
+  }
   if ( mode_sexpr ) {
   return ssprintf("(gghc:pointer %s)", type);
   }
@@ -386,17 +393,20 @@ char *gghc_function_type(const char *rtntype, const char *argtypes)
 void gghc_declaration(gghc_decl_spec *spec, gghc_decl *decl)
 {
   while ( decl ) {
-    char *type = 0;
+    char *type = ssprintf(decl->declarator, spec->type);
+    fprintf(stderr, "  gghc_declaration: type=%s ident=%s\n", type, decl->identifier);
+    if ( ! (spec->type && spec->type[0]) ) {
+      yyerror(ssprintf("no type for identifier '%s'", decl->identifier));
+    } else
     if ( ! (decl->identifier && decl->identifier[0]) ) {
-      yyerror(ssprintf("no identifier for type %s", type));
+      yyerror(ssprintf("no identifier for type '%s'", type));
     } else {
-      type = ssprintf(decl->declarator, spec->type);
       /* The declaration is a typedef */
       if ( spec->storage == TYPEDEF ) {
 	gghc_symbol* s;
 
 	if ( gghc_symbol_get(decl->identifier) ) {
-	  yyerror(ssprintf("%s already typedef", decl->identifier));
+	  yyerror(ssprintf("'%s' already typedef", decl->identifier));
 	}
 	s = gghc_symbol_set(decl->identifier);
 	s->value = "typedef";

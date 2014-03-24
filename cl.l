@@ -70,7 +70,6 @@ static int _input(char *buf, size_t max_size)
      gghc_last_token = &token;
 
      yylval.t = token;
-     yylval.text = strdup(yytext);
      yylval.leng = yyleng;
 
      if ( 0 ) {

@@ -30,6 +30,7 @@ LIBS = # -lMallocDebug
 .c.o :
 	$(CC) -I. $(CFLAGS) -c $*.c -o $*.o
 .y.c .y.h :
+	@rm -f $*.c $*.h
 	$(YACC) $(YACCFLAGS) -d $*.y && $(MV) $*.tab.c $*.c && $(MV) $*.tab.h $*.h
 	tool/yy_action $*.c
 .l.c :

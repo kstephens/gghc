@@ -69,9 +69,11 @@ typedef struct gghc_YYSTYPE {
     gghc_decl		*decl;
   } u;
   int token;
-  char*	text;
   int leng;
   mm_buf_token t;
+  char *text;
+  char *type;
+  char *expr;
 } gghc_YYSTYPE;
 
 #define	YYSTYPE gghc_YYSTYPE
