@@ -27,14 +27,14 @@ char*	strdup(const char* s)
 
 char*	ssprintf(const char* format, ...)
 {
-  char	buf[8192]; /* ARRGGH! */
+  char *buf = 0;
   va_list vap;
   va_start(vap, format);
 
-  vsprintf(buf, format, vap);
+  vasprintf(&buf, format, vap);
 
   va_end(vap);
-  return strdup(buf);
+  return buf;
 }
 
 /***************************************************************************************************/
