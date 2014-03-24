@@ -23,6 +23,8 @@ FILE
 	*gghc_precomp3; /* ES initializers */
 
 mm_buf *gghc_mb; /* preprocessed header file */
+mm_buf *gghc_mb_token; /* token tracking stream. */
+mm_buf_token *gghc_last_token; 
 
 const char *gghc_parse_filename;
 const char *gghc_parse_top_level_filename;
@@ -264,11 +266,9 @@ int	main(int argc, char** argv)
   }
 
   /* Parse the input file */
-  gghc_mb = &mb;
-  mm_buf_open(gghc_mb, gghc_input_filename);
-  gghc_yyparse(gghc_mb);
-  mm_buf_close(gghc_mb);
-  gghc_mb = 0;
+  mm_buf_open(&mb, gghc_input_filename);
+  gghc_yyparse(&mb);
+  mm_buf_close(&mb);
 
   if ( gghc_error_code ) exit(gghc_error_code);
  

@@ -3,11 +3,15 @@
 
 #include <sys/types.h>
 
+typedef struct mm_buf_source {
+  const char *filename;
+  int lineno, column;
+} mm_buf_source;
+
 typedef struct mm_buf_state {
   unsigned char *beg, *end, *pos;
   size_t size, fpos;
-  const char *filename;
-  int lineno, column;
+  mm_buf_source src;
   int c; /* last char read. */
 } mm_buf_state;
 
@@ -31,5 +35,6 @@ int mm_buf_ungetc(mm_buf *mb, int c);
 int mm_buf_read(mm_buf *mb, void *ptr, int size);
 int mm_buf_token_begin(mm_buf_token *mt, mm_buf *mb);
 int mm_buf_token_end(mm_buf_token *mt, mm_buf *mb, size_t size);
+char *mm_buf_token_str(mm_buf_token *mt);
 
 #endif

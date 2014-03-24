@@ -15,8 +15,6 @@
 #include "gghc_sym.h"
 #include "gghc_o.h"
 
-char*	gghc_parse_last_text = "";
-extern char yytext[];
 extern int yylex_column;
 
 extern int yylex();
@@ -44,13 +42,18 @@ gghc_decl *make_decl()
 
 void	yywarning(const char* s)
 {
-  fprintf(stderr, "gghc: %s:%d:%d %s\n",
-          gghc_parse_filename ? gghc_parse_filename : "UNKNOWN",
-          gghc_parse_lineno,
-          yylex_column,
+  mm_buf_token *t = gghc_last_token;
+  if ( t ) {
+    fprintf(stderr, "gghc: %s:%d:%d %s\n",
+          t->beg.src.filename ? t->beg.src.filename : "UNKNOWN",
+          t->beg.src.lineno,
+          t->beg.src.column,
           s
           );
-  fprintf(stderr, "gghc: near '%s'\n", gghc_parse_last_text);
+    fprintf(stderr, "gghc: near '%*s'\n", (int) t->beg.size, t->beg.pos);
+  } else {
+    fprintf(stderr, "gghc: 0:0:0 %s\n", s);
+  }
 }
 
 void	yyerror(const char* s)
@@ -72,12 +75,12 @@ int	yydebug = 0;
 #define	TEXT_PRINT() while ( 0 )
 #endif
 
-#define TEXT0()	{ gghc_parse_last_text = yyval.text = ""; TEXT_PRINT(); }
-#define	TEXT1()	{ gghc_parse_last_text = yyval.text = yyvsp[0].text; TEXT_PRINT(); }
-#define	TEXT2()	{ gghc_parse_last_text = yyval.text = ssprintf("%s %s", yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
-#define	TEXT3() { gghc_parse_last_text = yyval.text = ssprintf("%s %s %s", yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
-#define	TEXT4() { gghc_parse_last_text = yyval.text = ssprintf("%s %s %s %s", yyvsp[-3].text, yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
-#define	TEXT5() { gghc_parse_last_text = yyval.text = ssprintf("%s %s %s %s %s", yyvsp[-4].text, yyvsp[-3].text, yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
+#define TEXT0()	{ yyval.text = ""; TEXT_PRINT(); }
+#define	TEXT1()	{ yyval.text = yyvsp[0].text; TEXT_PRINT(); }
+#define	TEXT2()	{ yyval.text = ssprintf("%s %s", yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
+#define	TEXT3() { yyval.text = ssprintf("%s %s %s", yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
+#define	TEXT4() { yyval.text = ssprintf("%s %s %s %s", yyvsp[-3].text, yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
+#define	TEXT5() { yyval.text = ssprintf("%s %s %s %s %s", yyvsp[-4].text, yyvsp[-3].text, yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
 %}
 
 %token IDENTIFIER CONSTANT STRING_LITERAL SIZEOF

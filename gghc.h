@@ -8,6 +8,8 @@
 #include "mm_buf.h"
 
 extern mm_buf *gghc_mb; /* preprocessed header file */
+extern mm_buf *gghc_mb_token; /* token tracking stream. */
+extern mm_buf_token *gghc_last_token;
 
 extern
 FILE
@@ -21,6 +23,7 @@ extern	int	gghc_parse_lineno;
 extern	const char*	gghc_parse_filename;
 extern  const char*   gghc_parse_top_level_filename;
 extern	int	gghc_error_code;
+
 typedef enum gghc_mode {
   gghc_mode_UNDEF = 0,
   gghc_mode_cxx = 1,
@@ -32,7 +35,6 @@ typedef enum gghc_mode {
 #define mode_sexpr (gghc_output_mode == gghc_mode_sexpr)
 
 extern  gghc_mode gghc_output_mode;
-extern	char*	gghc_parse_last_text;
 extern  char	*gghc_debug;
 
 int gghc_yyparse(mm_buf *mb);

@@ -29,13 +29,20 @@ static void count();
 #undef ugetc
 #define ungetc(IN,C) mm_buf_ungetc(gghc_mb, (C))
 
-static mm_buf gghc_mb_token; /* token tracking stream. */
-
 int yyparse();
 int gghc_yyparse(mm_buf *mb)
 {
-    gghc_mb_token = *gghc_mb;
-    return yyparse();
+    int result;
+    mm_buf mb_token;
+
+    gghc_mb = mb;
+    gghc_mb_token = &mb_token;
+    *gghc_mb_token = *gghc_mb;
+
+    result = yyparse();
+    gghc_mb = gghc_mb_token = 0;
+
+    return result;
 }
 
 static int _input(char *buf, size_t max_size)
@@ -53,11 +60,12 @@ static int _input(char *buf, size_t max_size)
 
  static void _prepare_token(char *yytext, int yyleng)
  {
-     mm_buf_token token;
+     static mm_buf_token token;
 
-     mm_buf_token_begin(&token, &gghc_mb_token);
-     mm_buf_read(&gghc_mb_token, 0, yyleng);
-     mm_buf_token_end(&token, &gghc_mb_token, yyleng);
+     mm_buf_token_begin(&token, gghc_mb_token);
+     mm_buf_read(gghc_mb_token, 0, yyleng);
+     mm_buf_token_end(&token, gghc_mb_token, yyleng);
+     gghc_last_token = &token;
 
      yylval.t = token;
 
@@ -80,7 +88,7 @@ static void _text()
 {
   extern int yydebug;
   yylval.text = strdup(yytext);
-  gghc_mb->s.lineno = yylineno;
+  // gghc_mb->s.lineno = yylineno;
   if ( 0 ) {
     fprintf(stderr, "  token: '%s' '", yytext);
     fwrite(gghc_mb->s.pos, strlen(yytext), 1, stderr);
@@ -166,9 +174,11 @@ PRAGMA	(pragma)
     }
   }
 
-  gghc_mb->s.filename = strdup(gghc_parse_filename);
-  gghc_mb->s.lineno = gghc_parse_lineno;
-  gghc_mb->s.column = 0;
+  gghc_mb->s.src.filename = strdup(gghc_parse_filename);
+  gghc_mb->s.src.lineno = gghc_parse_lineno;
+  gghc_mb->s.src.column = 0;
+
+  gghc_mb_token->s.src = gghc_mb->s.src;
 
   count();
 }

@@ -16,7 +16,7 @@ int mm_buf_open(mm_buf *mb, const char *filename)
 
   memset(mb, 0, sizeof(*mb));
   mb->fd = -1;
-  mb->s.filename = strdup(filename);
+  mb->s.src.filename = strdup(filename);
   mb->_errfunc = "stat";
   if ( (result = stat(filename, &sb)) != 0 )
     goto rtn;
@@ -31,8 +31,8 @@ int mm_buf_open(mm_buf *mb, const char *filename)
   }
   mb->s.end = mb->s.beg + mb->s.size;
   mb->s.pos = mb->s.beg;
-  mb->s.lineno = 1;
-  mb->s.column = 0;
+  mb->s.src.lineno = 1;
+  mb->s.src.column = 0;
   mb->s.fpos = 0;
   mb->_errfunc = 0;
 
@@ -67,12 +67,12 @@ int mm_buf_getc(mm_buf *mb)
   mb->s.fpos ++;
   c = *(mb->s.pos ++);
   if ( c == '\n' ) {
-    mb->s.lineno ++;
-    mb->s.column = 0;
+    mb->s.src.lineno ++;
+    mb->s.src.column = 0;
   } else if ( c == '\t' ) {
-    mb->s.column += 8 - (mb->s.column % 8);
+    mb->s.src.column += 8 - (mb->s.src.column % 8);
   } else {
-    mb->s.column ++;
+    mb->s.src.column ++;
   }
 
  rtn:
@@ -128,10 +128,16 @@ int mm_buf_token_end(mm_buf_token *t, mm_buf *mb, size_t size)
   t->end.end  = mb->s.pos;
   t->end.size = 0;
 
-  t->end.filename = mb->s.filename;
-  t->end.lineno   = mb->s.lineno;
-  t->end.column   = mb->s.column;
+  t->end.src = mb->s.src;
 
   return 0;
+}
+
+char *mm_buf_token_str(mm_buf_token *mt)
+{
+  char *ptr = malloc(mt->beg.size + 1);
+  memcpy(ptr, mt->beg.pos, mt->beg.size);
+  ptr[mt->beg.size] = 0;
+  return ptr;
 }
 
