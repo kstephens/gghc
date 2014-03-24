@@ -266,7 +266,7 @@ int	main(int argc, char** argv)
   /* Parse the input file */
   gghc_mb = &mb;
   mm_buf_open(gghc_mb, gghc_input_filename);
-  yyparse();
+  gghc_yyparse(gghc_mb);
   mm_buf_close(gghc_mb);
   gghc_mb = 0;
 

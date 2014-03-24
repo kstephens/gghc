@@ -29,6 +29,16 @@ static void count();
 #undef ugetc
 #define ungetc(IN,C) mm_buf_ungetc(gghc_mb, (C))
 
+static mm_buf gghc_mb_token;
+static mm_buf_token gghc_token;
+
+int yyparse();
+int gghc_yyparse(mm_buf *mb)
+{
+    gghc_mb_token = *gghc_mb;
+    return yyparse();
+}
+
 static int _input(char *buf, size_t max_size)
 {
   int c;
@@ -41,6 +51,31 @@ static int _input(char *buf, size_t max_size)
   do {                                                                  \
     result = _input(buf, max_size);                                     \
   } while(0)
+
+ static void _prepare_token(char *yytext, int yyleng)
+ {
+     mm_buf_token token;
+
+     mm_buf_token_begin(&token, &gghc_mb_token);
+     mm_buf_read(&gghc_mb_token, 0, yyleng);
+     mm_buf_token_end(&token, &gghc_mb_token, yyleng);
+
+     yylval.t = token;
+
+     if ( 0 ) {
+         char buf[64];
+
+         fprintf(stderr, "  gghc: lex:   len %d '%s'\n", (int) yyleng, yytext);
+
+         memset(buf, 0, sizeof(buf));
+         strncpy(buf, token.beg.pos, 60);
+         buf[token.beg.size] = 0;
+         if ( buf[60] ) strcat(buf, "...");
+         fprintf(stderr, "  gghc: token: len %d '%s'\n\n", (int) token.beg.size, buf);
+     }
+ }
+
+#define YY_USER_ACTION _prepare_token(yytext, yyleng);
 
 static void _text()
 {

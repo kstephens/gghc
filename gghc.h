@@ -35,6 +35,7 @@ extern  gghc_mode gghc_output_mode;
 extern	char*	gghc_parse_last_text;
 extern  char	*gghc_debug;
 
+int gghc_yyparse(mm_buf *mb);
 extern	void	yywarning(const char* s);
 extern	void	yyerror(const char* s);
 
