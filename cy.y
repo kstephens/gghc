@@ -67,13 +67,13 @@ void	yyerror(const char* s)
 
 int	yydebug = 0;
 
-#if 1
+#if 0
 #define	TEXT_PRINT(N) printf("  TEXT%d()=%s\n", N, yyval.text)
 #else
 #define	TEXT_PRINT(N) while ( 0 )
 #endif
 
-#define TEXT0()	{ yyval.text = ""; TEXT_PRINT(0); }
+#define TEXT0() { yyval.text = ""; TEXT_PRINT(0); }
 #define	TEXT1()	{ yyval.text = yyvsp[0].text; TEXT_PRINT(1); }
 #define	TEXT2()	{ yyval.text = ssprintf("%s %s", yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(2); }
 #define	TEXT3() { yyval.text = ssprintf("%s %s %s", yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(3); }
@@ -85,17 +85,23 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 {
   int i;
   mm_buf_token t, *dst = &yyvalp->t, *src;
+  int verbose = 1;
 
   mm_buf_token_init(&t);
-  fprintf(stderr, "  yyn=%d yylen=%d yyvalp=%p yyvsp=%p\n", yyn, yylen, yyvalp, yyvsp);
-  fprintf(stderr, "    tokens: ");
+  if ( verbose >= 2 ) {
+    fprintf(stderr, "  yyn=%d yylen=%d yyvalp=%p yyvsp=%p\n", yyn, yylen, yyvalp, yyvsp);
+    fprintf(stderr, "    tokens: ");
+  }
   for ( i = 1 - yylen; i <= 0; ++ i ) {
     src = &(yyvsp[i].t);
-    fprintf(stderr, "'%s' ", mm_buf_token_str(src));
+    if ( verbose >= 3 ) fprintf(stderr, "'%s' ", mm_buf_token_str(src));
     mm_buf_token_union(&t, &t, src);
   }
-  fprintf(stderr, "\n ");
-  fprintf(stderr, "    = '%s' ", mm_buf_token_str(&t));
+  if ( verbose >= 2 ) fprintf(stderr, "\n ");
+  if ( verbose >= 1 ) {
+    fprintf(stderr, "    = '%s'\n", mm_buf_token_str(&t));
+  }
+  *dst = t;
 }
 
 %}
