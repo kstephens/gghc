@@ -53,6 +53,8 @@ all : $(OFILE_DIR) $(PRODUCT)
 
 test : all
 	$(PRODUCT) -debug -v -g test.c
+
+test-deep : all
 	$(PRODUCT) stdlib.h
 
 debug : all

@@ -29,8 +29,7 @@ static void count();
 #undef ugetc
 #define ungetc(IN,C) mm_buf_ungetc(gghc_mb, (C))
 
-static mm_buf gghc_mb_token;
-static mm_buf_token gghc_token;
+static mm_buf gghc_mb_token; /* token tracking stream. */
 
 int yyparse();
 int gghc_yyparse(mm_buf *mb)
@@ -68,7 +67,7 @@ static int _input(char *buf, size_t max_size)
          fprintf(stderr, "  gghc: lex:   len %d '%s'\n", (int) yyleng, yytext);
 
          memset(buf, 0, sizeof(buf));
-         strncpy(buf, token.beg.pos, 60);
+         strncpy(buf, (char*) token.beg.pos, 60);
          buf[token.beg.size] = 0;
          if ( buf[60] ) strcat(buf, "...");
          fprintf(stderr, "  gghc: token: len %d '%s'\n\n", (int) token.beg.size, buf);
@@ -320,7 +319,7 @@ static void count()
 		else
 			column++;
 
-	ECHO;
+	// ECHO;
 }
 #undef yylex_column
 
