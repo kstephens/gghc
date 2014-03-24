@@ -84,6 +84,8 @@ unsigned long	_stod(const char** _s)
 
 %}
 
+%option yylineno
+
 D			[0-9]
 L			[a-zA-Z_]
 H			[a-fA-F0-9]
@@ -129,6 +131,11 @@ PRAGMA	(pragma)
       gghc_parse_top_level_filename =  strdup(gghc_parse_filename);
     }
   }
+
+  gghc_mb->s.filename = strdup(gghc_parse_filename);
+  gghc_mb->s.lineno = gghc_parse_lineno;
+  gghc_mb->s.column = 0;
+
   count();
 }
 
