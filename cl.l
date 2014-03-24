@@ -24,28 +24,38 @@ static int comment();
 static int check_type();
 static void count();
 
-#if 1
 #undef fgetc
 #define fgetc(IN) mm_buf_getc(gghc_mb)
 #undef ugetc
 #define ungetc(IN,C) mm_buf_ungetc(gghc_mb, (C))
-#else
-#endif
 
+static int _input(char *buf, size_t max_size)
+{
+  int c;
+  if ( (c = mm_buf_getc(gghc_mb)) == '\n' )
+    gghc_parse_lineno ++;
+  return (c == EOF) ? YY_NULL : (buf[0] = c, 1);
+}
 #undef YY_INPUT
 #define YY_INPUT(buf,result,max_size)                                   \
   do {                                                                  \
-    int	c;                                                              \
-    if ( (c = fgetc(gghc_input)) == '\n' ) gghc_parse_lineno ++;        \
-    result = (c == EOF) ? YY_NULL : (buf[0] = c, 1);                    \
+    result = _input(buf, max_size);                                     \
   } while(0)
 
-#define	TEXT()                                                          \
-  do {                                                                  \
-    extern int yydebug;                                                 \
-    yylval.text = strdup(yytext);                                       \
-    if ( yydebug ) fprintf(stderr, "let: matched '%s'\n", yylval.text); \
-  } while(0)
+static void _text()
+{
+  extern int yydebug;
+  yylval.text = strdup(yytext);
+  gghc_mb->s.lineno = yylineno;
+  if ( 0 ) {
+    fprintf(stderr, "  token: '%s' '", yytext);
+    fwrite(gghc_mb->s.pos, strlen(yytext), 1, stderr);
+    fprintf(stderr, "'\n");
+  }
+  if ( yydebug ) fprintf(stderr, "let: matched '%s'\n", yytext);
+}
+
+#define	TEXT() _text()
 
 #define _return(X)               \
   do {                           \

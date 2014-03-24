@@ -7,10 +7,10 @@
 #include <stdio.h> /* FILE */
 #include "mm_buf.h"
 
-extern mm_buf *gghc_mb;
+extern mm_buf *gghc_mb; /* preprocessed header file */
 
 extern
-FILE	*gghc_input,	/* preprocessed header file */
+FILE
         *gghc_precomp0,  /* C constants */
 	*gghc_precomp1, /* unnamed struct/union definitions */
 	*gghc_precomp2,	/* struct/union slot accessors */

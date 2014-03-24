@@ -15,14 +15,14 @@
 /*
 ** MAIN
 */
-FILE	*gghc_input,	/* preprocessed header file */
+FILE
 	*gghc_precomp0, /* C constants */
 	*gghc_precomp1, /* unnamed struct/union definitions */
 	*gghc_precomp2,	/* struct/union slot accessors */
 	*gghc_precomp30, /* initializer declaration */
 	*gghc_precomp3; /* ES initializers */
 
-mm_buf *gghc_mb;
+mm_buf *gghc_mb; /* preprocessed header file */
 
 const char *gghc_parse_filename;
 const char *gghc_parse_top_level_filename;
@@ -75,7 +75,6 @@ static
 void	gghc_cleanup(void)
 {
   /* Close temp files */
-  if ( gghc_input ) fclose(gghc_input); gghc_input = 0;
   if ( gghc_precomp0 ) fclose(gghc_precomp0); gghc_precomp1 = 0;
   if ( gghc_precomp1 ) fclose(gghc_precomp1); gghc_precomp1 = 0;
   if ( gghc_precomp2 ) fclose(gghc_precomp2); gghc_precomp2 = 0;
@@ -185,7 +184,6 @@ int	main(int argc, char** argv)
   
   sprintf(cmd, "cc -E %s '-D__gghc__' '%s' > '%s'", options, gghc_precomp1_filename, gghc_input_filename);
   gghc_system(cmd);
-  gghc_input = fopen(gghc_input_filename, "r");
 
   /* Create output files */
   gghc_precomp0 = fopen(gghc_precomp0_filename, "w+");
@@ -295,7 +293,6 @@ int	main(int argc, char** argv)
   }
 
   /* Close the temp files */
-  fclose(gghc_input); gghc_input = 0;
   if ( gghc_precomp0 ) fclose(gghc_precomp0); gghc_precomp0 = 0;
   fclose(gghc_precomp1); gghc_precomp1 = 0;
   fclose(gghc_precomp2); gghc_precomp2 = 0;
