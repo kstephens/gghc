@@ -193,12 +193,14 @@ Symbol *install(char* s)
 }
 
 #define	TEXT() 	{ extern int yydebug; yylval.text = strdup(yytext); if ( yydebug ) fprintf(stderr, "let: matched '%s'\n", yylval.text); }
+
 %}
 
 DIGIT	([0-9])
 EXP	([Ee][+-]?[0-9]+)
 LINE	(line)
 PRAGMA	(pragma)
+
 %%
 
 "/*"	{
