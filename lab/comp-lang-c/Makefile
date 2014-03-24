@@ -4,8 +4,9 @@ all:
 YACC = bison
 LEX = flex
 MV = mv
-GGHC_LIB_DIR=`pwd`/
-CFLAGS = $(OTHER_CFLAGS) -Wall -g '-DGGHC_LIB_DIR="'$(GGHC_LIB_DIR)'"' -DYYDEBUG # -DLEXDEBUG2 -DLEXDEBUG 
+GGHC_LIB_DIR:=$(shell /bin/pwd)/#
+INC_DIRS=-I. -I../..
+CFLAGS = $(OTHER_CFLAGS) $(INC_DIRS) -Wall -g '-DGGHC_LIB_DIR="'$(GGHC_LIB_DIR)'"' -DYYDEBUG # -DLEXDEBUG2 -DLEXDEBUG 
 YACCFLAGS = # -v
 LEXFLAGS = -f
 
@@ -15,6 +16,7 @@ YFILES = cy.y
 LFILES = cl.l
 
 CFILES = \
+  ../../gghc_sym.c
 
 LIBS = # -lMallocDebug
 

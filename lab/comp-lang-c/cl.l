@@ -1,3 +1,9 @@
+%{
+/* From http://www.lysator.liu.se/c/ANSI-C-grammar-y.html. */
+
+#include "cy.h"
+
+%}
 
 D			[0-9]
 L			[a-zA-Z_]
@@ -6,14 +12,32 @@ E			[Ee][+-]?{D}+
 FS			(f|F|l|L)
 IS			(u|U|l|L)*
 
+LINE	(line)
+PRAGMA	(pragma)
+
 %{
 #include <stdio.h>
-#include "y.tab.h"
+#include "gghc_sym.h"
 
-void count();
+ void	yywarning(const char* s);
+ void	yyerror(const char* s);
+static int yywrap();
+static int comment();
+static int check_type();
+static void count();
+
 %}
 
 %%
+
+\#[ \t]*{PRAGMA}.*\n {
+  yywarning(yytext);
+}
+
+\#[ \t]*{LINE}?[ \t]*[0-9]+([ \t]*\".*\")?.*\n {
+  // yywarning(yytext);
+}
+
 "/*"			{ comment(); }
 
 "auto"			{ count(); return(AUTO); }
@@ -114,13 +138,13 @@ L?\"(\\.|[^\\"])*\"	{ count(); return(STRING_LITERAL); }
 
 %%
 
-yywrap()
+static int yywrap()
 {
 	return(1);
 }
 
 
-comment()
+static int comment()
 {
 	char c, c1;
 
@@ -136,12 +160,13 @@ loop:
 
 	if (c != 0)
 		putchar(c1);
+return 0;
 }
 
-
+#define column yylex_column
 int column = 0;
 
-void count()
+static void count()
 {
 	int i;
 
@@ -155,9 +180,9 @@ void count()
 
 	ECHO;
 }
+#undef yylex_column
 
-
-int check_type()
+static int check_type()
 {
 /*
 * pseudo code --- this is what it should check
@@ -167,6 +192,11 @@ int check_type()
 *
 *	return(IDENTIFIER);
 */
+
+  gghc_symbol *sym;
+  if ( (sym = gghc_symbol_get(yytext)) && strcmp(sym->value, "typedef") == 0 ) {
+    return TYPE_NAME;
+  }
 
 /*
 *	it actually will only return IDENTIFIER

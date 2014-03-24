@@ -1,3 +1,12 @@
+%{
+  /* From http://www.lysator.liu.se/c/ANSI-C-grammar-y.html. */
+
+extern int yylex();
+static void yyerror(const char *s);
+
+#include "gghc_t.h"
+%}
+
 %token IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
 %token PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
@@ -418,11 +427,22 @@ function_definition
 #include <stdio.h>
 
 extern char yytext[];
-extern int column;
+extern int yylex_column;
 
-yyerror(s)
-char *s;
+void	yywarning(const char* s)
 {
 	fflush(stdout);
-	printf("\n%*s\n%*s\n", column, "^", column, s);
+	fprintf(stderr, "\nwarning: \n%*s\n%*s\n", yylex_column, "^", yylex_column, s);
+}
+
+static void yyerror(const char *s)
+{
+	fflush(stdout);
+	fprintf(stderr, "\nerror: \n%*s\n%*s\n", yylex_column, "^", yylex_column, s);
+}
+
+int main(int argc, char **argv)
+{
+  yyparse();
+  return 0;
 }
