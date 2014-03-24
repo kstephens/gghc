@@ -152,7 +152,8 @@ external_declaration:
 	;
 
 function_definition:
-	declaration_specifiers_opt declarator declaration_list_opt compound_statement 
+/*	declaration_specifiers_opt declarator declaration_list_opt compound_statement */
+	declaration_specifiers_opt declarator                      compound_statement
 {
 	gghc_declaration(&$1, $2);	
 }
