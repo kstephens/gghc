@@ -21,11 +21,13 @@ typedef mystruct yourstruct;
 
 extern
 struct {
-	int	a;
-	char*	b;
-	int	bits : 4;
-	int	d[5][3];
-  int w[sizeof(double)/sizeof(char)];
+  int	a;
+  char*	b;
+  int	bits : 4;
+  int	d[5][3];
+  int a1[23/7 + 2];
+  // int a2[sizeof(int)]; // FIXME
+  // int a3[sizeof(double)/sizeof(char)]; // FIXME
 } unamed_struct;
 
 

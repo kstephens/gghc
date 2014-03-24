@@ -164,6 +164,8 @@ int	main(int argc, char** argv)
     }
   }
 
+  gghc_reset_state();
+
   /* Generate unique file output file name */
   sprintf(gghc_input_filename, gghc_input_filename_template, getpid() ^ time(0));
   

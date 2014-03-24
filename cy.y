@@ -1,7 +1,5 @@
-%{
-/*
-** Copyright 1993, 1994, 2014 Kurt A. Stephens
-*/
+%{ /* -*- c -*- */
+  /* From http://www.lysator.liu.se/c/ANSI-C-grammar-y.html. */
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -13,8 +11,14 @@
 #include "gghc_o.h"
 
 char*	gghc_parse_last_text = "";
+extern char yytext[];
+extern int yylex_column;
 
-static int yylex ();
+extern int yylex();
+
+ void debug_stop_here()
+ {
+ }
 
 void *gghc_malloc0(size_t size)
 {
@@ -23,7 +27,8 @@ void *gghc_malloc0(size_t size)
    return ptr;
 }
 
-gghc_decl *make_decl() {
+gghc_decl *make_decl()
+{
   gghc_decl *x = gghc_malloc0(sizeof(gghc_decl));
   x->identifier = "";
   x->declarator = "%s";
@@ -34,18 +39,19 @@ gghc_decl *make_decl() {
 
 void	yywarning(const char* s)
 {
-	fprintf(stderr, "gghc: %s in file %s: line %d\n",
-		s,
-		gghc_parse_filename ? gghc_parse_filename : "UNKNOWN",
-		gghc_parse_lineno
-	);
-	fprintf(stderr, "gghc: near '%s'\n", gghc_parse_last_text);
+  fprintf(stderr, "gghc: %s:%d:%d %s\n",
+          gghc_parse_filename ? gghc_parse_filename : "UNKNOWN",
+          gghc_parse_lineno,
+          yylex_column,
+          s
+          );
+  fprintf(stderr, "gghc: near '%s'\n", gghc_parse_last_text);
 }
 
 void	yyerror(const char* s)
 {
-	yywarning(s);
-	gghc_error_code ++;
+  yywarning(s);
+  gghc_error_code ++;
 }
 
 /****************************************************************************************/
@@ -67,162 +73,327 @@ int	yydebug = 0;
 #define	TEXT3() { gghc_parse_last_text = yyval.text = ssprintf("%s %s %s", yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
 #define	TEXT4() { gghc_parse_last_text = yyval.text = ssprintf("%s %s %s %s", yyvsp[-3].text, yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
 #define	TEXT5() { gghc_parse_last_text = yyval.text = ssprintf("%s %s %s %s %s", yyvsp[-4].text, yyvsp[-3].text, yyvsp[-2].text, yyvsp[-1].text, yyvsp[0].text); TEXT_PRINT(); }
-
 %}
 
-%token	AUTO REGISTER STATIC EXTERN TYPEDEF
-%token	VOID CHAR SHORT INT LONG FLOAT DOUBLE SIGNED UNSIGNED
-%token	CONST VOLATILE
-%token	STRUCT UNION
-%token	ENUM
-%token	DDD
-%token	CASE DEFAULT
-%token	IF ELSE SWITCH
-%token	WHILE DO FOR
-%token	GOTO CONTINUE BREAK RETURN
-%token	MULA DIVA MODA ADDA SUBA LSA RSA AA XA OA
-%token	LO LA
-%token	EQ NE
-%token	LE GE
-%token	LS RS
-%token	INC DEC SIZEOF
-%token	AR
+%token IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
+%token PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
+%token AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
+%token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
+%token XOR_ASSIGN OR_ASSIGN TYPE_NAME
 
-/**************************************/
+%token TYPEDEF EXTERN STATIC AUTO REGISTER
+%token CHAR SHORT INT LONG SIGNED UNSIGNED FLOAT DOUBLE CONST VOLATILE VOID
+%token STRUCT UNION ENUM ELLIPSIS
 
-%token		CHAR_CONSTANT
-%token		WCHAR_CONSTANT
-%token		INT_CONSTANT
-%token		UNSIGNED_INT_CONSTANT
-%token		LONG_INT_CONSTANT
-%token		UNSIGNED_LONG_INT_CONSTANT
-%token		FLOAT_CONSTANT
-%token		DOUBLE_CONSTANT
-%token		LONG_DOUBLE_CONSTANT
-%token		ENUM_CONSTANT
-%token		STRING_CONSTANT
-%token		WSTRING_CONSTANT
-%token		IDENTIFIER
-
-%token		TYPEDEF_NAME
+%token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token GGHC_inline
 %token GGHC___builtin_va_list
 %token GGHC___attribute__
 %token GGHC___asm
 
-/*******************************************************************************************/
+%start translation_unit
 
-%type	<u.cp>		IDENTIFIER IDENTIFIER_opt TYPEDEF_NAME
+%type	<u.cp>		IDENTIFIER TYPE_NAME
 
-%type	<u.decl_spec>	declaration_specifiers declaration_specifiers_opt
-			specifier_qualifier_list specifier_qualifier_list_opt
+%type	<u.decl_spec>	declaration_specifiers
+			specifier_qualifier_list
 
-%type	<u.i>		storage_class_specifier storage_class_specifier_basic
+%type	<u.decl>	declarator direct_declarator
+			init_declarator init_declarator_list
+			declaration_list
+			struct_declarator struct_declarator_list
+
+%type	<u.i>		storage_class_specifier
 %type	<u.cp>		type_specifier
 %type	<u.cp>		struct_or_union_specifier struct_or_union
 
 %type	<u.cp>		enum_specifier enumerator_list enumerator
 
-%type	<u.decl>	declarator direct_declarator declarator_opt
-                        direct_declarator_basic
-			init_declarator_list init_declarator_list_opt
-			init_declarator
-			declaration_list declaration_list_opt
-			struct_declarator_list struct_declarator
+%type	<u.cp>		pointer
 
-%type	<u.cp>		pointer pointer_opt
-
-%type	<u.cp>		parameter_type_list parameter_list parameter_type_list_opt
+%type	<u.cp>		parameter_type_list parameter_list
 			parameter_declaration
 
-%type	<u.cp>		abstract_declarator abstract_declarator_opt
-			direct_abstract_declarator direct_abstract_declarator_opt
+%type	<u.cp>		abstract_declarator
+			direct_abstract_declarator
+
 
 %%
 
-translation_unit:
-	  external_declaration
-	| translation_unit external_declaration
+primary_expression
+	: IDENTIFIER
+	| CONSTANT
+	| STRING_LITERAL
+	| '(' expression ')'
+        { TEXT3(); }
 	;
 
-external_declaration:
-	  top_level_declaration
-	| function_definition
+postfix_expression
+	: primary_expression
+	| postfix_expression '[' expression ']'
+        { TEXT4(); }
+	| postfix_expression '(' ')'
+        { TEXT3(); }
+	| postfix_expression '(' argument_expression_list ')'
+        { TEXT4(); }
+	| postfix_expression '.' IDENTIFIER
+        { TEXT3(); }
+	| postfix_expression PTR_OP IDENTIFIER
+        { TEXT3(); }
+	| postfix_expression INC_OP
+        { TEXT2(); }
+	| postfix_expression DEC_OP
+        { TEXT2(); }
 	;
 
-function_definition:
-/*	declaration_specifiers_opt declarator declaration_list_opt compound_statement */
-	declaration_specifiers_opt declarator                      compound_statement
-{
-	gghc_declaration(&$1, $2);	
-}
+argument_expression_list
+	: assignment_expression
+	| argument_expression_list ',' assignment_expression
+        { TEXT3(); }
 	;
 
-top_level_declaration:
-	declaration_specifiers init_declarator_list_opt ';'
-{
-	gghc_declaration(&$1, $2);
-}
+unary_expression
+	: postfix_expression
+	| INC_OP unary_expression
+        { TEXT2(); }
+	| DEC_OP unary_expression
+        { TEXT2(); }
+	| unary_operator cast_expression
+        { TEXT2(); }
+	| SIZEOF unary_expression
+        { TEXT2(); }
+	| SIZEOF '(' type_name ')'
+        { TEXT4(); }
 	;
 
-declaration:
-	declaration_specifiers init_declarator_list_opt ';'
+unary_operator
+	: '&'
+	| '*'
+	| '+'
+	| '-'
+	| '~'
+	| '!'
 	;
 
-declaration_list:
-	  declaration						{ TEXT1(); }
-	| declaration_list declaration				{ TEXT2(); }
+cast_expression
+	: unary_expression
+	| '(' type_name ')' cast_expression
+        { TEXT4(); }
 	;
 
-declaration_list_opt:
-	/* EMPTY */						{ TEXT0(); }
-	| declaration_list					{ TEXT1(); }
+multiplicative_expression
+	: cast_expression
+	| multiplicative_expression '*' cast_expression
+        { TEXT3(); }
+	| multiplicative_expression '/' cast_expression
+        { TEXT3(); }
+	| multiplicative_expression '%' cast_expression
+        { TEXT3(); }
 	;
 
-declaration_specifiers:
-	  storage_class_specifier declaration_specifiers_opt	{ $$.storage = $1; $$.type = $2.type; $$.type_text = $2.type_text; TEXT2(); }
-	| type_specifier declaration_specifiers_opt		{ $$.storage = $2.storage; $$.type = $1; $$.type_text = yyvsp[-1].text; TEXT2(); }
-	| type_qualifier declaration_specifiers_opt		{ $$ = $2; TEXT2(); }
+additive_expression
+	: multiplicative_expression
+	| additive_expression '+' multiplicative_expression
+        { TEXT3(); }
+	| additive_expression '-' multiplicative_expression
+        { TEXT3(); }
 	;
 
-declaration_specifiers_opt:
-	  /* EMPTY */						{ $$.storage = 0; $$.type = gghc_type("int"); $$.type_text = "int"; TEXT0(); }
-	| declaration_specifiers				{ $$ = $1; TEXT1(); }
+shift_expression
+	: additive_expression
+	| shift_expression LEFT_OP additive_expression
+        { TEXT3(); }
+	| shift_expression RIGHT_OP additive_expression
+        { TEXT3(); }
 	;
 
-storage_class_specifier:
-    storage_class_specifier_basic             { $$ = $1; TEXT1(); }
-  | storage_class_specifier_basic GGHC_inline { $$ = $1; TEXT2(); }
-  ;
-
-storage_class_specifier_basic:
-	  AUTO							{ $$ = AUTO;		TEXT1(); }
-	| REGISTER						{ $$ = REGISTER;	TEXT1(); }
-	| STATIC						{ $$ = STATIC;		TEXT1(); }
-	| EXTERN						{ $$ = EXTERN;		TEXT1(); }
-	| TYPEDEF						{ $$ = TYPEDEF;		TEXT1(); }
+relational_expression
+	: shift_expression
+	| relational_expression '<' shift_expression
+        { TEXT3(); }
+	| relational_expression '>' shift_expression
+        { TEXT3(); }
+	| relational_expression LE_OP shift_expression
+        { TEXT3(); }
+	| relational_expression GE_OP shift_expression
+        { TEXT3(); }
 	;
 
-type_specifier:
-	  VOID							{ $$ = gghc_type("void"); yyval.text = "void"; }
-	| char_specifier					{ $$ = gghc_type("char"); yyval.text = "char"; }
-	| uchar_specifer					{ $$ = gghc_type("unsigned char"); yyval.text = "unsigned char"; }
-	| sshort_specifer					{ $$ = gghc_type("short"); yyval.text = "short"; }
-	| ushort_specifer					{ $$ = gghc_type("unsigned short"); yyval.text = "unsigned short"; }
-	| int_specifier						{ $$ = gghc_type("int"); yyval.text = "int"; }
-	| uint_specifier					{ $$ = gghc_type("unsigned int"); yyval.text = "unsigned int"; }
-	| slong_specifier					{ $$ = gghc_type("long"); yyval.text = "long"; }
-	| ulong_specifier					{ $$ = gghc_type("unsigned long"); yyval.text = "unsigned long";  }
-	| slong_long_specifier					{ $$ = gghc_type("long long"); yyval.text = "long long"; }
-	| ulong_long_specifier					{ $$ = gghc_type("unsigned long long"); yyval.text = "unsigned long long";  }
-	| FLOAT							{ $$ = gghc_type("float"); yyval.text = "float"; }
-	| DOUBLE						{ $$ = gghc_type("double"); yyval.text = "double"; }
-	| ldouble_specifier					{ $$ = gghc_type("long double"); yyval.text = "long double"; }
-	| struct_or_union_specifier				{ $$ = $1; TEXT1(); }
-	| enum_specifier					{ $$ = $1; TEXT1(); }
-	| TYPEDEF_NAME						{ $$ = gghc_type($1); TEXT1(); }
-        | GGHC___builtin_va_list                                { $$ = gghc_type("__builtin_va_list"); TEXT1(); }
+equality_expression
+	: relational_expression
+	| equality_expression EQ_OP relational_expression
+        { TEXT3(); }
+	| equality_expression NE_OP relational_expression
+        { TEXT3(); }
+	;
+
+and_expression
+	: equality_expression
+	| and_expression '&' equality_expression
+        { TEXT3(); }
+	;
+
+exclusive_or_expression
+	: and_expression
+	| exclusive_or_expression '^' and_expression
+        { TEXT3(); }
+	;
+
+inclusive_or_expression
+	: exclusive_or_expression
+	| inclusive_or_expression '|' exclusive_or_expression
+        { TEXT3(); }
+	;
+
+logical_and_expression
+	: inclusive_or_expression
+	| logical_and_expression AND_OP inclusive_or_expression
+        { TEXT3(); }
+	;
+
+logical_or_expression
+	: logical_and_expression
+	| logical_or_expression OR_OP logical_and_expression
+        { TEXT3(); }
+	;
+
+conditional_expression
+	: logical_or_expression
+	| logical_or_expression '?' expression ':' conditional_expression
+        { TEXT5(); }
+	;
+
+assignment_expression
+	: conditional_expression
+	| unary_expression assignment_operator assignment_expression
+        { TEXT3(); }
+	;
+
+assignment_operator
+	: '='
+	| MUL_ASSIGN
+	| DIV_ASSIGN
+	| MOD_ASSIGN
+	| ADD_ASSIGN
+	| SUB_ASSIGN
+	| LEFT_ASSIGN
+	| RIGHT_ASSIGN
+	| AND_ASSIGN
+	| XOR_ASSIGN
+	| OR_ASSIGN
+	;
+
+expression
+	: assignment_expression
+	| expression ',' assignment_expression
+        { TEXT3(); }
+	;
+
+constant_expression
+	: conditional_expression
+	;
+
+declaration
+	: declaration_specifiers ';'
+        { gghc_declaration(&$1, 0); TEXT2(); }
+	| declaration_specifiers init_declarator_list ';'
+        { gghc_declaration(&$1, $2); debug_stop_here(); TEXT3(); }
+	;
+
+declaration_specifiers
+	: storage_class_specifier
+        { $$.storage = $1; $$.type = gghc_type($$.type_text = "int"); TEXT1(); }
+
+	| storage_class_specifier declaration_specifiers
+        { $$.storage = $1; $$.type = $2.type; $$.type_text = $2.type_text; TEXT2(); }
+
+	| type_specifier
+        { $$.storage = 0; $$.type = gghc_type($$.type_text = "int"); TEXT1(); }
+
+	| type_specifier declaration_specifiers
+        { $$.storage = $2.storage; $$.type = $1; $$.type_text = $<text>1; TEXT2(); }
+
+	| type_qualifier
+        { $$.storage = 0; $$.type = gghc_type($$.type_text = "int"); TEXT1(); }
+
+	| type_qualifier declaration_specifiers
+        { $$ = $2; TEXT2(); }
+	;
+
+init_declarator_list
+	: init_declarator
+        { $$ = $1; TEXT1(); }
+	| init_declarator_list ',' init_declarator
+        { $3->next = $1; $$ = $3; TEXT3(); }
+	;
+
+init_declarator
+	: declarator
+        { $$ = $1; TEXT1(); }
+	| declarator '=' initializer
+        { $$ = $1; TEXT3(); }
+	;
+
+storage_class_specifier
+: storage_class_specifier_TOKEN { $$ = $<token>1; TEXT1(); } ;
+
+storage_class_specifier_TOKEN
+	: TYPEDEF
+	| EXTERN
+	| STATIC
+	| AUTO
+	| REGISTER
+	;
+
+type_specifier
+	: VOID
+        { $$ = gghc_type(yyval.text = "void"); }
+/*
+	| CHAR
+	| SHORT
+	| INT
+	| LONG
+	| FLOAT
+	| DOUBLE
+	| SIGNED
+	| UNSIGNED
+*/
+	| char_specifier
+        { $$ = gghc_type(yyval.text = "char"); }
+        | uchar_specifer
+        { $$ = gghc_type(yyval.text = "unsigned char"); }
+	| sshort_specifer
+        { $$ = gghc_type(yyval.text = "short"); }
+	| ushort_specifer
+        { $$ = gghc_type(yyval.text = "unsigned short"); }
+	| int_specifier
+        { $$ = gghc_type(yyval.text = "int"); }
+	| uint_specifier
+        { $$ = gghc_type(yyval.text = "unsigned int"); }
+	| slong_specifier
+        { $$ = gghc_type(yyval.text = "long"); }
+	| ulong_specifier
+        { $$ = gghc_type(yyval.text = "unsigned long"); }
+	| slong_long_specifier
+        { $$ = gghc_type(yyval.text = "long long"); }
+	| ulong_long_specifier
+        { $$ = gghc_type(yyval.text = "unsigned long long"); }
+	| FLOAT
+        { $$ = gghc_type(yyval.text = "float"); }
+	| DOUBLE
+        { $$ = gghc_type(yyval.text = "double"); }
+        | ldouble_specifier
+        { $$ = gghc_type(yyval.text = "long double"); }
+        | GGHC___builtin_va_list
+        { $$ = gghc_type(yyval.text = "__builtin_va_list"); TEXT1(); }
+
+	| struct_or_union_specifier
+        { $$ = $1; TEXT1(); }
+	| enum_specifier
+        { $$ = $1; TEXT1(); }
+	| TYPE_NAME
+        { $$ = gghc_type($<text>1); TEXT1(); }
 	;
 
 /* Reduce to unique types */
@@ -241,601 +412,364 @@ slong_long_specifier : long_long_specifier | SIGNED long_long_specifier;
 ulong_long_specifier : UNSIGNED long_long_specifier | long_long_specifier UNSIGNED;
 ldouble_specifier : LONG DOUBLE | DOUBLE LONG;
 
-type_qualifier:
-	  CONST							{ TEXT1(); }
-	| VOLATILE						{ TEXT1(); }
+struct_or_union_specifier
+	: struct_or_union IDENTIFIER
+        { gghc_struct_type($1, $2); debug_stop_here(); }
+          '{' struct_declaration_list '}'
+          { $$ = gghc_struct_type_end(); }
+	| struct_or_union
+        { gghc_struct_type($1, ""); }
+          '{' struct_declaration_list '}'
+          { $$ = gghc_struct_type_end(); }
+	| struct_or_union IDENTIFIER
+        { $$ = gghc_type(ssprintf("%s %s", $1, $2)); TEXT2(); }
 	;
 
-
-/**************************************************************************************************************/
-
-
-struct_or_union_specifier:
-	  struct_or_union IDENTIFIER_opt			{ $<u.cp>$ = gghc_struct_type($1, $2); }
-	  '{' struct_declaration_list '}'			{ $<u.cp>$ = gghc_struct_type_end(); }
-
-	| struct_or_union IDENTIFIER				{ $$ = gghc_type(ssprintf("%s %s", $1, $2)); TEXT2(); }
+struct_or_union
+        : struct_or_union_TOKEN
+        { $$ = $<text>1; TEXT1(); }
+        ;
+struct_or_union_TOKEN
+	: STRUCT
+	| UNION
 	;
 
-struct_or_union:
-	  STRUCT						{ $$ = "struct"; TEXT1(); }
-	| UNION							{ $$ = "union"; TEXT1(); }
+struct_declaration_list
+	: struct_declaration
+        { TEXT1(); }
+	| struct_declaration_list struct_declaration
+        { TEXT2(); }
 	;
 
-struct_declaration_list:
-	  struct_declaration					{ TEXT1(); }
-	| struct_declaration_list struct_declaration		{ TEXT2(); }
+struct_declaration
+	: specifier_qualifier_list struct_declarator_list ';'
+        { TEXT3(); gghc_struct_type_element(&$1, $2, yyval.text); }
 	;
 
-
-struct_declaration:
-	specifier_qualifier_list struct_declarator_list ';'	{ TEXT3(); gghc_struct_type_element(&$1, $2, yyval.text);  }
+specifier_qualifier_list
+	: type_specifier specifier_qualifier_list
+        { $$.type = $1; $$.type_text = $<text>2; TEXT2(); }
+	| type_specifier
+        { $$.type = ""; $$.type_text = ""; TEXT2(); }
+	| type_qualifier specifier_qualifier_list
+        { $$ = $2; TEXT2(); }
+	| type_qualifier
+        { $$.type = ""; $$.type_text = ""; TEXT1(); }
 	;
 
-specifier_qualifier_list:
-	  type_specifier specifier_qualifier_list_opt		{ $$.type = $1; $$.type_text = yyvsp[-1].text; TEXT2(); }
-	| type_qualifier specifier_qualifier_list_opt		{ $$ = $2; TEXT2(); }
+struct_declarator_list
+	: struct_declarator
+        { $$ = $1; TEXT1(); }
+	| struct_declarator_list ',' struct_declarator
+        { $3->next = $1; $$ = $3; TEXT3(); }
 	;
 
-specifier_qualifier_list_opt:
-	  /* EMPTY */						{ $$.type = ""; $$.type_text = ""; TEXT0(); }
-	| specifier_qualifier_list				{ $$ = $1; TEXT1(); }
+struct_declarator
+	: declarator
+        { $$ = $1; TEXT1(); }
+	| ':' constant_expression
+        { $$ = make_decl(); $$->is_bit_field = 1; $$->bit_field_size = $<text>2; TEXT2(); }
+	| declarator ':' constant_expression
+        { $$ = $1; $$->is_bit_field = 1; $$->bit_field_size = $<text>3; TEXT3(); }
 	;
 
-
-struct_declarator_list:
-	  struct_declarator					{ $$ = $1; TEXT1(); }
-	| struct_declarator_list ',' struct_declarator		{ $3->next = $1; $$ = $3; TEXT3(); }
+enum_specifier
+        : ENUM
+        { $<u.cp>$ = gghc_enum_type(0); }
+            '{' enumerator_list '}'
+             { gghc_enum_type_end(); TEXT4(); }
+	| ENUM IDENTIFIER
+        { $<u.cp>$ = gghc_enum_type($<text>2); }
+            '{' enumerator_list '}'
+             { gghc_enum_type_end(); TEXT5(); }
+	| ENUM IDENTIFIER
+        { $$ = gghc_type(ssprintf("enum %s", $2)); TEXT2(); }
 	;
 
-struct_declarator:
-  declarator                          { $$ = $1; TEXT1(); }
-| declarator ':' constant_expression  { $$ = $1;          $$->is_bit_field = 1; $$->bit_field_size = $<text>3; TEXT3(); }
-|            ':' constant_expression  { $$ = make_decl(); $$->is_bit_field = 1; $$->bit_field_size = $<text>2; TEXT2(); }
+enumerator_list
+	: enumerator
+        { TEXT1(); }
+	| enumerator_list ',' enumerator
+        { TEXT3(); }
 	;
 
-
-/**************************************************************************************************************/
-
-
-enum_specifier:
-	  ENUM IDENTIFIER_opt 
-{
-	$<u.cp>$ = gghc_enum_type($2);
-}
-'{' enumerator_list '}'
-{
-	gghc_enum_type_end();
-	TEXT4();
-}
-
-	| ENUM IDENTIFIER					{ $$ = gghc_type($2); TEXT2(); }
+enumerator
+	: IDENTIFIER
+        { gghc_enum_type_element($<text>1); TEXT1(); }
+	| IDENTIFIER '=' constant_expression
+        { gghc_enum_type_element($<text>1); TEXT3(); }
 	;
 
-enumerator_list:
-	  enumerator						{ TEXT1(); }
-	| enumerator_list ',' enumerator			{ TEXT3(); }
+type_qualifier
+	: CONST
+	| VOLATILE
 	;
 
-enumerator:
-	  IDENTIFIER						{ gghc_enum_type_element($1); TEXT1(); }
-	| IDENTIFIER '=' constant_expression_no_comma		{ gghc_enum_type_element($1); TEXT3(); }
+declarator
+	: pointer direct_declarator
+        {
+          $$ = $2;
+          if ( $$->type[0] == 'f' || $$->type[0] == 'a' ) {
+            $$->declarator = ssprintf($2->declarator, $1);
+          } else {
+            $$->declarator = ssprintf($1, $2->declarator);
+          }
+          $$->declarator_text = ssprintf("%s %s", $<text>2, $2->declarator_text);
+          TEXT2();
+        }
+        | direct_declarator
+        { $$ = $1; TEXT1(); }
 	;
 
-/**************************************************************************************************************/
-
-
-init_declarator_list:
-	  init_declarator					{ $$ = $1; TEXT1(); }
-	| init_declarator_list ',' init_declarator		{ $3->next = $1; $$ = $3; TEXT3(); }
-	;
-
-init_declarator_list_opt:
-	  /* EMPTY */						{ $$ = 0; TEXT0(); }
-	| init_declarator_list					{ $$ = $1; TEXT1(); }
-	;
-
-
-init_declarator:
-	  declarator						{ $$ = $1; TEXT1(); }
-	| declarator '=' initializer				{ $$ = $1; TEXT3(); }
-	;
-
-declarator:
-	  direct_declarator					{ $$ = $1; TEXT1(); }
-	| pointer direct_declarator
-{
-  TEXT2();
-#if 0
-  if ( gghc_debug ) {
-    fprintf(stderr, "/* text = '%s' */\n", gghc_parse_last_text);
-    fprintf(stderr, "/* pointer = '%s' */\n", $1);
-    fprintf(stderr, "/* declarator = '%s' */\n", $2->declarator);
-    fprintf(stderr, "\n");
-  }
-#endif
-  $$ = $2;
-  if ( $$->type[0] == 'f' || $$->type[0] == 'a' ) {
-    $$->declarator = ssprintf($2->declarator, $1);
-  } else {
-    $$->declarator = ssprintf($1, $2->declarator);
-  }
-  $$->declarator_text = ssprintf("%s %s", yyvsp[-1].text, $2->declarator_text);
-}
-	;
-
-declarator_opt:
-	/* EMPTY */						{ $$ = 0; TEXT0(); }
-	| declarator						{ $$ = $1; TEXT1(); }
-	;
-
-direct_declarator:
-      direct_declarator_basic                  { $$ = $1; TEXT1(); }
-    | direct_declarator_basic __attribute__    { $$ = $1; TEXT2(); }
-    | direct_declarator_basic __asm            { $$ = $1; TEXT2(); }
-    ;
-
-direct_declarator_basic:
-	  IDENTIFIER
-{
-  $$ = make_decl();
-  $$->identifier = $1;
-  TEXT1();
-}
-
+direct_declarator
+	: IDENTIFIER
+        { $$ = make_decl(); $$->identifier = $1; TEXT1(); }
 	| '(' declarator ')'
-{
-  $$ = $2;
-  $$->declarator_text = ssprintf("(%s)", $2->declarator_text);
-  $$->is_parenthised = 1;
-  TEXT3();
-}
+        {
+          $$ = $2;
+          $$->declarator_text = ssprintf("(%s)", $2->declarator_text);
+          $$->is_parenthised = 1;
+          TEXT3();
+        }
+	| direct_declarator '[' constant_expression ']'
+        {
+          $$ = $1;
+          if ( $1->is_parenthised ) {
+            $$->declarator = ssprintf($1->declarator, gghc_array_type("%s", $<text>3));
+          } else {
+            $$->declarator = gghc_array_type($1->declarator, $<text>3);
+          }
+          $$->declarator_text = ssprintf("%s[%s]", $1->declarator_text, $<text>3);
+          $$->type = "array";
+          TEXT4();
+        }
+	| direct_declarator '[' ']'
+        {
+          $$ = $1;
+          if ( $1->is_parenthised ) {
+            $$->declarator = ssprintf($1->declarator, gghc_array_type("%s", $<text>3));
+          } else {
+            $$->declarator = gghc_array_type($1->declarator, "");
+          }
+          $$->declarator_text = ssprintf("%s[%s]", $1->declarator_text, "");
+          $$->type = "array";
+          TEXT3();
+        }
+	| direct_declarator '(' parameter_type_list ')'
+        {
+          $$ = $1;
+          if ( $1->is_parenthised ) {
+            $$->declarator = ssprintf($1->declarator, gghc_function_type("%s", $3));
+          } else {
+            $$->declarator = gghc_function_type($1->declarator, $3);
+          }
+          $$->declarator_text = ssprintf("%s(%s)", $1->declarator_text, $3);
+          $$->type = "function";
+          TEXT4();
+        }
+	| direct_declarator '(' identifier_list ')'
+        { TEXT4(); }
+	| direct_declarator '(' ')'
+        {
+          $$ = $1;
+          if ( $1->is_parenthised ) {
+            $$->declarator = ssprintf($1->declarator, gghc_function_type("%s", ""));
+          } else {
+            $$->declarator = gghc_function_type($1->declarator, "");
+          }
+          $$->declarator_text = ssprintf("%s(%s)", $1->declarator_text, "");
+          $$->type = "function";
+          TEXT3();
+        }
+	;
 
-	| direct_declarator_basic '[' constant_expression_opt ']'
-{
-  $$ = $1;
-  if ( $1->is_parenthised ) {
-    $$->declarator = ssprintf($1->declarator, gghc_array_type("%s", $<text>3));
-  } else {
-    $$->declarator = gghc_array_type($1->declarator, $<text>3);
-  }
-  $$->declarator_text = ssprintf("%s[%s]", $1->declarator_text, $<text>3);
-  $$->type = "array";
-  TEXT4();
-#if 0
-  printf("array '%s': $1->declarator = '%s'\n$3.text = '%s'\n\n", yyval.text, $1->declarator, $<text>3);
-#endif
-}
+pointer
+	: '*'
+        { $$ = gghc_pointer_type("%s"); TEXT1(); }
+	| '*' type_qualifier_list
+        { $$ = gghc_pointer_type("%s"); TEXT2(); }
+	| '*' pointer
+        { $$ = gghc_pointer_type($2); TEXT2(); }
+	| '*' type_qualifier_list pointer
+        { $$ = gghc_pointer_type($3); TEXT3(); }
+	;
 
-	| direct_declarator_basic '(' parameter_type_list_opt ')'
-{
-  $$ = $1;
-  if ( $1->is_parenthised ) {
-    $$->declarator = ssprintf($1->declarator, gghc_function_type("%s", $3));
-  } else {
-    $$->declarator = gghc_function_type($1->declarator, $3);
-  }
-
-  $$->declarator_text = ssprintf("%s(%s)", $1->declarator_text, yyvsp[-1].text);
-  $$->type = "function";
-  TEXT4();
-}
-
-	| direct_declarator_basic '(' identifier_list_opt ')'
-{ 
-  $$ = $1;
-  if ( $1->is_parenthised ) {
-    $$->declarator = ssprintf($1->declarator, gghc_function_type("%s", ""));
-  } else {
-    $$->declarator = gghc_function_type($1->declarator, "");
-  }
-
-  $$->declarator_text = ssprintf("%s(%s)", $1->declarator_text, yyvsp[-1].text);
-  $$->type = "function";
-  TEXT4();
-  TEXT4();
-}
+type_qualifier_list
+	: type_qualifier
+	| type_qualifier_list type_qualifier
 	;
 
 
-pointer:
-	  '*' type_qualifier_list_opt				{ $$ = gghc_pointer_type("%s"); TEXT2(); }
-	| '*' type_qualifier_list_opt pointer			{ $$ = gghc_pointer_type($3); TEXT3(); }
+parameter_type_list
+	: parameter_list
+        { $$ = $1; TEXT1(); }
+	| parameter_list ',' ELLIPSIS
+        { $$ = ssprintf("%s%s GGHCT_VARARGS", $1, mode_c ? "," : ""); TEXT3(); }
 	;
 
-pointer_opt:
-	  /* EMPTY */						{ $$ = ""; TEXT0(); }
-	| pointer						{ $$ = $1; TEXT1(); }
+parameter_list
+	: parameter_declaration
+        { $$ = $1; TEXT1(); }
+	| parameter_list ',' parameter_declaration
+        { $$ = ssprintf("%s%s %s", $1, mode_c ? "," : "", $3); TEXT3(); }
 	;
 
-
-type_qualifier_list:
-	  type_qualifier					{ TEXT1(); }
-	| type_qualifier_list type_qualifier			{ TEXT2(); }
-	;
-
-type_qualifier_list_opt:
-	  /* EMPTY */						{ TEXT0(); }
-	| type_qualifier_list					{ TEXT1(); }
-	;
-
-
-parameter_type_list:
-	  parameter_list					{ $$ = $1; TEXT1(); }
-| parameter_list ',' DDD				{ $$ = ssprintf("%s%s GGHCT_VARARGS", $1, mode_c ? "," : ""); TEXT3(); }
-	;
-
-parameter_type_list_opt:
-	/* EMPTY */						{ $$ = ""; TEXT0(); }
-	| parameter_type_list					{ $$ = $1; TEXT1(); }
-	;
-
-
-parameter_list:
-	  parameter_declaration					{ $$ = $1; TEXT1(); }
-| parameter_list ',' parameter_declaration		{ $$ = ssprintf("%s%s %s", $1, mode_c ? "," : "", $3); TEXT3(); }
-	;
-
-parameter_declaration:
-	  declaration_specifiers declarator
-{
-  char* output = ssprintf($2->declarator, $1.type);
+parameter_declaration
+	: declaration_specifiers declarator
+        {
+          char* output = ssprintf($2->declarator, $1.type);
 #ifdef HOLD_AND_REST_VARS
-  if ( $2->identifier ) {
-    if ( strstr($2->identifier, "_HOLD_REST_") ) {
-      output = gghc_hold_rest();
-    } else
-    if ( strstr($2->identifier, "_REST_") ) {
-      output = gghc_rest();
-    } else 
-    if ( strstr($2->identifier, "_HOLD_") ) {
-      output = gghc_rest();
-    }
-  }
+          if ( $2->identifier ) {
+            if ( strstr($2->identifier, "_HOLD_REST_") ) {
+              output = gghc_hold_rest();
+            } else
+              if ( strstr($2->identifier, "_REST_") ) {
+                output = gghc_rest();
+              } else 
+                if ( strstr($2->identifier, "_HOLD_") ) {
+                  output = gghc_rest();
+                }
+          }
 #endif
-  $$ = output;
-  TEXT2();
-}
-
-	| declaration_specifiers abstract_declarator_opt	{ $$ = ssprintf($2, $1.type); TEXT2(); }
+          $$ = output;
+          TEXT2();
+        }
+	| declaration_specifiers abstract_declarator
+        { $$ = ssprintf($2, $1.type); TEXT2(); }
+	| declaration_specifiers
+        { $$ = ssprintf("%s", $1.type); TEXT2(); }
 	;
 
-identifier_list_opt:
-	  /* EMPTY */						{ TEXT0(); }
-	| identifier_list					{ TEXT1(); }
+identifier_list
+	: IDENTIFIER
+	| identifier_list ',' IDENTIFIER
 	;
 
-identifier_list:
-	  IDENTIFIER						{ TEXT1(); }
-	| identifier_list ',' IDENTIFIER			{ TEXT3(); }
+type_name
+	: specifier_qualifier_list
+	| specifier_qualifier_list abstract_declarator
+        { TEXT2(); }
 	;
 
-initializer:
-	  assignment_expression					{ TEXT1(); }
-	| '{' initializer_list '}'				{ TEXT3(); }
-	| '{' initializer_list ',' '}'				{ TEXT4(); }
+abstract_declarator
+	: pointer
+        { $$ = gghc_pointer_type("%s"); TEXT1(); }
+	| direct_abstract_declarator
+        { $$ = $1; TEXT1(); }
+	| pointer direct_abstract_declarator
+        { $$ = gghc_pointer_type($2); TEXT2(); }
 	;
 
-initializer_list:
-	  initializer						{ TEXT1(); }
-	| initializer_list ',' initializer			{ TEXT3(); }
+direct_abstract_declarator
+	: '(' abstract_declarator ')'
+        { $$ = $2; TEXT3(); }
+	| '[' ']'
+        { $$ = gghc_array_type("%s", ""); TEXT2(); }
+	| '[' constant_expression ']'
+        { $$ = gghc_array_type("%s", $<text>2); TEXT3(); }
+	| direct_abstract_declarator '[' ']'
+        { $$ = gghc_array_type($1, ""); TEXT3(); }
+	| direct_abstract_declarator '[' constant_expression ']'
+        { $$ = gghc_array_type("%s", $<text>3); TEXT4(); }
+	| '(' ')'
+        { $$ = gghc_function_type("%s", ""); TEXT3(); }
+	| '(' parameter_type_list ')'
+        { $$ = gghc_function_type("%s", $2); TEXT3(); }
+	| direct_abstract_declarator '(' ')'
+        { $$ = gghc_function_type($1, ""); TEXT3(); }
+	| direct_abstract_declarator '(' parameter_type_list ')'
+        { $$ = gghc_function_type($1, $3); TEXT4(); }
 	;
 
-type_name:
-	specifier_qualifier_list abstract_declarator_opt	{ TEXT2(); }
+initializer
+	: assignment_expression
+	| '{' initializer_list '}'
+	| '{' initializer_list ',' '}'
 	;
 
-
-
-abstract_declarator:
-	  pointer						{ $$ = gghc_pointer_type("%s"); TEXT1(); }
-	| pointer direct_abstract_declarator			{ $$ = gghc_pointer_type($2); TEXT2(); }
-	| direct_abstract_declarator				{ $$ = $1; TEXT1(); }
+initializer_list
+	: initializer
+	| initializer_list ',' initializer
 	;
 
-abstract_declarator_opt:
-	  /* EMPTY */						{ $$ = "%s"; TEXT0(); }
-	| abstract_declarator					{ $$ = $1; TEXT1(); }
-	;
-
-direct_abstract_declarator:
-	  '(' abstract_declarator ')'				{ $$ = $2; TEXT3(); }
-	| direct_abstract_declarator_opt '[' array_size ']'
-								{ $$ = gghc_array_type($1, $<text>3); TEXT4(); }
-	| direct_abstract_declarator_opt '(' parameter_type_list_opt ')'
-								{ $$ = gghc_function_type($1, $3); TEXT4(); }
-	;
-
-array_size: unary_expression_opt ;
-
-direct_abstract_declarator_opt:
-	  /* EMPTY */						{ $$ = "%s"; TEXT0(); }
-	| direct_abstract_declarator				{ $$ = $1; TEXT1(); }
-	;
-
-__attribute__ :
-          GGHC___attribute__ '(' '(' attr ')' ')'
-          ;
-
-attr :
-       /* EMPTY */                          { TEXT0(); }
-     | attr_ident '(' attr_arg_list ')'     { TEXT4(); }
-     ;
-attr_arg_list :
-            /* EMPTY */                     { TEXT0(); }
-          | attr_arg                        { TEXT1(); }
-          | attr_arg ',' attr_arg_list      { TEXT3(); }
-          ;
-attr_arg :
-            attr_ident                               { TEXT1(); }
-          | attr_ident '=' constant_expression       { TEXT3(); }
-          ;
-
-attr_ident : IDENTIFIER { TEXT1(); }
-
-__asm :
-   GGHC___asm '(' constant_str ')' { TEXT4(); }
- ;
-
-typedef_name:
-	TYPEDEF_NAME						{ TEXT1(); }
-	;
-
-statement:
-	  labeled_statement
-	| expression_statement
+statement
+	: labeled_statement
 	| compound_statement
+	| expression_statement
 	| selection_statement
 	| iteration_statement
 	| jump_statement
 	;
 
-labeled_statement:
-	  IDENTIFIER ':' statement
+labeled_statement
+	: IDENTIFIER ':' statement
 	| CASE constant_expression ':' statement
 	| DEFAULT ':' statement
 	;
 
-expression_statement:
-	| expression_opt ';'
+compound_statement
+	: '{' '}'
+	| '{' statement_list '}'
+	| '{' declaration_list '}'
+	| '{' declaration_list statement_list '}'
 	;
 
-compound_statement:
-	'{' declaration_list_opt statement_list_opt '}'
+declaration_list
+	: declaration
+        { TEXT1(); }
+	| declaration_list declaration
+        { TEXT2(); }
 	;
 
-statement_list:
-	  statement
+statement_list
+	: statement
 	| statement_list statement
 	;
 
-statement_list_opt:
-	| statement_list
+expression_statement
+	: ';'
+	| expression ';'
 	;
 
-selection_statement:
-	  IF '(' expression ')' statement
+selection_statement
+	: IF '(' expression ')' statement
 	| IF '(' expression ')' statement ELSE statement
 	| SWITCH '(' expression ')' statement
 	;
 
-iteration_statement:
-	  WHILE '(' expression ')' statement
-	| DO statement WHILE '(' expression ')'
-	| FOR '(' expression_opt ';' expression_opt ';' expression_opt ')' statement
+iteration_statement
+	: WHILE '(' expression ')' statement
+	| DO statement WHILE '(' expression ')' ';'
+	| FOR '(' expression_statement expression_statement ')' statement
+	| FOR '(' expression_statement expression_statement expression ')' statement
 	;
 
-jump_statement:
-	  GOTO IDENTIFIER ';'
+jump_statement
+	: GOTO IDENTIFIER ';'
 	| CONTINUE ';'
 	| BREAK ';'
-	| RETURN expression_opt ';'
+	| RETURN ';'
+	| RETURN expression ';'
 	;
 
-
-expression:
-	  assignment_expression						{ TEXT1(); }
-	| expression ',' assignment_expression				{ TEXT3(); }
+translation_unit
+	: external_declaration
+	| translation_unit external_declaration
 	;
 
-expression_opt:
-	  /* EMPTY */							{ TEXT0(); }
-	| expression							{ TEXT1(); }
+external_declaration
+	: function_definition
+	| declaration
 	;
 
-/* ADDED */
-expression_no_comma:
-	assignment_expression						{ TEXT1(); }
-	;
-
-constant_expression_no_comma:
-	assignment_expression						{ TEXT1(); }
-	;
-/* END ADDED */
-
-assignment_expression:
-	  conditional_expression					{ TEXT1(); }
-	| unary_expression assignment_operator assignment_expression
-									{ TEXT3(); }
-	;
-
-assignment_operator:
-	  '='								{ TEXT1(); }
-	/* *= */	| MULA						{ TEXT1(); }
-	/* /= */	| DIVA						{ TEXT1(); }
-	/* %= */	| MODA						{ TEXT1(); }
-	/* += */	| ADDA						{ TEXT1(); }
-	/* -= */	| SUBA						{ TEXT1(); }
-	/* <<= */	| LSA						{ TEXT1(); }
-	/* >>= */	| RSA						{ TEXT1(); }
-	/* &= */	| AA						{ TEXT1(); }
-	/* ^= */	| XA						{ TEXT1(); }
-	/* |= */	| OA						{ TEXT1(); }
-	;
-
-conditional_expression:
-	  logical_OR_expression						{ TEXT1(); }
-	| logical_OR_expression '?' expression ':' conditional_expression { TEXT5(); }
-	;
-
-logical_OR_expression:
-	  logical_AND_expression					{ TEXT1(); }
-	| logical_OR_expression /* || */ LO logical_AND_expression	{ TEXT3(); }
-	;
-
-logical_AND_expression:
-	  inclusive_OR_expression					{ TEXT1(); }
-	| logical_AND_expression /* && */ LA inclusive_OR_expression	{ TEXT3(); }
-	;
-
-inclusive_OR_expression:
-	  exclusive_OR_expression					{ TEXT1(); }	
-	| inclusive_OR_expression '|' exclusive_OR_expression		{ TEXT3(); }
-
-exclusive_OR_expression:
-	  AND_expression						{ TEXT1(); }
-	| exclusive_OR_expression '^' AND_expression			{ TEXT3(); }
-
-AND_expression:
-	  equality_expression						{ TEXT1(); }
-	| AND_expression '&' equality_expression			{ TEXT3(); }
-	;
-
-equality_expression:
-	  relational_expression						{ TEXT1(); }
-	| equality_expression /* == */ EQ relational_expression		{ TEXT3(); }
-	| equality_expression /* != */ NE relational_expression		{ TEXT3(); }
-	;
-
-relational_expression:
-	  shift_expression						{ TEXT1(); }
-	| relational_expression '<' shift_expression			{ TEXT3(); }
-	| relational_expression '>' shift_expression			{ TEXT3(); }
-	| relational_expression /* <= */ LE shift_expression		{ TEXT3(); }
-	| relational_expression /* >= */ GE shift_expression		{ TEXT3(); }
-	;
-
-shift_expression:
-	  additive_expression						{ TEXT1(); }
-	| shift_expression /* << */ LS additive_expression		{ TEXT3(); }
-	| shift_expression /* >> */ RS additive_expression		{ TEXT3(); }
-	;
-
-additive_expression:
-	  multiplicative_expression					{ TEXT1(); }
-	| additive_expression '+' multiplicative_expression		{ TEXT3(); }
-	| additive_expression '-' multiplicative_expression		{ TEXT3(); }
-	;
-
-multiplicative_expression:
-	  cast_expression
-	| multiplicative_expression '*' cast_expression			{ TEXT3(); }
-	| multiplicative_expression '/' cast_expression			{ TEXT3(); }	
-	| multiplicative_expression '%' cast_expression			{ TEXT3(); }
-	;
-
-cast_expression:
-	  unary_expression						{ TEXT1(); }
-	| '(' type_name ')' cast_expression				{ TEXT4(); }
-	;
-
-unary_expression:
-	  postfix_expression						{ TEXT1(); }
-	| /* ++ */ INC unary_expression					{ TEXT2(); }
-	| /* -- */ DEC unary_expression					{ TEXT2(); }
-	| unary_operator cast_expression				{ TEXT2(); }
-	| SIZEOF unary_expression					{ TEXT2(); }
-	| SIZEOF '(' type_name ')'					{ TEXT4(); }
-	;
-
-unary_expression_opt:
-    /* EMPTY */      { TEXT0(); }
-  | unary_expression { TEXT1(); }
-  ;
-
-unary_operator:
-	  '&'								{ TEXT1(); }
-	| '*'								{ TEXT1(); }
-	| '+'								{ TEXT1(); }
-	| '-'								{ TEXT1(); }
-	| '~'								{ TEXT1(); }
-	| '!'								{ TEXT1(); }
-	;
-
-postfix_expression:
-	primary_expression						{ TEXT1(); }
-	| postfix_expression '[' expression ']'				{ TEXT4(); }
-	| postfix_expression '(' argument_expression_list_opt ')'	{ TEXT4(); }
-	| postfix_expression '.' IDENTIFIER				{ TEXT3(); }
-	| postfix_expression /* -> */ AR  IDENTIFIER			{ TEXT3(); }
-	| postfix_expression /* -- */ INC				{ TEXT2(); }
-	| postfix_expression /* ++ */ DEC				{ TEXT2(); }
-	;
-
-primary_expression:
-	  IDENTIFIER							{ TEXT1(); }
-	| constant							{ TEXT1(); }
-	| '(' expression ')'						{ TEXT3(); }
-	;
-
-argument_expression_list:
-	  assignment_expression						{ TEXT1(); } 
-	| argument_expression_list ',' assignment_expression		{ TEXT3(); }
-	;
-
-argument_expression_list_opt:
-	 /* EMPTY */							{ TEXT0(); }
-	| argument_expression_list					{ TEXT1(); }
-	;
-
-constant_int :
-	  WCHAR_CONSTANT						{ TEXT1(); }
-	| CHAR_CONSTANT							{ TEXT1(); }
-	| INT_CONSTANT							{ TEXT1(); }
-	| UNSIGNED_INT_CONSTANT						{ TEXT1(); }
-	| LONG_INT_CONSTANT						{ TEXT1(); }
-	| UNSIGNED_LONG_INT_CONSTANT					{ TEXT1(); }
-        ;
-
-constant_num:
-          constant_int							{ TEXT1(); }
-	| FLOAT_CONSTANT						{ TEXT1(); }
-	| DOUBLE_CONSTANT						{ TEXT1(); }
-	| LONG_DOUBLE_CONSTANT						{ TEXT1(); }
-        ;
-
-constant_str_atom:
-	| STRING_CONSTANT						{ TEXT1(); }
-	| WSTRING_CONSTANT						{ TEXT1(); }
-        ;
-
-constant_str:
-    constant_str_atom constant_str_atom { TEXT2(); }
-  ;
-
-constant:
-          constant_num							{ TEXT1(); }
-        | constant_str							{ TEXT1(); }
-	| ENUM_CONSTANT							{ TEXT1(); }
-	;
-
-/******* ADDED ********/
-
-constant_expression:
-	  constant							{ TEXT1(); }
-	| unary_expression						{ TEXT1(); }
-	;
-
-constant_expression_opt:
-	 /* EMPTY */							{ TEXT0(); }
-	| constant_expression						{ TEXT1(); }
-	;
-
-IDENTIFIER_opt:
-	  /* EMPTY */							{ $$ = 0; TEXT0(); }
-	| IDENTIFIER							{ $$ = $1; TEXT1(); }
+function_definition
+	: declaration_specifiers declarator declaration_list compound_statement
+        { gghc_declaration(&$<u.decl_spec>1, $<u.decl>2); }
+	| declaration_specifiers declarator compound_statement
+        { gghc_declaration(&$<u.decl_spec>1, $<u.decl>2); }
+	| declarator declaration_list compound_statement
+	| declarator compound_statement
 	;
 
 %%
-
 

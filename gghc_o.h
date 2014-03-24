@@ -42,4 +42,6 @@ void	gghc_declaration(gghc_decl_spec *spec, gghc_decl *decl);
 /* global */
 void	gghc_global(const char *name, const char *type);
 
+void gghc_reset_state();
+
 #endif

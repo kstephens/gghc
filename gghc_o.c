@@ -39,12 +39,12 @@ char*	ssprintf(const char* format, ...)
 
 /***************************************************************************************************/
 
+static int constant_id = 0;
 char *  gghc_constant(const char *c_expr)
 {
-  static int id = 0;
   const char *prefix = "";
   char *expr = 0;
-  ++ id;
+  int id = ++ constant_id;
 
   if ( mode_sexpr ) {
     prefix = "gghc:";
@@ -93,11 +93,12 @@ static struct gghc_enum {
   struct gghc_enum *prev;
 } *current_enum = 0;
 
+static int unnamed_enum_id = 1;
 char*	gghc_enum_type(const char *name)
 {
-  static int unnamed_enum_id = 1;
   struct gghc_enum *en = malloc(sizeof(struct gghc_enum));
-  
+  memset(en, 0, sizeof(*en));
+
   en->named = en->name != 0;
   if ( ! en->named ) {
     name = ssprintf("_gghc_unamed_%d", unnamed_enum_id ++);
@@ -196,17 +197,19 @@ char*	gghc_array_type(const char *type, const char *length)
 ** struct/union context
 */
 static gghc_struct *current_struct = 0;
+static int unnamed_struct_id = 1;
 char *gghc_struct_type(const char *s_or_u, const char *name)
 {
   char *sizeof_expr = 0;
-  static int unnamed_struct_id = 1;
   gghc_struct* s = malloc(sizeof(gghc_struct));
+  memset(s, 0, sizeof(*s));
+
   s->prev = current_struct;
   current_struct = s;
 
   s->struct_or_union = (char*) s_or_u;
-  s->named = name ? 1 : 0;
-  s->name = (char*) (name ? name : ssprintf("_gghc_unamed_%s_%d", s_or_u, unnamed_struct_id ++));
+  s->named = name && *name ? 1 : 0;
+  s->name = (char*) (s->named ? name : ssprintf("_gghc_unamed_%s_%d", s_or_u, unnamed_struct_id ++));
   s->slots = strdup("");
   s->slots_text = strdup("");
   current_struct->type = ssprintf("_gghc_%s_type", current_struct->name);
@@ -383,10 +386,11 @@ char *gghc_function_type(const char *rtntype, const char *argtypes)
 void gghc_declaration(gghc_decl_spec *spec, gghc_decl *decl)
 {
   while ( decl ) {
-    char *type = ssprintf(decl->declarator, spec->type);
+    char *type = 0;
     if ( ! (decl->identifier && decl->identifier[0]) ) {
       yyerror(ssprintf("no identifier for type %s", type));
     } else {
+      type = ssprintf(decl->declarator, spec->type);
       /* The declaration is a typedef */
       if ( spec->storage == TYPEDEF ) {
 	gghc_symbol* s;
@@ -427,6 +431,15 @@ void	gghc_global(const char *name, const char *type)
   if ( mode_c ) {
   fprintf(gghc_precomp3, "  gghc_global(\"%s\", %s, (void*) &%s);\n", name, type, name);
   }
+}
+
+void gghc_reset_state()
+{
+  constant_id = 0;
+  current_enum = 0;
+  unnamed_enum_id = 0;
+  current_struct = 0;
+  unnamed_struct_id = 0;
 }
 
 

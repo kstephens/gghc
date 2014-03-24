@@ -51,16 +51,11 @@ clean :
 all : $(OFILE_DIR) $(PRODUCT)
 
 test : all
-	$(PRODUCT) -v -g test.c
+	$(PRODUCT) -debug -v -g test.c
 	$(PRODUCT) stdlib.h
 
 debug : all
-	@(\
-	echo "view" ;\
-	echo "set args -I.. test.c"; \
-	echo "run" ;\
-	) > gdbinit
-	gdb $(PRODUCT) -x gdbinit
+	lldb -f $(PRODUCT) -- -v -g test.c
 
 $(GGHC_OFILES) : $(PRODUCT)
 

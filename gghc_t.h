@@ -23,8 +23,6 @@ struct gghc_decl_spec {
 #define	ESIC_DOUBLE	(1 << 9)
 } gghc_decl_spec;
 
-typedef	gghc_decl_spec *gghc_decl_specp;
-
 typedef
 struct	gghc_decl {
 	char*	identifier;
@@ -36,8 +34,6 @@ struct	gghc_decl {
         char* bit_field_size;
 	struct gghc_decl* next;
 } gghc_decl;
-
-typedef	gghc_decl *gghc_declp;
 
 typedef
 struct	gghc_struct {
@@ -69,9 +65,14 @@ typedef struct gghc_YYSTYPE {
     char*		cp;
     wchar_t*		wcp;
     gghc_decl_spec	decl_spec;
-    gghc_declp		decl;
+    gghc_decl		*decl;
   } u;
+  int token;
   char*	text;
+
+  const char *filename;
+  int fileline;
+  int filecol;
 } gghc_YYSTYPE;
 
 #define	YYSTYPE gghc_YYSTYPE
