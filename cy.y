@@ -836,9 +836,9 @@ __inline__
   ;
 
 __asm
-  : __asm_TOKEN '(' string_constant ')' ;
+  : __asm_ '(' string_constant ')' ;
 
-__asm_TOKEN
+__asm_
   : GGHC___asm
   | GGHC___asm__
   ;
@@ -847,6 +847,12 @@ __attribute__
   : GGHC___attribute__ '(' '(' attr_list ')' ')' ;
 
 __extension__ : GGHC___extension__ ;
+
+KEYWORD_EXT :
+  | __asm_
+  | __inline__
+  | __extension__
+  ;
 
 attr_list
   : attr
@@ -874,6 +880,7 @@ attr_arg
 attr_ident
   : IDENTIFIER
   | CONST
+  | KEYWORD_EXT
   ;
 
 direct_declarator_EXTs
