@@ -176,6 +176,7 @@ PRAGMA	(pragma)
 "__asm"                 { _return(GGHC___asm); }
 "__asm__"               { _return(GGHC___asm__); }
 "__restrict"            { _return(GGHC___restrict); }
+"__extension__"         { _return(GGHC___extension__); }
 
 "auto"			{ _return(AUTO); }
 "break"			{ _return(BREAK); }

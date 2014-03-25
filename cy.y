@@ -185,6 +185,7 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 %token GGHC___asm
 %token GGHC___asm__
 %token GGHC___restrict
+%token GGHC___extension__
 
 %start translation_unit
 
@@ -427,6 +428,7 @@ storage_class_specifier_OTHER
   : GGHC_inline
   | GGHC___inline
   | __attribute__
+  | __extension__
   ;
 
 storage_class_specifier_ANSI
@@ -829,6 +831,8 @@ __asm_TOKEN
 
 __attribute__
   : GGHC___attribute__ '(' '(' attr_list ')' ')' ;
+
+__extension__ : GGHC___extension__ ;
 
 attr_list
   : attr
