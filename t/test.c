@@ -120,6 +120,7 @@ typedef __typeof__(((int*)0)-((int*)0)) test_ptrdiff_t;
 /* From Linux gcc. */
 extern double test_atof (__const char *__nptr);
 
+#ifndef __clang__
   struct test___pthread_mutex_s
   {
     int __lock;
@@ -135,7 +136,8 @@ extern double test_atof (__const char *__nptr);
       int __list;
     };
   } test__data;
- 
+#endif
+
 int main(int argc, char **argv)
 {
     static struct main_foo { int i; } f;

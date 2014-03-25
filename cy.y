@@ -208,7 +208,6 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
                         init_declarator init_declarator_list
                         declaration_list
                         struct_declarator
-                        struct_declarator_ANSI
                         struct_declarator_list
 
 %type   <u.i>           storage_class_specifier
@@ -555,6 +554,12 @@ struct_declaration_list
 	;
 
 struct_declaration
+: __extension__ struct_or_union_specifier_ANSI_def ';'
+{ gghc_debug_stop_here(); /* inline union */ }
+| struct_declaration_ANSI
+;
+
+struct_declaration_ANSI
 	: specifier_qualifier_list struct_declarator_list ';'
         { gghc_struct_type_element(&$1, $2, EXPR($<u>2)); }
 	;
@@ -578,12 +583,6 @@ struct_declarator_list
 	;
 
 struct_declarator
-: struct_declarator_ANSI
-| __extension__ struct_or_union_specifier_ANSI_def
-{ $$ = make_decl(); gghc_debug_stop_here(); }
-;
-
-struct_declarator_ANSI
 	: declarator
 	| ':' constant_expression
         { $$ = make_decl(); $$->is_bit_field = 1; $$->bit_field_size = EXPR($<u>2); }
