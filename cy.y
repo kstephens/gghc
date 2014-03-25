@@ -88,7 +88,7 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 {
   int i;
   mm_buf_region t, *dst = &yyvalp->t, *src;
-  int verbose = 0;
+  int verbose = yydebug;
 
   mm_buf_region_init(&t);
   if ( verbose >= 2 ) {
@@ -108,6 +108,11 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 }
 
 %}
+
+%verbose
+ /*
+%define parse.trace
+ */
 
 %token IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
 %token PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP

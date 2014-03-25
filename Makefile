@@ -30,8 +30,8 @@ LIBS = # -lMallocDebug
 .c.o :
 	$(CC) -I. $(CFLAGS) -c $*.c -o $*.o
 .y.c .y.h :
-	@rm -f $*.c $*.h
-	$(YACC) $(YACCFLAGS) -d $*.y && $(MV) $*.tab.c $*.c && $(MV) $*.tab.h $*.h
+	@rm -f $*.c $*.h $*.y.dot $*.y.dot.svg
+	$(YACC) $(YACCFLAGS) --graph=$*.y.dot -d $*.y && $(MV) $*.tab.c $*.c && $(MV) $*.tab.h $*.h
 	tool/yy_action $*.c
 .l.c :
 	$(LEX) -t $*.l | sed 's?debug = 0;?debug = 1;?' > $*.c
@@ -46,8 +46,14 @@ DERIVED_FILES = $(DERIVED_CFILES) $(DERIVED_HFILES) $(OFILES) $(PRODUCT)
 $(PRODUCT) : $(DERIVED_HFILES) $(DERIVED_CFILES) $(OFILES)
 	$(CC) -o $(PRODUCT) $(OFILES) $(LIBS)
 
+ggraph : cy.y.dot.svg
+
+cy.y.dot.svg : all
+	dot -Tsvg -o cy.y.dot.svg cy.y.dot
+	open cy.y.dot.svg
+
 clean :
-	rm -f $(DERIVED_FILES) gdbinit
+	rm -f $(DERIVED_FILES) cy.output gdbinit *.dot *.dot.svg
 
 all : $(OFILE_DIR) $(PRODUCT)
 
