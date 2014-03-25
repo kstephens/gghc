@@ -60,10 +60,10 @@ char *  gghc_constant(const char *c_expr)
 
   if ( mode_sexpr ) {
     prefix = "gghc:";
-    expr = ssprintf("%sconstant_%d #| %s |#", prefix, id, c_expr);
+    expr = ssprintf("%sconstant_%d #| %s |# ", prefix, id, c_expr);
   }
   if ( mode_c ) {
-    expr = ssprintf("%sconstant_%d /* %s */", prefix, id, c_expr);
+    expr = ssprintf("%sconstant_%d /* %s */ ", prefix, id, c_expr);
   }
   eprintf(gghc_constants_c, "  _gghc_constant(%d,%s);\n", id, c_expr);
   return expr;
@@ -182,19 +182,15 @@ char*	gghc_enum_type(const char *name)
   gghc_enum *s = _gghc_enum_type(name);
 
   if ( mode_sexpr ) {
-  eprintf(gghc_body_out, "\
-  ;; enum %s\n\
-  (gghc:enum %s \"%s\"\n", name, s->type, (s->named ? name : ""));
+    eprintf(gghc_body_out, "  (gghc:enum %s \"%s\"\n",
+            name, s->type);
   }
   if ( mode_c ) {
   eprintf(gghc_decl_out, "  GGHCT %s;\n", s->type);
   
   /* Create the enum declaration initializer */
-  eprintf(gghc_body_out, "\
-  /* enum %s */\n\
-  %s = gghc_enum_type(\"%s\");\n", name, s->type, (s->named ? name : ""));
+  eprintf(gghc_body_out, "  %s = gghc_enum_type(\"%s\"); /* %s */\n", name, s->type, (s->named ? name : ""));
   }
-  // if ( gghc_debug ) fprintf(stderr, "/* enum %s */\n", name);
 
   s->prev = current_enum;
   current_enum = s;
@@ -229,7 +225,7 @@ char *gghc_enum_type_end(void)
   char *result = s->type;
 
   if ( mode_sexpr ) {
-    eprintf(gghc_body_out, "  ) ;; enum %s)\n\n", s->type);
+    eprintf(gghc_body_out, "  ) ;; enum %s\n\n", s->type);
   }
   if ( mode_c ) {
     eprintf(gghc_body_out, "  gghc_enum_type_end(%s);\n\n", s->type);
@@ -465,7 +461,7 @@ char *gghc_struct_type_end(void)
   char *type = s->type;
   
   if ( mode_sexpr ) {
-    eprintf(gghc_body_out, "  )");
+      eprintf(gghc_body_out, "  )         ;; %s \"%s\" \"%s\"\n", s->type, s->struct_or_union, (s->named ? s->name : ""));
   }
   if ( mode_c ) {
   eprintf(gghc_body_out, "  gghc_struct_type_end(%s);\n", current_struct->type);

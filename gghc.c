@@ -222,6 +222,11 @@ int	main(int argc, char** argv)
   }
   if ( ! (cc_prog && cc_prog[0]) ) cc_prog = "cc";
 
+  if ( filen == 0 ) {
+      fprintf(stderr, "gghc: no files given.\n");
+      exit(0);
+  }
+
   /* Initialize function name */
   if ( mode_c ) {
     char *o, *t;
