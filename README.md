@@ -35,6 +35,22 @@ Earlier versions of gghc could not parse __typeof__(expression):
 
 Newer versions will grok it as "void".
 
+* GCC inline union:
+
+    struct test__with_inlne_union
+    {
+        int a;
+        __extension__ union
+        {
+          int b;
+          int c;
+        };
+        int d;
+      } test__data;
+    };
+
+Newer versions will grok it but ignores __b and __c.
+
 ## Dependencies
 
 make

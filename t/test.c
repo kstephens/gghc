@@ -121,21 +121,16 @@ typedef __typeof__(((int*)0)-((int*)0)) test_ptrdiff_t;
 extern double test_atof (__const char *__nptr);
 
 #ifndef __clang__
-  struct test___pthread_mutex_s
-  {
-    int __lock;
-    unsigned int __count;
-    int __owner;
-    /* KIND must stay at this position in the structure to maintain
-       binary compatibility.  */
-    int __kind;
-    unsigned int __nusers;
+struct test__with_inlne_union
+{
+    int a;
     __extension__ union
     {
-      int __spins;
-      int __list;
+      int b;
+      int c;
     };
-  } test__data;
+    int d;
+};
 #endif
 
 int main(int argc, char **argv)
