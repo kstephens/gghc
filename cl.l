@@ -179,6 +179,7 @@ PRAGMA	(pragma)
 "__asm__"               { _return(GGHC___asm__); }
 "__restrict"            { _return(GGHC___restrict); }
 "__extension__"         { _return(GGHC___extension__); }
+"__typeof__"            { _return(GGHC___typeof__); }
 
 "auto"			{ _return(AUTO); }
 "break"			{ _return(BREAK); }

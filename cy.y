@@ -188,6 +188,7 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 %token GGHC___asm__
 %token GGHC___restrict
 %token GGHC___extension__
+%token GGHC___typeof__
 
 %start translation_unit
 
@@ -685,6 +686,11 @@ identifier_list
 	;
 
 type_name
+        : type_name_ANSI
+        | GGHC___typeof__ '(' expression ')' { $<type>$ = gghc_type("void"); }
+        ;
+
+type_name_ANSI
 	: specifier_qualifier_list
 	| specifier_qualifier_list abstract_declarator
 	;
