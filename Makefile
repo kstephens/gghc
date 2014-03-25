@@ -16,6 +16,7 @@ LFILES = cl.l
 
 CFILES = \
   malloc_debug.c \
+  malloc_zone.c \
   mm_buf.c \
   gghc.c \
   gghc_sym.c \
@@ -58,9 +59,9 @@ clean :
 all : $(OFILE_DIR) $(PRODUCT)
 
 test : all
-	$(PRODUCT) $(CC) -debug -v -g test.c
-	$(PRODUCT) gcc   -debug -v -g test.c
-	$(PRODUCT) clang -debug -v -g test.c
+	$(PRODUCT) $(CC) -debug -v -g t/test.c
+	$(PRODUCT) gcc   -debug -v -g t/test.c
+	$(PRODUCT) clang -debug -v -g t/test.c
 	$(RM) -rf /tmp/gghc_*_*.*
 
 test-deep : all test
@@ -74,7 +75,7 @@ test-deep : all test
 	$(PRODUCT) $(CC) gghc_sym.h
 
 debug : all
-	lldb -f $(PRODUCT) -- -v -g test.c
+	lldb -f $(PRODUCT) -- -v -g t/test.c
 
 $(GGHC_OFILES) : $(PRODUCT)
 
