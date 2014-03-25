@@ -180,7 +180,9 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 
 %token GGHC_inline
 %token GGHC___inline
+%token GGHC___inline__
 %token GGHC___builtin_va_list
+%token GGHC___builtin_va_arg
 %token GGHC___attribute__
 %token GGHC___asm
 %token GGHC___asm__
@@ -228,7 +230,13 @@ primary_expression
 	| CONSTANT
 	| string_constant
 	| '(' expression ')'
+        | primary_expression_EXT
 	;
+
+primary_expression_EXT
+        : '(' compound_statement ')'
+        | GGHC___builtin_va_arg '(' expression ',' type_name ')'
+        ;
 
 postfix_expression
 	: primary_expression
@@ -425,8 +433,7 @@ storage_class_specifier_EXT
   ;
 
 storage_class_specifier_OTHER
-  : GGHC_inline
-  | GGHC___inline
+  : __inline__
   | __attribute__
   | __extension__
   ;
@@ -822,6 +829,12 @@ string_constant
   | string_constant STRING_LITERAL
   ;
 
+__inline__
+  : GGHC_inline
+  | GGHC___inline
+  | GGHC___inline__
+  ;
+
 __asm
   : __asm_TOKEN '(' string_constant ')' ;
 
@@ -882,6 +895,7 @@ int gghc_yyparse_y(mm_buf *mb)
 
   /* EXT: NATIVE TYPES */
   // gghc_typedef("__uint16_t", gghc_type("unsigned short"));
+  gghc_typedef("_Bool", gghc_type("int"));
 
   return yyparse();
 }

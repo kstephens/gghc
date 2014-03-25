@@ -53,6 +53,9 @@ cy.y.dot.svg : all
 	dot -Tsvg -o cy.y.dot.svg cy.y.dot
 	open cy.y.dot.svg
 
+code-stats :
+	find * -type f | sort | egrep -e '\.[chyl]$$' | egrep -v -e 'c[yl].[ch]' | xargs wc -l
+
 clean :
 	rm -f $(DERIVED_FILES) cy.output gdbinit *.dot *.dot.svg
 

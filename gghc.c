@@ -101,18 +101,20 @@ void	gghc_cleanup(void)
     close_files();
 
   if ( ! gghc_debug ) {
-    unlink(gghc_cpp_in_filename);
-    unlink(gghc_cpp_out_filename);
-    unlink(gghc_constants_c_filename);
-    unlink(gghc_constants_x_filename);
+#define ul(X) if ( X ) unlink(X)
+    ul(gghc_cpp_in_filename);
+    ul(gghc_cpp_out_filename);
+    ul(gghc_constants_c_filename);
+    ul(gghc_constants_x_filename);
 
-    unlink(gghc_header_filename);
-    unlink(gghc_constants_filename);
-    unlink(gghc_decl_filename);
-    unlink(gghc_body_filename);
-    unlink(gghc_defines_in_filename);
-    unlink(gghc_defines_out_filename);
-    unlink(gghc_footer_filename);
+    ul(gghc_header_filename);
+    ul(gghc_constants_filename);
+    ul(gghc_decl_filename);
+    ul(gghc_body_filename);
+    ul(gghc_defines_in_filename);
+    ul(gghc_defines_out_filename);
+    ul(gghc_footer_filename);
+#undef ul
   }
 }
 
@@ -281,7 +283,7 @@ int	main(int argc, char** argv)
 
   gghc_constants_c = fopen(gghc_constants_c_filename, "w+");
   fprintf(gghc_constants_c, "/* Created by gghc 0.1, built %s %s */\n\n", __DATE__, __TIME__);
-  fprintf(gghc_constants_c, "#define __gghc_cc_ 1\n\n");
+  fprintf(gghc_constants_c, "#define __gghc_cc__ 1\n\n");
   fprintf(gghc_constants_c, "#define main __gghc_main\n\n");
 
   /* Include the specified header files */
@@ -291,7 +293,7 @@ int	main(int argc, char** argv)
   }
 
   fprintf(gghc_constants_c, "#include <stdio.h>\n\n");
-  fprintf(gghc_constants_c, "/* input files: */");
+  fprintf(gghc_constants_c, "/* input files: */\n");
   for ( i = 0; i < filen; i ++ ) {
     fprintf(gghc_constants_c, "#include \"%s\"\n", filev[i]);
   }
@@ -340,6 +342,7 @@ int	main(int argc, char** argv)
   mm_buf_open(&mb, gghc_cpp_out_filename);
   gghc_yyparse(&mb);
   mm_buf_close(&mb);
+  // gghc_cpp_out_filename = 0;
 
   /* Parse C defines. */
   parse_C_defines(gghc_defines_in);
@@ -367,9 +370,11 @@ int	main(int argc, char** argv)
   /* Close the temp files */
   close_files();
 
+  /**************************************/
   /* Compile constants. */
   sprintf(cmd, "%s %s '%s' -o '%s'",
           cc_prog, options, gghc_constants_c_filename, gghc_constants_x_filename);
+  // gghc_constants_c_filename = 0;
   gghc_system(cmd);
 
   /* Generate constants. */
@@ -377,6 +382,7 @@ int	main(int argc, char** argv)
           gghc_constants_x_filename, gghc_constants_filename);
   gghc_system(cmd);
   
+  /**************************************/
   /* Concat output files. */
   sprintf(cmd, "/bin/cat %s %s %s %s %s %s",
           gghc_header_filename,
