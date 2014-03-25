@@ -170,6 +170,7 @@ PRAGMA	(pragma)
 "/*"			{ comment(); }
 
 "inline"                { _return(GGHC_inline); }
+"__inline"              { _return(GGHC___inline); }
 "__builtin_va_list"     { _return(GGHC___builtin_va_list); }
 "__attribute__"         { _return(GGHC___attribute__); }
 "__asm"                 { _return(GGHC___asm); }

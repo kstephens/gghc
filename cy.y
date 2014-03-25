@@ -96,8 +96,8 @@ static void parse_msg(const char *desc, const char *s)
       s.beg ++;
       while ( s.end < t->mb->s.end && *s.end != '\n' ) s.end ++;
       s.size = s.end - s.beg;
-      token_msg(" line:  ", 0, &s);
       token_msg(" token: ", t->beg.beg - s.beg, &t->beg);
+      token_msg(" line:  ", 0, &s);
     }
   } else {
     fprintf(stderr, "gghc: 0:0:0 %s\n", s);
@@ -179,6 +179,7 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token GGHC_inline
+%token GGHC___inline
 %token GGHC___builtin_va_list
 %token GGHC___attribute__
 %token GGHC___asm
@@ -422,6 +423,7 @@ storage_class_specifier_EXT
 
 storage_class_specifier_OTHER
   : GGHC_inline
+  | GGHC___inline
   | __attribute__
   ;
 
