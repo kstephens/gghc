@@ -333,6 +333,7 @@ char *gghc_struct_type(const char *s_or_u, const char *name)
 {
   gghc_struct* s = _gghc_struct_type(s_or_u, name);
 
+  s->emitted = 1;
   if ( mode_sexpr ) {
     fprintf(gghc_precomp3, "  (gghc:struct %s \"%s\" \"%s\"\n",
             s->type,
