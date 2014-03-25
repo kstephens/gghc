@@ -102,7 +102,7 @@ int my_setrlimit(int, const int *) __asm("_" "setrlimit");
 
 int main(int argc, char **argv)
 {
-    static struct foo { int i; } f;
+    static struct main_foo { int i; } f;
     return 0;
 }
 

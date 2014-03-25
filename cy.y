@@ -791,13 +791,17 @@ external_declaration
 	;
 
 function_definition
-	: declaration_specifiers declarator declaration_list compound_statement
+	: declaration_specifiers declarator declaration_list function_body
         { gghc_declaration(&$<u.decl_spec>1, $<u.decl>2); }
-	| declaration_specifiers declarator compound_statement
+	| declaration_specifiers declarator function_body
         { gghc_declaration(&$<u.decl_spec>1, $<u.decl>2); }
-	| declarator declaration_list compound_statement
-	| declarator compound_statement
+	| declarator declaration_list function_body
+	| declarator function_body
 	;
+
+function_body
+  : { gghc_emit_control(-1); } compound_statement { gghc_emit_control(1); }
+  ;
 
 /* EXTENSIONS */
 

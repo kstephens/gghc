@@ -12,6 +12,8 @@
 char*	strdup(const char* s);
 char*	ssprintf(const char* format, ...);
 
+void gghc_emit_control(int i); /* -1 to pause, 1 to resume */
+
 /* typedef */
 void	gghc_typedef(const char *name, const char *type);
 /* type reference */
