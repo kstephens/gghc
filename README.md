@@ -16,14 +16,20 @@ GGHC will generate S-EXPR output suitable for parsing with a LISP reader.
     $ make clean all
     $ gghc gcc test.c > test.gghc.sexpr
 
-## Portablility
+## Supported
 
-OS X, Linux
-GCC, CLANG
+Operating Systems: OS X, Linux.
+C Compliers: GCC, CLANG.
+Headers: Parses stdlib.h, stdio.h.
 
 ## UNSUPPORTED
 
-    typedef __typeof__(EXPR) name;
+typedef __typeof__ clang stdlib.h on Linux:
+
+    $ ./gghc clang stdlib.h
+    gghc: ERROR: /usr/include/clang/3.2/include/stddef.h:31:19 syntax error
+    gghc: token:                    `('
+    gghc: line:  `typedef __typeof__(((int*)0)-((int*)0)) ptrdiff_t;'
 
 ## C runtime
 
