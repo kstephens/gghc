@@ -187,16 +187,22 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 
 %type   <expr>          IDENTIFIER TYPE_NAME
 
+%type   <expr>          declaration
+                        declaration_ANSI
+
 %type   <u.decl_spec>   declaration_specifiers
                         specifier_qualifier_list
 
 %type   <u.decl>        declarator
-                        direct_declarator direct_declarator_EXT
+                        direct_declarator
+                        direct_declarator_ANSI
                         init_declarator init_declarator_list
                         declaration_list
                         struct_declarator struct_declarator_list
 
-%type   <u.i>           storage_class_specifier storage_class_specifier_EXT
+%type   <u.i>           storage_class_specifier
+                        storage_class_specifier_ANSI
+                        storage_class_specifier_EXT
 %type   <type>          type_specifier
 %type   <type>          struct_or_union_specifier struct_or_union
 
@@ -209,6 +215,7 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 
 %type   <type>          abstract_declarator
                         direct_abstract_declarator
+                        direct_abstract_declarator_EXT
 
 %%
 
@@ -350,6 +357,11 @@ constant_expression
 	;
 
 declaration
+        : __attribute__ declaration_ANSI { $$ = $2; }
+        |               declaration_ANSI { $$ = $1; }
+        ;
+
+declaration_ANSI
 	: declaration_specifiers ';'
         { gghc_declaration(&$1, 0); }
 	| declaration_specifiers init_declarator_list ';'
@@ -391,11 +403,26 @@ init_declarator
 	;
 
 storage_class_specifier
-  : storage_class_specifier_EXT             { $$ = $1; }
-  | storage_class_specifier_EXT GGHC_inline { $$ = $1; }
+  : storage_class_specifier_EXT { $$ = $1; }
   ;
 
 storage_class_specifier_EXT
+  : storage_class_specifier_ANSI
+    { $$ = $1; }
+  | storage_class_specifier_OTHER
+    { $$ = $<token>1; }
+  | storage_class_specifier_EXT storage_class_specifier_ANSI
+    { $$ = $2; }
+  | storage_class_specifier_EXT storage_class_specifier_OTHER
+    { $$ = $1; }
+  ;
+
+storage_class_specifier_OTHER
+  : GGHC_inline
+  | __attribute__
+  ;
+
+storage_class_specifier_ANSI
   : storage_class_specifier_TOKEN { $$ = $<token>1; } ;
 
 storage_class_specifier_TOKEN
@@ -571,11 +598,11 @@ declarator
 	;
 
 direct_declarator:
-      direct_declarator_EXT                  { $$ = $1; }
-    | direct_declarator_EXT direct_declarator_ext_list { $$ = $1; }
+      direct_declarator_ANSI                        { $$ = $1; }
+    | direct_declarator_ANSI direct_declarator_EXTs { $$ = $1; }
     ;
 
-direct_declarator_EXT
+direct_declarator_ANSI
 	: IDENTIFIER
         { $$ = make_decl(); $$->identifier = EXPR($<u>1); }
 	| '(' declarator ')'
@@ -584,15 +611,15 @@ direct_declarator_EXT
           $$->declarator_text = ssprintf("(%s)", $$->declarator_text);
           $$->is_parenthised = 1;
         }
-	| direct_declarator_EXT '[' constant_expression ']'
+	| direct_declarator_ANSI '[' constant_expression ']'
         { $$ = make_array($1, EXPR($<u>3)); }
-	| direct_declarator_EXT '[' ']'
+	| direct_declarator_ANSI '[' ']'
         { $$ = make_array($1, ""); }
-	| direct_declarator_EXT '(' parameter_type_list ')'
+	| direct_declarator_ANSI '(' parameter_type_list ')'
         { $$ = make_func($1, TYPE($<u>3)); }
-	| direct_declarator_EXT '(' identifier_list ')'
+	| direct_declarator_ANSI '(' identifier_list ')'
         { $$ = make_func($1, ""); /* FIXME */}
-	| direct_declarator_EXT '(' ')'
+	| direct_declarator_ANSI '(' ')'
         { $$ = make_func($1, ""); }
 	;
 
@@ -671,9 +698,13 @@ direct_abstract_declarator
         { $$ = gghc_function_type($1, ""); }
 	| direct_abstract_declarator '(' parameter_type_list ')'
         { $$ = gghc_function_type($1, $3); }
-	| '(' '^' ')' '(' parameter_type_list ')'
-        { $$ = gghc_block_type("%s", $5); }
+        | direct_abstract_declarator_EXT
 	;
+
+direct_abstract_declarator_EXT
+        : '(' '^' ')' '(' parameter_type_list ')'
+        { $$ = gghc_block_type("%s", $5); }
+        ;
 
 initializer
 	: assignment_expression
@@ -765,20 +796,14 @@ function_definition
 
 /* EXTENSIONS */
 
+/* string concat "A" "B" */
 string_constant
   : STRING_LITERAL
   | string_constant STRING_LITERAL
   ;
 
-direct_declarator_ext_list
-  : direct_declarator_ext
-  | direct_declarator_ext_list direct_declarator_ext
-  ;
-
-direct_declarator_ext
-  : __attribute__
-  | __asm
-  ;
+__asm
+  : GGHC___asm '(' string_constant ')' ;
 
 __attribute__
   : GGHC___attribute__ '(' '(' attr ')' ')' ;
@@ -798,6 +823,7 @@ attr_arg_list
 attr_arg
   : attr_ident
   | attr_ident '=' constant_expression
+  | constant_expression
   ;
 
 attr_ident
@@ -805,9 +831,15 @@ attr_ident
   | CONST
   ;
 
-__asm
-  : GGHC___asm '(' string_constant ')' ;
+direct_declarator_EXTs
+  : direct_declarator_EXT
+  | direct_declarator_EXTs direct_declarator_EXT
+  ;
 
+direct_declarator_EXT
+  : __attribute__
+  | __asm
+  ;
 
 %%
 
@@ -815,6 +847,10 @@ int gghc_yyparse_y(mm_buf *mb)
 {
   extern int yydebug;
   yydebug = 0;
+
+  /* EXT: NATIVE TYPES */
+  // gghc_typedef("__uint16_t", gghc_type("unsigned short"));
+
   return yyparse();
 }
 

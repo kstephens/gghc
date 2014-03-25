@@ -60,8 +60,9 @@ all : $(OFILE_DIR) $(PRODUCT)
 test : all
 	$(PRODUCT) -debug -v -g test.c
 
-test-deep : all
+test-deep : all test
 	$(PRODUCT) stdlib.h
+	$(PRODUCT) stdio.h
 
 debug : all
 	lldb -f $(PRODUCT) -- -v -g test.c
