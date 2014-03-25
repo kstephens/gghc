@@ -328,7 +328,7 @@ int	main(int argc, char** argv)
     fprintf(gghc_header_out, "\n(gghc:module \"%s\"\n\n", files);
   }
   if ( mode_c ) {
-    fprintf(gghc_header_out, "#include \"%sgghc_i.h\"\n\n", GGHC_LIB_DIR);
+    fprintf(gghc_header_out, "#include \"gghc_i.h\"\n\n");
   }
 
   if ( mode_c ) {
