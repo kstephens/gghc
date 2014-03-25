@@ -158,7 +158,7 @@ char   *gghc_enum_type_forward(const char *name)
     s->emitted = 1;
     if ( mode_sexpr ) {
       fprintf(gghc_precomp3,
-              "(gghc:enum %s \"%s\")\n", s->type, (s->named ? name : ""));
+              "  (gghc:enum %s \"%s\") ;; forward\n", s->type, (s->named ? name : ""));
     }
     if ( mode_c ) {
       abort();
@@ -316,7 +316,7 @@ char *gghc_struct_type_forward(const char *s_or_u, const char *name)
   if ( ! s->emitted ) {
     s->emitted = 1;
     if ( mode_sexpr ) {
-      fprintf(gghc_precomp3, "  (gghc:struct %s \"%s\" \"%s\")\n",
+      fprintf(gghc_precomp3, "  (gghc:struct %s \"%s\" \"%s\") ;; forward\n",
               s->type,
               s->struct_or_union,
               s->named ? s->name : "");
