@@ -22,7 +22,7 @@
 
 extern int yylex();
 
- void debug_stop_here()
+ void gghc_debug_stop_here()
  {
  }
 
@@ -207,13 +207,18 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
                         direct_declarator_ANSI
                         init_declarator init_declarator_list
                         declaration_list
-                        struct_declarator struct_declarator_list
+                        struct_declarator
+                        struct_declarator_ANSI
+                        struct_declarator_list
 
 %type   <u.i>           storage_class_specifier
                         storage_class_specifier_ANSI
                         storage_class_specifier_EXT
 %type   <type>          type_specifier
-%type   <type>          struct_or_union_specifier struct_or_union
+%type   <type>          struct_or_union_specifier
+                        struct_or_union_specifier_ANSI
+                        struct_or_union_specifier_ANSI_def
+                        struct_or_union
 
 %type   <type>          enum_specifier enumerator_list enumerator
 
@@ -403,7 +408,7 @@ declaration_specifiers
         { $$.storage = 0; $$.type = gghc_type($$.type_text = "int"); }
 
 	| type_qualifier declaration_specifiers
-        { $$.storage = $2.storage; $$.type = $2.type; $$.type_text = $2.type_text; debug_stop_here(); }
+        { $$.storage = $2.storage; $$.type = $2.type; $$.type_text = $2.type_text; }
 	;
 
 init_declarator_list
@@ -519,6 +524,16 @@ ulong_long_specifier : UNSIGNED long_long_specifier | long_long_specifier UNSIGN
 ldouble_specifier : LONG DOUBLE | DOUBLE LONG;
 
 struct_or_union_specifier
+:                struct_or_union_specifier_ANSI
+;
+
+struct_or_union_specifier_ANSI
+        : struct_or_union_specifier_ANSI_def
+	| struct_or_union identifier
+        { $$ = gghc_struct_type_forward($1, EXPR($<u>2)); }
+        ;
+
+struct_or_union_specifier_ANSI_def
 	: struct_or_union identifier
         { gghc_struct_type($1, EXPR($<u>2)); }
           '{' struct_declaration_list '}'
@@ -527,8 +542,6 @@ struct_or_union_specifier
         { gghc_struct_type($1, ""); }
           '{' struct_declaration_list '}'
           { $$ = gghc_struct_type_end(); }
-	| struct_or_union identifier
-        { $$ = gghc_struct_type_forward($1, EXPR($<u>2)); }
 	;
 
 struct_or_union
@@ -565,6 +578,12 @@ struct_declarator_list
 	;
 
 struct_declarator
+: struct_declarator_ANSI
+| __extension__ struct_or_union_specifier_ANSI_def
+{ $$ = make_decl(); gghc_debug_stop_here(); }
+;
+
+struct_declarator_ANSI
 	: declarator
 	| ':' constant_expression
         { $$ = make_decl(); $$->is_bit_field = 1; $$->bit_field_size = EXPR($<u>2); }

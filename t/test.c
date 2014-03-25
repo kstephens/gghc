@@ -113,11 +113,29 @@ struct test_extension {
 };
 
 /* From Linux clang. */
+#if 0
 typedef __typeof__(((int*)0)-((int*)0)) test_ptrdiff_t;
+#endif
 
 /* From Linux gcc. */
 extern double test_atof (__const char *__nptr);
 
+  struct test___pthread_mutex_s
+  {
+    int __lock;
+    unsigned int __count;
+    int __owner;
+    /* KIND must stay at this position in the structure to maintain
+       binary compatibility.  */
+    int __kind;
+    unsigned int __nusers;
+    __extension__ union
+    {
+      int __spins;
+      int __list;
+    };
+  } test__data;
+ 
 int main(int argc, char **argv)
 {
     static struct main_foo { int i; } f;

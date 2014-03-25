@@ -77,7 +77,7 @@ test-deep : all test
 	$(PRODUCT) $(CC) gghc_sym.h
 
 debug : all
-	lldb -f $(PRODUCT) -- -v -g t/test.c
+	lldb -f $(PRODUCT) -- $(CC) -v -g t/test.c
 
 $(GGHC_OFILES) : $(PRODUCT)
 
