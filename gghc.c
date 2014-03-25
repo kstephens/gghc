@@ -197,6 +197,7 @@ int	main(int argc, char** argv)
   /* Put a header at the top */
   fprintf(gghc_precomp0, "/* Created by gghc 0.1, built %s %s */\n\n", __DATE__, __TIME__);
   fprintf(gghc_precomp0, "#define __gghc_cc_ 1\n\n");
+  fprintf(gghc_precomp0, "#define main __gghc_main\n\n");
 
   /* Include the specified header files */
   if ( mode_cxx )
@@ -230,6 +231,7 @@ int	main(int argc, char** argv)
   }
 
   /* Begin constant generation prog. */
+  fprintf(gghc_precomp0, "\n\n#undef main\n");
   fprintf(gghc_precomp0, "\n\nint main(int argc, char **argv)\n{\n");
 
   if ( mode_sexpr ) {

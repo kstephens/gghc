@@ -100,3 +100,9 @@ int my_setiopolicy_np(int, int, int) __attribute__((availability(macosx,introduc
 
 int my_setrlimit(int, const int *) __asm("_" "setrlimit");
 
+int main(int argc, char **argv)
+{
+    static struct foo { int i; } f;
+    return 0;
+}
+
