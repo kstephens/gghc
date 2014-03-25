@@ -583,12 +583,23 @@ void	gghc_global(const char *name, const char *type)
 
 void    gghc_define(const char *name, const char *str)
 {
+    char *out = malloc(strlen(str) * 2 + 1);
+    char *t = out;
+    const char *s = str;
+    while ( *s ) {
+        if ( *s == '\\' || *s == '"' )
+            *(t ++) = '\\';
+        *(t ++) = *(s ++);
+    }
+    *(t ++) = 0;
+
   if ( mode_sexpr ) {
-    eprintf(gghc_defines_out, "  (gghc:define \"%s\" \"%s\")\n", name, str);
+    eprintf(gghc_defines_out, "  (gghc:define \"%s\" \"%s\")\n", name, out);
   }
   if ( mode_c ) {
     abort();
   }
+  free(out);
 }
 
 
