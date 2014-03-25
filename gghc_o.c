@@ -1,10 +1,11 @@
 /*
-** Copyright 1993, 1994 Kurt A. Stephens
+** Copyright 1993, 1994, 2014 Kurt A. Stephens
 */
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <assert.h>
 #include "gghc_o.h"
 #include "gghc_sym.h"
 #include "gghc.h"	/* gghc_debug */
@@ -128,7 +129,8 @@ char*	gghc_enum_type(const char *name)
   %s = gghc_enum_type(\"%s\");\n", name, current_enum->type, (current_enum->named ? name : ""));
   }
   if ( gghc_debug )
-    printf("/* enum %s */\n", name);
+    fprintf(stderr, "/* enum %s */\n", name);
+
   return current_enum->type;
 }
 

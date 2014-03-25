@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <string.h>	/* strstr() */
+#include <assert.h>
 #include "gghc.h"
 #include "gghc_sym.h"
 #include "gghc_o.h"
@@ -31,7 +32,7 @@ void *gghc_malloc0(size_t size)
    return ptr;
 }
 
-gghc_decl *make_decl()
+static gghc_decl *make_decl()
 {
   gghc_decl *x = gghc_malloc0(sizeof(gghc_decl));
   x->identifier = "";
@@ -39,6 +40,32 @@ gghc_decl *make_decl()
   x->declarator_text = "%s";
   x->type = "variable";
   return x;
+}
+
+static gghc_decl *make_array(gghc_decl *decl, const char *size)
+{
+    if ( ! size ) size = "";
+    if ( decl->is_parenthised ) {
+        decl->declarator = ssprintf(decl->declarator, gghc_array_type("%s", size));
+    } else {
+        decl->declarator = gghc_array_type(decl->declarator, size);
+    }
+    decl->declarator_text = ssprintf("%s[%s]", decl->declarator_text, size);
+    decl->type = "array";
+    return decl;
+}
+
+static gghc_decl *make_func(gghc_decl *decl, const char *params)
+{
+    if ( ! params ) params  = "";
+    if ( decl->is_parenthised ) {
+        decl->declarator = ssprintf(decl->declarator, gghc_function_type("%s", params));
+    } else {
+        decl->declarator = gghc_function_type(decl->declarator, params);
+    }
+    decl->declarator_text = ssprintf("%s(%s)", decl->declarator_text, params);
+    decl->type = "function";
+    return decl;
 }
 
 void	yywarning(const char* s)
@@ -508,7 +535,7 @@ declarator
           } else {
             $$->declarator = ssprintf($1, $2->declarator);
           }
-          $$->declarator_text = ssprintf("%s %s", $<text>2, $2->declarator_text);
+          $$->declarator_text = ssprintf("%s %s", TYPE($<u>2), $2->declarator_text);
         }
         | direct_declarator
 	;
@@ -519,56 +546,19 @@ direct_declarator
 	| '(' declarator ')'
         {
           $$ = $2;
-          $$->declarator_text = ssprintf("(%s)", $2->declarator_text);
+          $$->declarator_text = ssprintf("(%s)", $$->declarator_text);
           $$->is_parenthised = 1;
         }
 	| direct_declarator '[' constant_expression ']'
-        {
-          void *size = EXPR($<u>3);
-          $$ = $1;
-          if ( $1->is_parenthised ) {
-            $$->declarator = ssprintf($1->declarator, gghc_array_type("%s", size));
-          } else {
-            $$->declarator = gghc_array_type($1->declarator, size);
-          }
-          $$->declarator_text = ssprintf("%s[%s]", $1->declarator_text, size);
-          $$->type = "array";
-        }
+        { $$ = make_array($1, EXPR($<u>3)); }
 	| direct_declarator '[' ']'
-        {
-          $$ = $1;
-          if ( $1->is_parenthised ) {
-            $$->declarator = ssprintf($1->declarator, gghc_array_type("%s", ""));
-          } else {
-            $$->declarator = gghc_array_type($1->declarator, "");
-          }
-          $$->declarator_text = ssprintf("%s[%s]", $1->declarator_text, "");
-          $$->type = "array";
-        }
+        { $$ = make_array($1, ""); }
 	| direct_declarator '(' parameter_type_list ')'
-        {
-          void *params = TYPE($<u>3);
-          $$ = $1;
-          if ( $1->is_parenthised ) {
-            $$->declarator = ssprintf($1->declarator, gghc_function_type("%s", params));
-          } else {
-            $$->declarator = gghc_function_type($1->declarator, params);
-          }
-          $$->declarator_text = ssprintf("%s(%s)", $1->declarator_text, params);
-          $$->type = "function";
-        }
+        { $$ = make_func($1, TYPE($<u>3)); }
 	| direct_declarator '(' identifier_list ')'
+        { $$ = make_func($1, ""); /* FIXME */}
 	| direct_declarator '(' ')'
-        {
-          $$ = $1;
-          if ( $1->is_parenthised ) {
-            $$->declarator = ssprintf($1->declarator, gghc_function_type("%s", ""));
-          } else {
-            $$->declarator = gghc_function_type($1->declarator, "");
-          }
-          $$->declarator_text = ssprintf("%s(%s)", $1->declarator_text, "");
-          $$->type = "function";
-        }
+        { $$ = make_func($1, ""); }
 	;
 
 pointer
