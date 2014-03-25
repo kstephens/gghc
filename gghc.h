@@ -11,13 +11,14 @@ extern mm_buf *gghc_mb; /* preprocessed header file */
 extern mm_buf *gghc_mb_token; /* token tracking stream. */
 extern mm_buf_region *gghc_last_token;
 
-extern
-FILE
-        *gghc_precomp0,  /* C constants */
-	*gghc_precomp1, /* unnamed struct/union definitions */
-	*gghc_precomp2,	/* struct/union slot accessors */
-	*gghc_precomp30, /* initializer function declaration */
-	*gghc_precomp3; /* initializers */
+extern FILE *gghc_cpp_in;      /* preprocessed input */
+extern FILE *gghc_header_out;     /* header */
+extern FILE *gghc_constants_c; /* C constants */
+extern FILE *gghc_decl_out;
+extern FILE *gghc_body_out;
+extern FILE *gghc_footer_out;
+extern FILE *gghc_defines_in;
+extern FILE *gghc_defines_out;
 
 extern	int	gghc_parse_lineno;
 extern	const char*	gghc_parse_filename;

@@ -31,6 +31,13 @@ typedef __typeof__ clang stdlib.h on Linux:
     gghc: token:                    `('
     gghc: line:  `typedef __typeof__(((int*)0)-((int*)0)) ptrdiff_t;'
 
+## Dependencies
+
+make
+bison
+flex
+perl
+
 ## C runtime
 
 GGHC mode (unsupported) to generate C code that will call into a C type library.
