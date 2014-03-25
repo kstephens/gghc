@@ -257,6 +257,9 @@ int	main(int argc, char** argv)
   sprintf(cmd, "%s -E -dM %s '-D__gghc__' '%s' > '%s'", cc_prog, options, gghc_cpp_in_filename, gghc_defines_in_filename);
   gghc_system(cmd);
 
+  sprintf(cmd, "/usr/bin/sort %s > %s.tmp && /bin/mv %s.tmp %s", gghc_defines_in_filename, gghc_defines_in_filename, gghc_defines_in_filename, gghc_defines_in_filename);
+  gghc_system(cmd);
+
   sprintf(cmd, "%s -E %s '-D__gghc__' '%s' > '%s'", cc_prog, options, gghc_cpp_in_filename, gghc_cpp_out_filename);
   gghc_system(cmd);
 
