@@ -183,6 +183,7 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 %token GGHC___builtin_va_list
 %token GGHC___attribute__
 %token GGHC___asm
+%token GGHC___asm__
 %token GGHC___restrict
 
 %start translation_unit
@@ -819,7 +820,12 @@ string_constant
   ;
 
 __asm
-  : GGHC___asm '(' string_constant ')' ;
+  : __asm_TOKEN '(' string_constant ')' ;
+
+__asm_TOKEN
+  : GGHC___asm
+  | GGHC___asm__
+  ;
 
 __attribute__
   : GGHC___attribute__ '(' '(' attr_list ')' ')' ;

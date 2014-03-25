@@ -174,6 +174,7 @@ PRAGMA	(pragma)
 "__builtin_va_list"     { _return(GGHC___builtin_va_list); }
 "__attribute__"         { _return(GGHC___attribute__); }
 "__asm"                 { _return(GGHC___asm); }
+"__asm__"               { _return(GGHC___asm__); }
 "__restrict"            { _return(GGHC___restrict); }
 
 "auto"			{ _return(AUTO); }
