@@ -102,6 +102,9 @@ int my_setiopolicy_np(int, int, int) __attribute__((availability(macosx,introduc
 int my_setrlimit(int, const int *) __asm("_" "setrlimit");
 #endif
 
+/* From Linux stdio.h */
+extern int test_IO_feof (void *__fp) __attribute__ ((__nothrow__ , __leaf__));
+
 int main(int argc, char **argv)
 {
     static struct main_foo { int i; } f;

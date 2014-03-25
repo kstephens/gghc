@@ -820,7 +820,12 @@ __asm
   : GGHC___asm '(' string_constant ')' ;
 
 __attribute__
-  : GGHC___attribute__ '(' '(' attr ')' ')' ;
+  : GGHC___attribute__ '(' '(' attr_list ')' ')' ;
+
+attr_list
+  : attr
+  | attr_list ', ' attr
+  ;
 
 attr
   : /* EMPTY */
