@@ -1,6 +1,7 @@
 /*
 ** Copyright 1993, 1994, 2014 Kurt A. Stephens
 */
+#define _GNU_SOURCE /* vasprintf() */
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
