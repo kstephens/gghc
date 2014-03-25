@@ -1,5 +1,5 @@
 /*
-** Copyright 1993, 1994 Kurt A. Stephens
+** Copyright 1993, 1994, 2014 Kurt A. Stephens
 */
 #include <stdlib.h>
 #include <stdio.h>
@@ -109,6 +109,7 @@ void	gghc_cleanup(void)
 int	main(int argc, char** argv)
 {
   char	cmd[2048];
+  char* cc_prog = 0;
   char*	files = "";
   char*	filev[15];
   int	filen = 0;
@@ -169,10 +170,15 @@ int	main(int argc, char** argv)
     if ( argv[i][0] == '-' ) {
       options = ssprintf("%s %s", options, argv[i]);
     } else {
-      files = ssprintf((files[0] ? "%s %s" : "%s%s"), files, argv[i]);
-      filev[filen ++] = argv[i];
+      if ( cc_prog ) {
+        files = ssprintf((files[0] ? "%s %s" : "%s%s"), files, argv[i]);
+        filev[filen ++] = argv[i];
+      } else {
+        cc_prog = argv[i];
+      }
     }
   }
+  if ( ! (cc_prog && cc_prog[0]) ) cc_prog = "cc";
 
   /* Reset state. */
   gghc_reset(filev[0]);
@@ -184,7 +190,7 @@ int	main(int argc, char** argv)
   }
   fclose(gghc_precomp1); gghc_precomp1 = 0;
   
-  sprintf(cmd, "cc -E %s '-D__gghc__' '%s' > '%s'", options, gghc_precomp1_filename, gghc_input_filename);
+  sprintf(cmd, "%s -E %s '-D__gghc__' '%s' > '%s'", cc_prog, options, gghc_precomp1_filename, gghc_input_filename);
   gghc_system(cmd);
 
   /* Create output files */
@@ -302,8 +308,8 @@ int	main(int argc, char** argv)
   fclose(gghc_precomp3); gghc_precomp3 = 0;
 
   /* Compile constants. */
-  sprintf(cmd, "cc %s '%s' -o '%s'",
-          options, gghc_precomp0_filename, gghc_precomp0x_filename);
+  sprintf(cmd, "%s %s '%s' -o '%s'",
+          cc_prog, options, gghc_precomp0_filename, gghc_precomp0x_filename);
   gghc_system(cmd);
 
   /* Generate constants. */
@@ -312,12 +318,12 @@ int	main(int argc, char** argv)
   gghc_system(cmd);
   
   if ( dump ) {
-    sprintf(cmd, "cat %s %s %s %s %s 1>&2", gghc_precomp1_filename, gghc_constants_filename, gghc_precomp2_filename, gghc_precomp30_filename, gghc_precomp3_filename);
+    sprintf(cmd, "/bin/cat %s %s %s %s %s 1>&2", gghc_precomp1_filename, gghc_constants_filename, gghc_precomp2_filename, gghc_precomp30_filename, gghc_precomp3_filename);
     gghc_system(cmd);
   }
 
   /* Concat output files. */
-  sprintf(cmd, "cat %s %s %s %s %s", gghc_precomp1_filename, gghc_constants_filename, gghc_precomp2_filename, gghc_precomp30_filename, gghc_precomp3_filename);
+  sprintf(cmd, "/bin/cat %s %s %s %s %s", gghc_precomp1_filename, gghc_constants_filename, gghc_precomp2_filename, gghc_precomp30_filename, gghc_precomp3_filename);
   if ( ! (output_pathname == 0 || strcmp(output_pathname, "-") == 0) ) {
     strcat(cmd, " >'");
     strcat(cmd, output_pathname);

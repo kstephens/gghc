@@ -58,17 +58,17 @@ clean :
 all : $(OFILE_DIR) $(PRODUCT)
 
 test : all
-	$(PRODUCT) -debug -v -g test.c
+	$(PRODUCT) $(CC) -debug -v -g test.c
 
 test-deep : all test
-	$(PRODUCT) stdlib.h
-	$(PRODUCT) stdio.h
-	$(PRODUCT) mm_buf.h
-	$(PRODUCT) malloc_debug.h
-	$(PRODUCT) gghc.h
-	$(PRODUCT) gghc_o.h
-	$(PRODUCT) gghc_t.h
-	$(PRODUCT) gghc_sym.h
+	$(PRODUCT) $(CC) stdlib.h
+	$(PRODUCT) $(CC) stdio.h
+	$(PRODUCT) $(CC) mm_buf.h
+	$(PRODUCT) $(CC) malloc_debug.h
+	$(PRODUCT) $(CC) gghc.h
+	$(PRODUCT) $(CC) gghc_o.h
+	$(PRODUCT) $(CC) gghc_t.h
+	$(PRODUCT) $(CC) gghc_sym.h
 
 debug : all
 	lldb -f $(PRODUCT) -- -v -g test.c
