@@ -64,7 +64,7 @@ test : all
 	$(PRODUCT) $(CC) -debug -v -g t/test.c
 	$(PRODUCT) gcc   -debug -v -g t/test.c
 	$(PRODUCT) clang -debug -v -g t/test.c
-	$(RM) -rf /tmp/gghc_*_*.*
+	$(RM) -rf /tmp/gghc-*-*.*
 
 test-deep : all test
 	$(PRODUCT) $(CC) stdlib.h

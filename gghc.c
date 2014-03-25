@@ -150,6 +150,7 @@ static int parse_C_defines(FILE *fp)
 int	main(int argc, char** argv)
 {
   char	cmd[2048];
+  char  cmd_cpp[2048];
   char* cc_prog = 0;
   char*	files = "";
   char*	filev[100] = { 0 };
@@ -254,6 +255,13 @@ int	main(int argc, char** argv)
   /* Reset state. */
   gghc_reset(filev[0]);
 
+  /* Create output files */
+  gghc_header_out  = fopen(gghc_header_filename, "w+");
+  gghc_decl_out    = fopen(gghc_decl_filename, "w+");
+  gghc_body_out    = fopen(gghc_body_filename, "w+");
+  gghc_footer_out  = fopen(gghc_footer_filename, "w+");
+  gghc_defines_out = fopen(gghc_defines_out_filename, "w+");
+
   /**************************************/
   /* Run the specified header files through CPP */
 
@@ -262,7 +270,11 @@ int	main(int argc, char** argv)
     fprintf(gghc_cpp_in, "#include \"%s\"\n", filev[i]);
   }
   fclose(gghc_cpp_in); gghc_cpp_in = 0;
-  
+
+  sprintf(cmd, "%s -E %s '-D__gghc__' '%s' > '%s'", cc_prog, options, gghc_cpp_in_filename, gghc_cpp_out_filename);
+  gghc_system(cmd);
+  strcpy(cmd_cpp, cmd);
+
   /**************************************/
   /* Collect defines. */
 
@@ -272,16 +284,6 @@ int	main(int argc, char** argv)
   sprintf(cmd, "/usr/bin/sort %s > %s.tmp && /bin/mv %s.tmp %s", gghc_defines_in_filename, gghc_defines_in_filename, gghc_defines_in_filename, gghc_defines_in_filename);
   gghc_system(cmd);
 
-  sprintf(cmd, "%s -E %s '-D__gghc__' '%s' > '%s'", cc_prog, options, gghc_cpp_in_filename, gghc_cpp_out_filename);
-  gghc_system(cmd);
-
-  /* Create output files */
-  gghc_header_out  = fopen(gghc_header_filename, "w+");
-  gghc_decl_out    = fopen(gghc_decl_filename, "w+");
-  gghc_body_out    = fopen(gghc_body_filename, "w+");
-  gghc_footer_out  = fopen(gghc_footer_filename, "w+");
-  gghc_defines_in  = fopen(gghc_defines_in_filename, "r");
-  gghc_defines_out = fopen(gghc_defines_out_filename, "w+");
 
   /**************************************/
   /* Create constant.c file. */
@@ -331,13 +333,16 @@ int	main(int argc, char** argv)
     fprintf(gghc_header_out, ";; Created by gghc 0.1, built %s %s */\n", __DATE__, __TIME__);
 
     fprintf(gghc_header_out,    "\n(gghc:module \"%s\"\n\n", files);
-    fprintf(gghc_header_out,    "  (gghc:info 'command \"%s\")\n\n", cmd);
     for ( i = 0; i < filen; i ++ ) {
-      fprintf(gghc_header_out,  "  (gghc:info 'input   %2d \"%s\")\n", i, filev[i]);
+      fprintf(gghc_header_out,  "  (gghc:info 'input  %2d \"%s\")\n", i, filev[i]);
     }
+    fprintf(gghc_header_out,    "  (gghc:info 'cpp   \"%s\")\n\n", cmd_cpp);
   }
 
   if ( mode_c ) {
+    fprintf(gghc_header_out, "/* Created by gghc 0.1, built %s %s */\n", __DATE__, __TIME__);
+    fprintf(gghc_header_out, "/* input: %s\n */\n", files);
+    fprintf(gghc_header_out, "/* cpp:   %s\n */\n\n", cmd_cpp);
     fprintf(gghc_header_out, "#include \"gghc_i.h\"\n\n");
   }
 
@@ -355,7 +360,9 @@ int	main(int argc, char** argv)
   // gghc_cpp_out_filename = 0;
 
   /* Parse C defines. */
+  gghc_defines_in = fopen(gghc_defines_in_filename, "r");
   parse_C_defines(gghc_defines_in);
+  fclose(gghc_defines_in); gghc_defines_in = 0;
 
   /**************************************/
   /* Terminate C constant input */
@@ -377,11 +384,12 @@ int	main(int argc, char** argv)
     fprintf(gghc_footer_out, "static _gghcInitializer _gghc_initializer(%s);\n\n", initfuncname);
   }
 
-  /* Close the temp files */
+  /* Close files */
   close_files();
 
   /**************************************/
   /* Compile constants. */
+
   sprintf(cmd, "%s %s '%s' -o '%s'",
           cc_prog, options, gghc_constants_c_filename, gghc_constants_x_filename);
   // gghc_constants_c_filename = 0;
