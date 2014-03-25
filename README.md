@@ -46,7 +46,6 @@ Newer versions will grok it as "void".
           int c;
         };
         int d;
-      } test__data;
     };
 
 Newer versions will grok it but ignores __b and __c.
