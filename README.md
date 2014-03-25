@@ -48,7 +48,7 @@ Newer versions will grok it as "void".
         int d;
     };
 
-Newer versions will grok it but ignores __b and __c.
+gghc will parse it but ignores b and c.
 
 ## Dependencies
 
