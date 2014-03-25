@@ -112,6 +112,9 @@ struct test_extension {
   __extension__ unsigned long long int __total_seq;
 };
 
+/* From Linux clang. */
+typedef __typeof__(((int*)0)-((int*)0)) test_ptrdiff_t;
+
 int main(int argc, char **argv)
 {
     static struct main_foo { int i; } f;

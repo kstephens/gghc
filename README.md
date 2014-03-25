@@ -24,12 +24,16 @@ Headers: Parses stdlib.h, stdio.h.
 
 ## UNSUPPORTED
 
-typedef __typeof__ clang stdlib.h on Linux:
+* typedef __typeof__ clang stdlib.h on Linux:
+
+Earlier versions of gghc could not parse __typeof__(expression):
 
     $ ./gghc clang stdlib.h
     gghc: ERROR: /usr/include/clang/3.2/include/stddef.h:31:19 syntax error
     gghc: token:                    `('
     gghc: line:  `typedef __typeof__(((int*)0)-((int*)0)) ptrdiff_t;'
+
+Newer versions will grok it as "void".
 
 ## Dependencies
 
