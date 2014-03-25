@@ -473,7 +473,7 @@ specifier_qualifier_list
 	: type_specifier specifier_qualifier_list
         { $$.type = $1; $$.type_text = $<text>2; }
 	| type_specifier
-        { $$.type = ""; $$.type_text = ""; }
+        { $$.type = $1; $$.type_text = ""; }
 	| type_qualifier specifier_qualifier_list
         { $$ = $2; }
 	| type_qualifier
@@ -489,7 +489,6 @@ struct_declarator_list
 
 struct_declarator
 	: declarator
-        { $$ = $1; }
 	| ':' constant_expression
         { $$ = make_decl(); $$->is_bit_field = 1; $$->bit_field_size = EXPR($<u>2); }
 	| declarator ':' constant_expression
@@ -498,15 +497,15 @@ struct_declarator
 
 enum_specifier
         : ENUM
-        { $<type>$ = gghc_enum_type(0); }
+        { gghc_enum_type(0); }
             '{' enumerator_list '}'
-            { gghc_enum_type_end(); }
+            { $$ = gghc_enum_type_end(); }
 	| ENUM IDENTIFIER
-        { $<type>$ = gghc_enum_type(EXPR($<u>2)); }
+        { gghc_enum_type(EXPR($<u>2)); }
             '{' enumerator_list '}'
-            { gghc_enum_type_end(); }
+            { $$ = gghc_enum_type_end(); }
 	| ENUM IDENTIFIER
-        { $$ = gghc_type(ssprintf("enum %s", EXPR($<u>2))); /* FIXME */ }
+        { $$ = gghc_type(ssprintf("enum %s", EXPR($<u>2))); }
 	;
 
 enumerator_list

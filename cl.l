@@ -40,6 +40,7 @@ int gghc_yyparse(mm_buf *mb)
     *gghc_mb_token = *gghc_mb;
 
     result = gghc_yyparse_y(mb);
+
     gghc_mb = gghc_mb_token = 0;
 
     return result;
@@ -270,13 +271,12 @@ L?\"(\\.|[^\\"])*\"	{ _return(STRING_LITERAL); }
 .			{ /* ignore bad characters */ }
 
 %%
-// ' emacs
+// "' emacs
 
 static int yywrap()
 {
 	return(1);
 }
-
 
 static int comment()
 {
@@ -310,7 +310,7 @@ static int check_type()
 
   gghc_symbol *sym;
   yylval.u.cp = strdup(yytext);
-  if ( (sym = gghc_symbol_get(yytext)) && strcmp(sym->value, "typedef") == 0 ) {
+  if ( (sym = gghc_symbol_get(yytext)) ) {
     return TYPE_NAME;
   }
 

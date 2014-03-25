@@ -20,7 +20,7 @@ char*	gghc_type(const char *typename);
 /* enum */
 char*	gghc_enum_type(const char *name);
 void	gghc_enum_type_element(const char *name);
-void	gghc_enum_type_end(void);
+char*	gghc_enum_type_end(void);
 
 /* pointer */
 char*	gghc_pointer_type(const char *type);
