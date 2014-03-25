@@ -4,7 +4,7 @@ GGHC - GlueGun C header compiler
 
 ## Overview
 
-GGHC extract type information and other data from C header files, suitable for FFI generation.
+GGHC extracts C type information and other data from C header files, suitable for FFI generation.
 
 ## S-EXPR Output
 
@@ -14,7 +14,8 @@ GGHC will generate S-EXPR output suitable for parsing with a LISP reader.
 
     $ cd gghc
     $ make clean all
-    $ gghc gcc test.c > test.gghc.sexpr
+    $ gghc gcc t/test.c > test.gghc.sexpr
+    $ gghc gcc stdlib.h | less
 
 ## Supported
 
