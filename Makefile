@@ -59,6 +59,8 @@ all : $(OFILE_DIR) $(PRODUCT)
 
 test : all
 	$(PRODUCT) $(CC) -debug -v -g test.c
+	$(PRODUCT) gcc   -debug -v -g test.c
+	$(PRODUCT) clang -debug -v -g test.c
 
 test-deep : all test
 	$(PRODUCT) $(CC) stdlib.h

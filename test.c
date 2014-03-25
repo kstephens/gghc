@@ -96,9 +96,11 @@ enum eforward;
 extern enum eforward *eforwardP;
 
 /* From OSX stdlib.h */
+#ifdef __clang__
 int my_setiopolicy_np(int, int, int) __attribute__((availability(macosx,introduced=10.5)));
 
 int my_setrlimit(int, const int *) __asm("_" "setrlimit");
+#endif
 
 int main(int argc, char **argv)
 {
