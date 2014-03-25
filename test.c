@@ -80,3 +80,9 @@ struct sy *sy_func(int x)
 {
   return 0;
 }
+
+/* From OSX stdlib.h */
+int my_setiopolicy_np(int, int, int) __attribute__((availability(macosx,introduced=10.5)));
+
+int my_setrlimit(int, const int *) __asm("_" "setrlimit");
+

@@ -182,8 +182,7 @@ void	gghc_enum_type_element(const char *name)
           current_enum->name,
           gghc_constant(name));
   }
-  if ( gghc_debug )
-    printf("  /* enum %s:%s */\n", current_enum->name, name);
+  // if ( gghc_debug ) fprintf(stderr, "  /* enum %s:%s */\n", current_enum->name, name);
 }
 
 char *gghc_enum_type_end(void)
@@ -442,6 +441,24 @@ char *gghc_function_type(const char *rtntype, const char *argtypes)
   return 0;
 }
 
+char *gghc_block_type(const char *rtntype, const char *argtypes)
+{
+  if ( mode_sexpr ) {
+    if ( strcmp(argtypes, "(gghc:type \"void\")") == 0 ) {
+      argtypes = "";
+    }
+    return ssprintf("(gghc:block %s %s)", rtntype, argtypes);
+  }
+  if ( mode_c ) {
+  if ( strcmp(argtypes, "gghc_type(\"void\")") == 0 ) {
+    argtypes = "GGHCT_NULL";
+  } else {
+    argtypes = ssprintf("%s, GGHCT_NULL", argtypes);
+  }
+  return ssprintf("gghc_block_type(%s, %s)", rtntype, argtypes);
+  }
+  return 0;
+}
 
 /*
 ** Top-level declaration;

@@ -35,6 +35,7 @@ char*	gghc_struct_type_end(void);
 
 /* function */
 char*	gghc_function_type(const char *type, const char *length);
+char*	gghc_block_type(const char *type, const char *length);
 
 /* top-level declaration */
 void	gghc_declaration(gghc_decl_spec *spec, gghc_decl *decl);

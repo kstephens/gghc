@@ -68,25 +68,50 @@ static gghc_decl *make_func(gghc_decl *decl, const char *params)
     return decl;
 }
 
-void	yywarning(const char* s)
+static void token_msg(const char *desc, int indent, mm_buf_state *s)
+{
+  int size = s->size;
+  if ( size > 120 ) size = 120;
+  fprintf(stderr, "gghc:%s%*s`", desc, (int) indent, "");
+  fwrite(s->beg, size, 1, stderr);
+  fprintf(stderr, "'\n");
+}
+
+static void parse_msg(const char *desc, const char *s)
 {
   mm_buf_region *t = gghc_last_token;
   if ( t ) {
-    fprintf(stderr, "gghc: %s:%d:%d %s\n",
+    fprintf(stderr, "gghc: %s%s:%d:%d %s\n",
+            desc,
           t->beg.src.filename ? t->beg.src.filename : "UNKNOWN",
           t->beg.src.lineno,
           t->beg.src.column,
           s
           );
-    fprintf(stderr, "gghc: near '%*s'\n", (int) t->beg.size, t->beg.pos);
+    {
+      mm_buf_state s;
+      s.beg = s.end = t->beg.beg;
+      s.beg ++;
+      while ( s.beg > t->mb->s.beg && *s.beg != '\n' ) s.beg --;
+      s.beg ++;
+      while ( s.end < t->mb->s.end && *s.end != '\n' ) s.end ++;
+      s.size = s.end - s.beg;
+      token_msg(" line:  ", 0, &s);
+      token_msg(" token: ", t->beg.beg - s.beg, &t->beg);
+    }
   } else {
     fprintf(stderr, "gghc: 0:0:0 %s\n", s);
   }
 }
 
+void	yywarning(const char* s)
+{
+  parse_msg("warning: ", s);
+}
+
 void	yyerror(const char* s)
 {
-  yywarning(s);
+  parse_msg("ERROR: ", s);
   gghc_error_code ++;
 }
 
@@ -165,12 +190,13 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 %type   <u.decl_spec>   declaration_specifiers
                         specifier_qualifier_list
 
-%type   <u.decl>        declarator direct_declarator
+%type   <u.decl>        declarator
+                        direct_declarator direct_declarator_EXT
                         init_declarator init_declarator_list
                         declaration_list
                         struct_declarator struct_declarator_list
 
-%type   <u.i>           storage_class_specifier
+%type   <u.i>           storage_class_specifier storage_class_specifier_EXT
 %type   <type>          type_specifier
 %type   <type>          struct_or_union_specifier struct_or_union
 
@@ -189,7 +215,7 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 primary_expression
 	: IDENTIFIER
 	| CONSTANT
-	| STRING_LITERAL
+	| string_constant
 	| '(' expression ')'
 	;
 
@@ -365,7 +391,12 @@ init_declarator
 	;
 
 storage_class_specifier
-: storage_class_specifier_TOKEN { $$ = $<token>1; } ;
+  : storage_class_specifier_EXT             { $$ = $1; }
+  | storage_class_specifier_EXT GGHC_inline { $$ = $1; }
+  ;
+
+storage_class_specifier_EXT
+  : storage_class_specifier_TOKEN { $$ = $<token>1; } ;
 
 storage_class_specifier_TOKEN
 	: TYPEDEF
@@ -539,7 +570,12 @@ declarator
         | direct_declarator
 	;
 
-direct_declarator
+direct_declarator:
+      direct_declarator_EXT                  { $$ = $1; }
+    | direct_declarator_EXT direct_declarator_ext_list { $$ = $1; }
+    ;
+
+direct_declarator_EXT
 	: IDENTIFIER
         { $$ = make_decl(); $$->identifier = EXPR($<u>1); }
 	| '(' declarator ')'
@@ -548,15 +584,15 @@ direct_declarator
           $$->declarator_text = ssprintf("(%s)", $$->declarator_text);
           $$->is_parenthised = 1;
         }
-	| direct_declarator '[' constant_expression ']'
+	| direct_declarator_EXT '[' constant_expression ']'
         { $$ = make_array($1, EXPR($<u>3)); }
-	| direct_declarator '[' ']'
+	| direct_declarator_EXT '[' ']'
         { $$ = make_array($1, ""); }
-	| direct_declarator '(' parameter_type_list ')'
+	| direct_declarator_EXT '(' parameter_type_list ')'
         { $$ = make_func($1, TYPE($<u>3)); }
-	| direct_declarator '(' identifier_list ')'
+	| direct_declarator_EXT '(' identifier_list ')'
         { $$ = make_func($1, ""); /* FIXME */}
-	| direct_declarator '(' ')'
+	| direct_declarator_EXT '(' ')'
         { $$ = make_func($1, ""); }
 	;
 
@@ -635,6 +671,8 @@ direct_abstract_declarator
         { $$ = gghc_function_type($1, ""); }
 	| direct_abstract_declarator '(' parameter_type_list ')'
         { $$ = gghc_function_type($1, $3); }
+	| '(' '^' ')' '(' parameter_type_list ')'
+        { $$ = gghc_block_type("%s", $5); }
 	;
 
 initializer
@@ -724,6 +762,52 @@ function_definition
 	| declarator declaration_list compound_statement
 	| declarator compound_statement
 	;
+
+/* EXTENSIONS */
+
+string_constant
+  : STRING_LITERAL
+  | string_constant STRING_LITERAL
+  ;
+
+direct_declarator_ext_list
+  : direct_declarator_ext
+  | direct_declarator_ext_list direct_declarator_ext
+  ;
+
+direct_declarator_ext
+  : __attribute__
+  | __asm
+  ;
+
+__attribute__
+  : GGHC___attribute__ '(' '(' attr ')' ')' ;
+
+attr
+  : /* EMPTY */
+  | attr_ident '(' attr_arg_list ')'
+  | attr_ident
+  ;
+
+attr_arg_list
+  : /* EMPTY */
+  | attr_arg
+  | attr_arg ',' attr_arg_list
+  ;
+
+attr_arg
+  : attr_ident
+  | attr_ident '=' constant_expression
+  ;
+
+attr_ident
+  : IDENTIFIER
+  | CONST
+  ;
+
+__asm
+  : GGHC___asm '(' string_constant ')' ;
+
 
 %%
 
