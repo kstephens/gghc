@@ -4,7 +4,7 @@ GGHC - GlueGun C header compiler
 
 ## Overview
 
-GGHC extract type information from C header files, suitable for FFI generation.
+GGHC extract type information and other data from C header files, suitable for FFI generation.
 
 ## S-EXPR Output
 
@@ -149,6 +149,12 @@ is called when a type is required by name. Should raise an error if the type is 
   void gghc_global(const char *symbol, gghcT ctype, void *address);
 
  binds symbol to a new C object at an address.   This is called for each variable, array and function declaration.
+
+1.5. Defines
+
+  void gghc_define(const char *name, const char *tokens);
+
+ captures #defines.  Client must decide if name has arguments or tokens are parsible as simple values.
 
 ## Copyright
 
