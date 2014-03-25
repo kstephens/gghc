@@ -104,6 +104,7 @@ int my_setrlimit(int, const int *) __asm("_" "setrlimit");
 
 /* From Linux stdio.h */
 extern int test_IO_feof (void *__fp) __attribute__ ((__nothrow__ , __leaf__));
+extern void *test_fopen (const char *__restrict __filename, ...);
 
 int main(int argc, char **argv)
 {

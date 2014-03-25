@@ -183,6 +183,7 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 %token GGHC___builtin_va_list
 %token GGHC___attribute__
 %token GGHC___asm
+%token GGHC___restrict
 
 %start translation_unit
 
@@ -584,9 +585,10 @@ enumerator
 	;
 
 type_qualifier
-	: CONST
-	| VOLATILE
-	;
+        : CONST
+        | VOLATILE
+        | GGHC___restrict
+        ;
 
 declarator
 	: pointer direct_declarator
