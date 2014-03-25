@@ -108,6 +108,10 @@ extern void *test_fopen (const char *__restrict __filename, ...);
 extern int test_fscanf (void *__restrict __stream, const char *__restrict __format, ...) __asm__ ("" "__isoc99_fscanf");
 __extension__ extern long long int test_atoll (const char *__nptr);
 
+struct test_extension {
+  __extension__ unsigned long long int __total_seq;
+};
+
 int main(int argc, char **argv)
 {
     static struct main_foo { int i; } f;

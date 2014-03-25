@@ -591,6 +591,7 @@ type_qualifier
         : CONST
         | VOLATILE
         | GGHC___restrict
+        | __extension__
         ;
 
 declarator
