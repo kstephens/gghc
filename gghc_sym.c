@@ -12,6 +12,7 @@ gghc_symbol*	gghc_symbol_set(const char* identifier)
 	gghc_symbol* s = gghc_symbol_get(identifier);
 	if ( s == 0 ) {
 		s = malloc(sizeof(*s));
+                memset(s, 0, sizeof(*s));
 		s->identifier = strdup(identifier);
 		s->next = symbols;
 		symbols = s;

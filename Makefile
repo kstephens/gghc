@@ -63,6 +63,7 @@ test : all
 test-deep : all test
 	$(PRODUCT) stdlib.h
 	$(PRODUCT) stdio.h
+	$(PRODUCT) mm_buf.h
 
 debug : all
 	lldb -f $(PRODUCT) -- -v -g test.c

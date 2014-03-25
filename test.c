@@ -17,6 +17,9 @@ typedef struct mystruct {
 	struct mystruct *next;
 } mystruct;
 
+void msp_func(struct mystruct *ptr);
+void mspc_func(const struct mystruct *ptr);
+
 typedef mystruct yourstruct;
 
 extern
@@ -80,6 +83,17 @@ struct sy *sy_func(int x)
 {
   return 0;
 }
+
+struct forward;
+extern struct forward *sforwardP;
+
+struct forward {
+  char* name;
+  struct forward *next;
+};
+
+enum eforward;
+extern enum eforward *eforwardP;
 
 /* From OSX stdlib.h */
 int my_setiopolicy_np(int, int, int) __attribute__((availability(macosx,introduced=10.5)));

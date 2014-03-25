@@ -36,14 +36,25 @@ struct	gghc_decl {
 	struct gghc_decl* next;
 } gghc_decl;
 
+typedef struct gghc_enum {
+  char *name;
+  int named;
+    int emitted;
+  int nelem;
+  char *type;
+  struct gghc_enum *prev;
+} gghc_enum;
+
 typedef
 struct	gghc_struct {
 	char*	struct_or_union;
 	char*	name;
 	short	named;
+    int emitted;
+  int     nelem;
+	char*	type;
 	char*	slots;
 	char*	slots_text;
-	char*	type;
 	struct	gghc_struct* prev;
 } gghc_struct;
 

@@ -185,7 +185,7 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 
 %start translation_unit
 
-%type   <expr>          IDENTIFIER TYPE_NAME
+%type   <expr>          IDENTIFIER TYPE_NAME identifier
 
 %type   <expr>          declaration
                         declaration_ANSI
@@ -365,7 +365,7 @@ declaration_ANSI
 	: declaration_specifiers ';'
         { gghc_declaration(&$1, 0); }
 	| declaration_specifiers init_declarator_list ';'
-        { gghc_declaration(&$1, $2); debug_stop_here(); }
+        { gghc_declaration(&$1, $2); }
 	;
 
 declaration_specifiers
@@ -380,12 +380,15 @@ declaration_specifiers
 
 	| type_specifier declaration_specifiers
         { $$.storage = $2.storage; $$.type = $$.type_text = TYPE($<u>1); }
+/*
+        { $$.storage = $2.storage; $$.type = $2.type; $$.type_text = $2.type_text; }
+*/
 
 	| type_qualifier
         { $$.storage = 0; $$.type = gghc_type($$.type_text = "int"); }
 
 	| type_qualifier declaration_specifiers
-        { $$ = $2; }
+        { $$.storage = $2.storage; $$.type = $2.type; $$.type_text = $2.type_text; debug_stop_here(); }
 	;
 
 init_declarator_list
@@ -500,16 +503,16 @@ ulong_long_specifier : UNSIGNED long_long_specifier | long_long_specifier UNSIGN
 ldouble_specifier : LONG DOUBLE | DOUBLE LONG;
 
 struct_or_union_specifier
-	: struct_or_union IDENTIFIER
-        { gghc_struct_type($1, EXPR($<u>2)); debug_stop_here(); }
+	: struct_or_union identifier
+        { gghc_struct_type($1, EXPR($<u>2)); }
           '{' struct_declaration_list '}'
           { $$ = gghc_struct_type_end(); }
 	| struct_or_union
         { gghc_struct_type($1, ""); }
           '{' struct_declaration_list '}'
           { $$ = gghc_struct_type_end(); }
-	| struct_or_union IDENTIFIER
-        { $$ = gghc_type(ssprintf("%s %s", $1, EXPR($<u>2))); }
+	| struct_or_union identifier
+        { $$ = gghc_struct_type_forward($1, EXPR($<u>2)); }
 	;
 
 struct_or_union
@@ -558,12 +561,12 @@ enum_specifier
         { gghc_enum_type(0); }
             '{' enumerator_list '}'
             { $$ = gghc_enum_type_end(); }
-	| ENUM IDENTIFIER
+	| ENUM identifier
         { gghc_enum_type(EXPR($<u>2)); }
             '{' enumerator_list '}'
             { $$ = gghc_enum_type_end(); }
-	| ENUM IDENTIFIER
-        { $$ = gghc_type(ssprintf("enum %s", EXPR($<u>2))); }
+	| ENUM identifier
+        { $$ = gghc_enum_type_forward(EXPR($<u>2)); }
 	;
 
 enumerator_list
@@ -795,6 +798,11 @@ function_definition
 	;
 
 /* EXTENSIONS */
+
+identifier
+  : IDENTIFIER
+  | TYPE_NAME
+  ;
 
 /* string concat "A" "B" */
 string_constant

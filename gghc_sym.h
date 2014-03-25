@@ -6,6 +6,7 @@ typedef struct gghc_symbol
   char *identifier;
   char *type;
   char *value;
+  void *ptr;
   struct gghc_symbol *next;
 } gghc_symbol;
 

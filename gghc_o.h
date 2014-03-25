@@ -18,6 +18,7 @@ void	gghc_typedef(const char *name, const char *type);
 char*	gghc_type(const char *typename);
 
 /* enum */
+char   *gghc_enum_type_forward(const char *name);
 char*	gghc_enum_type(const char *name);
 void	gghc_enum_type_element(const char *name);
 char*	gghc_enum_type_end(void);
@@ -29,6 +30,7 @@ char*	gghc_pointer_type(const char *type);
 char*	gghc_array_type(const char *type, const char *length);
 
 /* struct/union */
+char   *gghc_struct_type_forward(const char *s_or_u, const char *name);
 char*	gghc_struct_type(const char *struct_or_union, const char *name);
 void	gghc_struct_type_element(gghc_decl_spec *spec, gghc_decl *decl, const char *text);
 char*	gghc_struct_type_end(void);
