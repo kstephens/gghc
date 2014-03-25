@@ -69,7 +69,7 @@ void	gghc_typedef(const char *name, const char *type)
     return;
   }
 
-  fprintf(stderr, "  @@@ gghc_typedef %s ==> %s\n", name, type);
+  // fprintf(stderr, "  @@@ gghc_typedef %s ==> %s\n", name, type);
 
   sym = gghc_symbol_set(name);
   sym->value = strdup(type);
@@ -125,7 +125,7 @@ char*	gghc_enum_type(const char *name)
     gghc_symbol *sym;
     typename = ssprintf("enum %s", name);
     if ( (sym = gghc_symbol_get(typename)) ) {
-      fprintf(stderr, "  @@@ gghc_enum_type enum %s ==> %s\n", typename, sym->value);
+      // fprintf(stderr, "  @@@ gghc_enum_type enum %s ==> %s\n", typename, sym->value);
       return sym->value;
     }
   }
@@ -157,8 +157,7 @@ char*	gghc_enum_type(const char *name)
   /* enum %s */\n\
   %s = gghc_enum_type(\"%s\");\n", name, current_enum->type, (current_enum->named ? name : ""));
   }
-  if ( gghc_debug )
-    fprintf(stderr, "/* enum %s */\n", name);
+  // if ( gghc_debug ) fprintf(stderr, "/* enum %s */\n", name);
 
   if ( typename ) {
     gghc_symbol *sym = gghc_symbol_set(typename);
@@ -252,7 +251,7 @@ char *gghc_struct_type(const char *s_or_u, const char *name)
     gghc_symbol *sym;
     typename = ssprintf("%s %s", s_or_u, name);
     if ( (sym = gghc_symbol_get(typename)) ) {
-      fprintf(stderr, "  @@@ gghc_struct_type %s ==> %s\n", typename, sym->value);
+      // fprintf(stderr, "  @@@ gghc_struct_type %s ==> %s\n", typename, sym->value);
       return sym->value;
     }
   }
@@ -451,7 +450,7 @@ void gghc_declaration(gghc_decl_spec *spec, gghc_decl *decl)
 {
   while ( decl ) {
     char *type = ssprintf(decl->declarator, spec->type);
-    fprintf(stderr, "  gghc_declaration: type=%s ident=%s\n", type, decl->identifier);
+    // fprintf(stderr, "  gghc_declaration: type=%s ident=%s\n", type, decl->identifier);
     if ( ! (spec->type && spec->type[0]) ) {
       yyerror(ssprintf("no type for identifier '%s'", decl->identifier));
     } else
