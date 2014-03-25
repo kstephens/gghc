@@ -115,6 +115,9 @@ struct test_extension {
 /* From Linux clang. */
 typedef __typeof__(((int*)0)-((int*)0)) test_ptrdiff_t;
 
+/* From Linux gcc. */
+extern double test_atof (__const char *__nptr);
+
 int main(int argc, char **argv)
 {
     static struct main_foo { int i; } f;

@@ -190,6 +190,7 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 %token GGHC___restrict
 %token GGHC___extension__
 %token GGHC___typeof__
+%token GGHC___const
 
 %start translation_unit
 
@@ -598,6 +599,7 @@ enumerator
 
 type_qualifier
         : CONST
+        | GGHC___const
         | VOLATILE
         | GGHC___restrict
         | __extension__
