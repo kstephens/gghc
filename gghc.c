@@ -46,6 +46,7 @@ char*	gghc_body_filename;
 char*	gghc_footer_filename;
 char*	gghc_defines_in_filename;
 char*	gghc_defines_out_filename;
+char*   gghc_result_out_filename;
 
 gghc_mode gghc_output_mode;
 
@@ -151,7 +152,7 @@ int	main(int argc, char** argv)
   char	cmd[2048];
   char* cc_prog = 0;
   char*	files = "";
-  char*	filev[15];
+  char*	filev[100] = { 0 };
   int	filen = 0;
   char*	options = "-I.";
   char*	output_pathname = 0;
@@ -161,18 +162,18 @@ int	main(int argc, char** argv)
   mm_buf mb;
   char  *initfuncname = 0;
 
-  gghc_cpp_in_filename       = ssprintf("/tmp/gghc_%d_cpp_in.c", pid);
-  gghc_cpp_out_filename      = ssprintf("/tmp/gghc_%d_cpp_out.c", pid);
-  gghc_constants_c_filename  = ssprintf("/tmp/gghc_%d_constants.c", pid);
-  gghc_constants_x_filename  = ssprintf("/tmp/gghc_%d_constants.exe", pid);
-  gghc_constants_filename    = ssprintf("/tmp/gghc_%d_constants.out", pid);
-  gghc_header_filename       = ssprintf("/tmp/gghc_%d_header.c", pid);
-  gghc_decl_filename         = ssprintf("/tmp/gghc_%d_decl.c", pid);
-  gghc_body_filename         = ssprintf("/tmp/gghc_%d_body.c", pid);
-  gghc_defines_in_filename   = ssprintf("/tmp/gghc_%d_defines.in", pid);
-  gghc_defines_out_filename  = ssprintf("/tmp/gghc_%d_defines.out", pid);
-  gghc_footer_filename       = ssprintf("/tmp/gghc_%d_footer.c", pid);
-
+  gghc_cpp_in_filename       = ssprintf("/tmp/gghc-%d-01-cpp_in.c", pid);
+  gghc_cpp_out_filename      = ssprintf("/tmp/gghc-%d-02-cpp_out.i", pid);
+  gghc_constants_c_filename  = ssprintf("/tmp/gghc-%d-03-constants.c", pid);
+  gghc_constants_x_filename  = ssprintf("/tmp/gghc-%d-04-constants.exe", pid);
+  gghc_defines_in_filename   = ssprintf("/tmp/gghc-%d-05-defines.in", pid);
+  gghc_header_filename       = ssprintf("/tmp/gghc-%d-10-header.out", pid);
+  gghc_constants_filename    = ssprintf("/tmp/gghc-%d-11-constants.out", pid);
+  gghc_decl_filename         = ssprintf("/tmp/gghc-%d-12-decl.out", pid);
+  gghc_body_filename         = ssprintf("/tmp/gghc-%d-13-body.out", pid);
+  gghc_defines_out_filename  = ssprintf("/tmp/gghc-%d-14-defines.out", pid);
+  gghc_footer_filename       = ssprintf("/tmp/gghc-%d-15-footer.out", pid);
+  gghc_result_out_filename   = ssprintf("/tmp/gghc-%d-99-result.out", pid);
   gghc_output_mode = gghc_mode_sexpr;
 
   atexit(gghc_cleanup);
@@ -217,6 +218,10 @@ int	main(int argc, char** argv)
       if ( cc_prog ) {
         files = ssprintf((files[0] ? "%s %s" : "%s%s"), files, argv[i]);
         filev[filen ++] = argv[i];
+        if ( filen > 100 ) {
+          fprintf(stderr, "gghc: too many files\n");
+          exit(1);
+        }
       } else {
         cc_prog = argv[i];
       }
@@ -323,10 +328,15 @@ int	main(int argc, char** argv)
   /* output header */
 
   if ( mode_sexpr ) {
-      fprintf(gghc_header_out, ";; Created by gghc 0.1, built %s %s */\n", __DATE__, __TIME__);
-      fprintf(gghc_header_out, ";; From: %s\n\n", cmd);
-    fprintf(gghc_header_out, "\n(gghc:module \"%s\"\n\n", files);
+    fprintf(gghc_header_out, ";; Created by gghc 0.1, built %s %s */\n", __DATE__, __TIME__);
+
+    fprintf(gghc_header_out,    "\n(gghc:module \"%s\"\n\n", files);
+    fprintf(gghc_header_out,    "  (gghc:info 'command \"%s\")\n\n", cmd);
+    for ( i = 0; i < filen; i ++ ) {
+      fprintf(gghc_header_out,  "  (gghc:info 'input   %2d \"%s\")\n", i, filev[i]);
+    }
   }
+
   if ( mode_c ) {
     fprintf(gghc_header_out, "#include \"gghc_i.h\"\n\n");
   }
@@ -384,13 +394,21 @@ int	main(int argc, char** argv)
   
   /**************************************/
   /* Concat output files. */
-  sprintf(cmd, "/bin/cat %s %s %s %s %s %s",
+
+  sprintf(cmd, "/bin/cat %s %s %s %s %s %s > %s",
           gghc_header_filename,
           gghc_constants_filename,
           gghc_decl_filename,
           gghc_body_filename,
           gghc_defines_out_filename,
-          gghc_footer_filename);
+          gghc_footer_filename,
+          gghc_result_out_filename);
+  gghc_system(cmd);
+
+  /**************************************/
+  /* Generate output. */
+
+  sprintf(cmd, "/bin/cat %s", gghc_result_out_filename);
   if ( ! (output_pathname == 0 || strcmp(output_pathname, "-") == 0) ) {
     strcat(cmd, " >'");
     strcat(cmd, output_pathname);

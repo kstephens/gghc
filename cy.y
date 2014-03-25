@@ -16,8 +16,9 @@
 #include "gghc_sym.h"
 #include "gghc_o.h"
 
+#define YYERROR_VERBOSE 1
 #define YYDEBUG 1
-#define YYPRINT(output, toknum, value) ((void) toknum)
+    // #define YYPRINT(output, toknum, value) ((void) toknum)
 
 extern int yylex();
 
