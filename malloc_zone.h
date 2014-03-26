@@ -6,7 +6,7 @@
 typedef struct malloc_zone_object {
     struct malloc_zone_object *prev, *next;
     size_t size;
-    double data[1];
+    long double data[1]; /* probably the largest alignment of all intrinsic types. */
 } malloc_zone_object;
 
 typedef struct malloc_zone {

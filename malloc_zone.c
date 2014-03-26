@@ -63,7 +63,7 @@ void _malloc_zone_free(malloc_zone *zone, void *ptr)
     malloc_zone_object *obj;
     if ( ! ptr ) return;
     assert(zone->count);
-    obj = ptr - (sizeof(*obj) - sizeof(double));
+    obj = ptr - (sizeof(*obj) - sizeof(obj->data));
     obj->prev->next = obj->next;
     obj->next->prev = obj->prev;
     free(obj);
@@ -75,7 +75,7 @@ void *malloc_zone_realloc(malloc_zone *zone, void *ptr, size_t size)
     malloc_zone_object *obj;
     void *new_ptr;
     size_t old_size;
-    obj = ptr - (sizeof(*obj) - sizeof(double));
+    obj = ptr - (sizeof(*obj) - sizeof(obj->data));
     old_size = ptr ? obj->size : 0;
     new_ptr = malloc_zone_malloc(zone, size);
     memcpy(new_ptr, ptr, size < old_size ? size : old_size);
