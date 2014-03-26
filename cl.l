@@ -180,6 +180,8 @@ PRAGMA	(pragma)
 "__restrict"            { _return(GGHC___restrict); }
 "__extension__"         { _return(GGHC___extension__); }
 "__typeof__"            { _return(GGHC___typeof__); }
+"__alignof"             { _return(GGHC___alignof); } // GCC, CLANG
+"__alignof__"           { _return(GGHC___alignof__); } // GCC
 "__const"               { _return(GGHC___const); }
 
 "auto"			{ _return(AUTO); }

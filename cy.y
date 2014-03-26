@@ -182,6 +182,8 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 %token GGHC_inline
 %token GGHC___inline
 %token GGHC___inline__
+%token GGHC___alignof
+%token GGHC___alignof__
 %token GGHC___builtin_va_list
 %token GGHC___builtin_va_arg
 %token GGHC___attribute__
@@ -243,6 +245,7 @@ primary_expression
 primary_expression_EXT
         : '(' compound_statement ')'
         | GGHC___builtin_va_arg '(' expression ',' type_name ')'
+        | __alignof__ '(' type_name ')'
         ;
 
 postfix_expression
@@ -860,6 +863,11 @@ __inline__
   : GGHC_inline
   | GGHC___inline
   | GGHC___inline__
+  ;
+
+__alignof__
+  : GGHC___alignof
+  | GGHC___alignof__
   ;
 
 __asm

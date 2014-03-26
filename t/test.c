@@ -95,6 +95,12 @@ struct forward {
 enum eforward;
 extern enum eforward *eforwardP;
 
+/***********************************/
+/* C Extensions to ANSI */
+
+int test_alignof_gcc = __alignof__(double); /* ggc, not clang */
+int test_alignof = __alignof(int); /* ggc and clang */
+
 /* From OSX stdlib.h */
 #ifdef __clang__
 int my_setiopolicy_np(int, int, int) __attribute__((availability(macosx,introduced=10.5)));
