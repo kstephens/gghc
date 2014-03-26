@@ -4,14 +4,14 @@
 #include <stdlib.h>
 
 typedef struct malloc_zone_object {
-    struct malloc_zone_object *prev, *next;
-    size_t size;
-    long double data[1]; /* probably the largest alignment of all intrinsic types. */
+  struct malloc_zone_object *prev, *next;
+  size_t size;
+  long double data[1]; /* probably the largest alignment of all intrinsic types. */
 } malloc_zone_object;
 
 typedef struct malloc_zone {
-    size_t count;
-    struct malloc_zone_object header;
+  size_t count;
+  struct malloc_zone_object header;
 } malloc_zone;
 
 malloc_zone *malloc_zone_new();
