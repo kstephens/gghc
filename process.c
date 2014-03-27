@@ -243,5 +243,8 @@ void gghc_process_files(gghc_ctx ctx)
             );
     gghc_system(ctx, ctx->cmd);
   }
+
+  if ( ctx->error_code == 0 && ctx->errors )
+    ctx->error_code = 1;
 }
 

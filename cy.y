@@ -115,7 +115,7 @@ void	yywarning(const char* s)
 void	yyerror(const char* s)
 {
   parse_msg("ERROR: ", s);
-  ctx->error_code ++;
+  ctx->errors ++;
 }
 
 /****************************************************************************************/

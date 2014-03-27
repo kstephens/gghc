@@ -47,7 +47,9 @@ typedef struct gghc_ctx {
   int	parse_lineno;
   const char *parse_filename;
   const char * parse_top_level_filename;
-  int	error_code;
+
+  int errors;
+  int error_code;
 
   gghc_mode output_mode;
   char *verbose;
@@ -80,7 +82,7 @@ void gghc_cleanup(gghc_ctx ctx);
 
 void gghc_process_files(gghc_ctx ctx);
 
-void gghc_system(gghc_ctx ctx, const char* cmd);
+int gghc_system(gghc_ctx ctx, const char* cmd);
 
 int gghc_yyparse(gghc_ctx ctx, mm_buf *mb);
 int gghc_yyparse_y(gghc_ctx ctx, mm_buf *mb);
