@@ -51,10 +51,26 @@ void add_object(malloc_zone *zone, malloc_zone_object *obj)
   x->next = obj;
 }
 
+static malloc_zone_object* _obj;
+static inline size_t mzo_size(size_t size)
+{
+  return sizeof(*_obj) - sizeof(_obj->data) + size;
+}
+
+static inline void *mzo_to_ptr(malloc_zone_object *obj)
+{
+  return obj->data;
+}
+
+static inline malloc_zone_object *ptr_to_mzo(void *ptr)
+{
+  return ptr - (sizeof(*_obj) - sizeof(_obj->data));
+}
+
 void *malloc_zone_malloc(malloc_zone *zone, size_t size)
 {
   malloc_zone_object *obj;
-  obj = zone->_malloc(sizeof(*obj) - sizeof(double) + size);
+  obj = zone->_malloc(mzo_size(size));
   obj->size = size;
   memset(obj->data, 0, obj->size);
   add_object(zone, obj);
@@ -67,7 +83,7 @@ void _malloc_zone_free(malloc_zone *zone, void *ptr)
   if ( ! ptr ) return;
   assert(zone->nobjects);
   assert(zone->nbytes);
-  obj = ptr - (sizeof(*obj) - sizeof(obj->data));
+  obj = ptr_to_mzo(ptr);
   obj->prev->next = obj->next;
   obj->next->prev = obj->prev;
   memset(obj->data, 0, obj->size);
@@ -82,7 +98,7 @@ void *malloc_zone_realloc(malloc_zone *zone, void *ptr, size_t size)
   malloc_zone_object *obj;
   void *new_ptr;
   size_t old_size;
-  obj = ptr - (sizeof(*obj) - sizeof(obj->data));
+  obj = ptr_to_mzo(ptr);
   old_size = ptr ? obj->size : 0;
   new_ptr = malloc_zone_malloc(zone, size);
   memcpy(new_ptr, ptr, size < old_size ? size : old_size);
