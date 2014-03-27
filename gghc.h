@@ -78,12 +78,15 @@ void gghc_reset(gghc_ctx ctx, const char *filename);
 void gghc_close_files(gghc_ctx ctx);
 void gghc_cleanup(gghc_ctx ctx);
 
+void gghc_process_files(gghc_ctx ctx);
+
 void gghc_system(gghc_ctx ctx, const char* cmd);
 
 int gghc_yyparse(gghc_ctx ctx, mm_buf *mb);
 int gghc_yyparse_y(gghc_ctx ctx, mm_buf *mb);
-void	yywarning(const char* s);
-void	yyerror(const char* s);
+
+void yywarning(const char* s); // FIXME
+void yyerror(const char* s);   // FIXME
 
 #include "ggrt/malloc_debug.h"
 #endif
