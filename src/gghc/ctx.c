@@ -66,7 +66,7 @@ int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv)
       ctx->debug = argv[i];
     } else
     if ( strcmp(argv[i], "-yydebug") == 0 ) {
-      ctx->_yydebug = 1;
+      ctx->_yydebug ++;
     } else
     if ( strcmp(argv[i], "-mallocdebug") == 0 ) {
       _malloc_debug = 1;

@@ -38,7 +38,7 @@ static void _prepare_token(gghc_ctx ctx, YYSTYPE *lvalp, char *text, int leng)
    ctx->_yyleng = leng;
 
      mm_buf_region *token = ctx->last_token;
-     if ( ctx->debug ) fprintf(stderr, "  gghc: lex: matched '%s'\n", text);
+     if ( ctx->_yydebug >= 2 ) fprintf(ctx->_stderr, "  gghc: lex: matched '%s'\n", text);
 
      mm_buf_region_begin(token, ctx->mb_token);
      mm_buf_read(ctx->mb_token, 0, leng);
@@ -47,16 +47,16 @@ static void _prepare_token(gghc_ctx ctx, YYSTYPE *lvalp, char *text, int leng)
      yylval.t = *token;
      yylval.leng = leng;
 
-     if ( 0 ) {
+     if ( ctx->_yydebug >= 3 ) {
          char buf[64];
 
-         fprintf(stderr, "  gghc: lex:   len %d '%s'\n", (int) leng, text);
+         fprintf(ctx->_stderr, "  gghc: lex:   len %d '%s'\n", (int) leng, text);
 
          memset(buf, 0, sizeof(buf));
          strncpy(buf, (char*) token->beg.pos, 60);
          buf[token->beg.size] = 0;
          if ( buf[60] ) strcat(buf, "...");
-         fprintf(stderr, "  gghc: token: len %d '%s'\n\n", (int) token->beg.size, buf);
+         fprintf(ctx->_stderr, "  gghc: token: len %d '%s'\n\n", (int) token->beg.size, buf);
      }
  }
 

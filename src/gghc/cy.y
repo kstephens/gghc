@@ -111,8 +111,6 @@ static void parse_msg(gghc_ctx ctx, const char *desc, const char *s)
 
 /****************************************************************************************/
 
-int	yydebug = 0;
-
 static char *_to_expr(YYSTYPE *yyvsp)
 {
   if ( yyvsp->expr ) return yyvsp->expr;
@@ -134,21 +132,21 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 {
   int i;
   mm_buf_region t, *dst = &yyvalp->t, *src;
-  int verbose = yydebug;
+  int verbose = ctx->_yydebug;
 
   mm_buf_region_init(&t);
   if ( verbose >= 2 ) {
-    fprintf(stderr, "  yyn=%d yylen=%d yyvalp=%p yyvsp=%p\n", yyn, yylen, yyvalp, yyvsp);
-    fprintf(stderr, "    tokens: ");
+    fprintf(ctx->_stderr, "  yyn=%d yylen=%d yyvalp=%p yyvsp=%p\n", yyn, yylen, yyvalp, yyvsp);
+    fprintf(ctx->_stderr, "    tokens: ");
   }
   for ( i = 1 - yylen; i <= 0; ++ i ) {
     src = &(yyvsp[i].t);
-    if ( verbose >= 3 ) fprintf(stderr, "'%s' ", mm_buf_region_cstr(src));
+    if ( verbose >= 3 ) fprintf(ctx->_stderr, "'%s' ", mm_buf_region_cstr(src));
     mm_buf_region_union(&t, &t, src);
   }
-  if ( verbose >= 2 ) fprintf(stderr, "\n ");
+  if ( verbose >= 2 ) fprintf(ctx->_stderr, "\n ");
   if ( verbose >= 1 ) {
-    fprintf(stderr, "    = '%s'\n", mm_buf_region_cstr(&t));
+    fprintf(ctx->_stderr, "    = '%s'\n", mm_buf_region_cstr(&t));
   }
   *dst = t;
 }
@@ -925,11 +923,9 @@ direct_declarator_EXT
 #undef ctx
 int gghc_yyparse_y(gghc_ctx ctx, mm_buf *mb)
 {
-  extern int yydebug;
-  yydebug = 0;
-
   /* EXT: NATIVE TYPES */
   // gghc_typedef("__uint16_t", gghc_type("unsigned short"));
+    _gghc_ctx = ctx; // FIXME
   gghc_typedef("_Bool", gghc_type("int"));
 
   return yyparse();
