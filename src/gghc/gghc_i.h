@@ -1,5 +1,5 @@
 /*
-** Copyright 1993, 1994 Kurt A. Stephens.
+** Copyright 1993, 1994, 2014 Kurt A. Stephens.
 */
 #ifndef _gghc_i_h
 #define	_gghc_i_h
