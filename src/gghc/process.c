@@ -7,7 +7,7 @@
 #include <sys/param.h>  /* MAXPATHLEN */
 #include <ctype.h>
 #include "gghc.h"
-#include "gghc_o.h"
+#include "gghc/output.h"
 #include "gghc_sym.h"
 
 static int parse_C_defines(gghc_ctx ctx, FILE *fp)

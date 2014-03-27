@@ -1,8 +1,8 @@
 /*
 ** Copyright 1993, 1994, 2014 Kurt A. Stephens
 */
-#ifndef _gghc_o_h
-#define	_gghc_o_h
+#ifndef _gghc_output_h
+#define	_gghc_output_h
 
 #include "gghc.h"
 #include "gghc/decl.h"

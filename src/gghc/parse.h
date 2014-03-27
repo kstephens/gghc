@@ -11,7 +11,7 @@
 #include "gghc.h"
 #include "gghc/decl.h"
 #include "gghc_sym.h"
-#include "gghc_o.h"
+#include "gghc/output.h"
 
 #define YYERROR_VERBOSE 1
 #define YYDEBUG 1

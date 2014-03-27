@@ -7,7 +7,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <assert.h>
-#include "gghc_o.h"
+#include "gghc/output.h"
 #include "gghc_sym.h"
 #include "gghc.h"	/* gghc_debug */
 #include "cy.h"

@@ -4,7 +4,7 @@
 #include <unistd.h>     /* getpid() */
 #include <sys/types.h>  /* pid_t */
 #include "gghc.h"
-#include "gghc_o.h"
+#include "gghc/output.h"
 #include "gghc_sym.h"
 
 gghc_ctx gghc_m_ctx()
