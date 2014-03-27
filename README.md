@@ -14,14 +14,14 @@ GGHC will generate S-EXPR output suitable for parsing with a LISP reader.
 
     $ cd gghc
     $ make clean all
-    $ gghc gcc t/test.c > test.gghc.sexpr
-    $ gghc gcc stdlib.h | less
+    $ bin/gghc gcc t/test.c > test.gghc.sexpr
+    $ bin/gghc gcc stdlib.h | less
 
 ## Supported
 
-Operating Systems: OS X, Linux.
-C Compliers: GCC, CLANG.
-Headers: Parses stdlib.h, stdio.h.
+* Operating Systems: OS X, Linux.
+* C Compliers: GCC, CLANG.
+* Headers: Parses stdlib.h, stdio.h.
 
 ## UNSUPPORTED
 
@@ -29,7 +29,7 @@ Headers: Parses stdlib.h, stdio.h.
 
 Earlier versions of gghc could not parse __typeof__(expression):
 
-    $ ./gghc clang stdlib.h
+    $ bin/gghc clang stdlib.h
     gghc: ERROR: /usr/include/clang/3.2/include/stddef.h:31:19 syntax error
     gghc: token:                    `('
     gghc: line:  `typedef __typeof__(((int*)0)-((int*)0)) ptrdiff_t;'
@@ -53,10 +53,11 @@ gghc will parse it but ignores b and c.
 
 ## Dependencies
 
-make
-bison
-flex
-perl
+* make
+* bison
+* flex
+* perl
+* libffi
 
 ## C runtime
 

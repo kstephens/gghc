@@ -7,6 +7,7 @@
 #include "parse.h"
 
 #define YYERROR_VERBOSE 1
+#undef YYDEBUG
 #define YYDEBUG 1
     // #define YYPRINT(output, toknum, value) ((void) toknum)
 

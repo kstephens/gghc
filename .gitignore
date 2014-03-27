@@ -2,6 +2,7 @@
 *.a
 *.t
 *.dSYM
-/gen/*
-/gghc
+gen/*
+/bin/*
+/lib/*
 *.bak

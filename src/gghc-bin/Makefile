@@ -1,7 +1,7 @@
 ROOT=../..
 include $(ROOT)/mk/common.mk
 
-LIB = libggrt.a
-CLIBS += -lffi -lm
+BIN = gghc
+CLIBS += -lgghc -lggrt -lm # -lffi
 
 include $(ROOT)/mk/target.mk
