@@ -105,13 +105,13 @@ int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv)
   ctx->files = "";
   ctx->options = "-I.";
   for ( i = 1; i < argc; i ++ ) {
-    char *arg = argv[i];
+    char *arg = strdup(argv[i]);
     int incr =
         arg[0] == '-' && arg[1] == '-' && arg[2] ? 1 :
         arg[0] == '+' && arg[1] == '+' && arg[2] ? -1 : 0;
 
     if ( strcmp(arg, "-v") == 0 ) {
-      ctx->verbose = arg;
+      ctx->verbose ++;
     } else
     if ( strcmp(arg, "-o") == 0 ) {
       ctx->output_pathname = argv[++ i];
@@ -123,16 +123,16 @@ int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv)
       s->value = strdup(name);
     } else
     if ( strcmp(arg, "-dump") == 0 ) {
-      ctx->dump = arg;
+      ctx->dump ++;
     } else
     if ( strcmp(arg, "-debug") == 0 ) {
-      ctx->debug = arg;
+      ctx->debug ++;
     } else
     if ( strcmp(arg, "-yydebug") == 0 ) {
       ctx->_yydebug ++;
     } else
     if ( strcmp(arg, "-mallocdebug") == 0 ) {
-      ctx->_malloc_debug = 1;
+      ctx->_malloc_debug ++;
     } else
     if ( strcmp(arg, "-sexpr") == 0 ) {
       ctx->output_mode = gghc_mode_sexpr;

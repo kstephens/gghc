@@ -4,24 +4,25 @@
 #include <stdlib.h>
 #include "gghc/gghc.h"
 
-static gghc_ctx _gghc_ctx;
+static gghc_ctx _ctx;
 static void gghc_at_exit()
 {
-  gghc_cleanup(_gghc_ctx);
+  gghc_cleanup(_ctx);
 }
 
 int main(int argc, char** argv)
 {
   gghc_ctx ctx;
-/*	char*	dump = 0; */
-  int	i, result;
+  int result = 1;
 
   ctx = gghc_m_ctx();
+
   gghc_parse_argv(ctx, argc, argv);
-  if ( ctx->fatal )
+
+  if ( ctx->fatals )
     exit(9);
 
-  _gghc_ctx = ctx;
+  _ctx = ctx;
   atexit(gghc_at_exit);
 
   if ( ctx->filen == 0 ) {
