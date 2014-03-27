@@ -86,6 +86,7 @@ ggrt_ctx ggrt_ctx_init_ffi(ggrt_ctx ctx)
 #define TYPE(N,T,AN) ggrt_symbol_table_add_(ctx, ctx->st_type, #T, ctx->type_##AN, 0);
 #include "type.def"
 
+  return ctx;
 }
 
 ggrt_type *ggrt_m_pointer_type(ggrt_ctx ctx, ggrt_type *t)
