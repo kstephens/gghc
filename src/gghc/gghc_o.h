@@ -5,7 +5,7 @@
 #define	_gghc_o_h
 
 #include "gghc.h"
-#include "gghc_t.h"
+#include "gghc/decl.h"
 
 /*
 ** output functions for gghc

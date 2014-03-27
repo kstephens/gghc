@@ -6,7 +6,7 @@
 
 #include <stdio.h> /* FILE */
 #include "ggrt/mm_buf.h"
-#include "gghc_t.h"
+#include "gghc/decl.h"
 
 typedef enum gghc_mode {
   gghc_mode_UNDEF = 0,

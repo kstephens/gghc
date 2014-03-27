@@ -9,7 +9,7 @@
 #include <string.h>	/* strstr() */
 #include <assert.h>
 #include "gghc.h"
-#include "gghc_t.h"
+#include "gghc/decl.h"
 #include "gghc_sym.h"
 #include "gghc_o.h"
 
