@@ -30,27 +30,25 @@ static int check_type();
 
  extern int yydebug;
 int yyparse();
-int gghc_yyparse(mm_buf *mb)
+int gghc_yyparse(gghc_ctx ctx, mm_buf *mb)
 {
     int result;
-    mm_buf mb_token;
 
-    gghc_mb = mb;
-    gghc_mb_token = &mb_token;
-    *gghc_mb_token = *gghc_mb;
+    ctx->mb = mb;
+    *ctx->mb_token = *ctx->mb;
 
-    result = gghc_yyparse_y(mb);
-
-    gghc_mb = gghc_mb_token = 0;
+    result = gghc_yyparse_y(ctx, mb);
 
     return result;
 }
 
+#define ctx _gghc_ctx /* HACK */
+
 static int _input(char *buf, size_t max_size)
 {
   int c;
-  if ( (c = mm_buf_getc(gghc_mb)) == '\n' )
-    gghc_parse_lineno ++;
+  if ( (c = mm_buf_getc(ctx->mb)) == '\n' )
+    ctx->parse_lineno ++;
   return (c == EOF) ? YY_NULL : (buf[0] = c, 1);
 }
 #undef YY_INPUT
@@ -61,16 +59,14 @@ static int _input(char *buf, size_t max_size)
 
  static void _prepare_token(char *yytext, int yyleng)
  {
-     static mm_buf_region token;
-
+     mm_buf_region *token = ctx->last_token;
      if ( yydebug ) fprintf(stderr, "  gghc: lex: matched '%s'\n", yytext);
 
-     mm_buf_region_begin(&token, gghc_mb_token);
-     mm_buf_read(gghc_mb_token, 0, yyleng);
-     mm_buf_region_end(&token, gghc_mb_token, yyleng);
-     gghc_last_token = &token;
+     mm_buf_region_begin(token, ctx->mb_token);
+     mm_buf_read(ctx->mb_token, 0, yyleng);
+     mm_buf_region_end(token, ctx->mb_token, yyleng);
 
-     yylval.t = token;
+     yylval.t = *token;
      yylval.leng = yyleng;
 
      if ( 0 ) {
@@ -79,10 +75,10 @@ static int _input(char *buf, size_t max_size)
          fprintf(stderr, "  gghc: lex:   len %d '%s'\n", (int) yyleng, yytext);
 
          memset(buf, 0, sizeof(buf));
-         strncpy(buf, (char*) token.beg.pos, 60);
-         buf[token.beg.size] = 0;
+         strncpy(buf, (char*) token->beg.pos, 60);
+         buf[token->beg.size] = 0;
          if ( buf[60] ) strcat(buf, "...");
-         fprintf(stderr, "  gghc: token: len %d '%s'\n\n", (int) token.beg.size, buf);
+         fprintf(stderr, "  gghc: token: len %d '%s'\n\n", (int) token->beg.size, buf);
      }
  }
 
@@ -143,7 +139,7 @@ PRAGMA	(pragma)
   if ( *s == 'l' )
     s += 4;
   
-  gghc_parse_lineno = _stod((const char**) &s);
+  ctx->parse_lineno = _stod((const char**) &s);
 
   if ( (s = strchr(s, '"')) ) {
     s ++;
@@ -153,18 +149,18 @@ PRAGMA	(pragma)
     memcpy(filename, s, e - s);
     filename[e - s] = '\0';
 
-    free(gghc_parse_filename);
-    gghc_parse_filename = filename;
-    if ( gghc_parse_top_level_filename == 0 ) {
-      gghc_parse_top_level_filename =  strdup(gghc_parse_filename);
+    free(ctx->parse_filename);
+    ctx->parse_filename = filename;
+    if ( ctx->parse_top_level_filename == 0 ) {
+      ctx->parse_top_level_filename = strdup(ctx->parse_filename);
     }
   }
 
-  gghc_mb->s.src.filename = strdup(gghc_parse_filename);
-  gghc_mb->s.src.lineno = gghc_parse_lineno;
-  gghc_mb->s.src.column = 0;
+  ctx->mb->s.src.filename = strdup(ctx->parse_filename);
+  ctx->mb->s.src.lineno = ctx->parse_lineno;
+  ctx->mb->s.src.column = 0;
 
-  gghc_mb_token->s.src = gghc_mb->s.src;
+  ctx->mb_token->s.src = ctx->mb->s.src;
 }
 
 "/*"			{ comment(); }

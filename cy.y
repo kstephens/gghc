@@ -16,6 +16,8 @@
 #include "gghc_sym.h"
 #include "gghc_o.h"
 
+#define ctx _gghc_ctx /* HACK */
+
 #define YYERROR_VERBOSE 1
 #define YYDEBUG 1
     // #define YYPRINT(output, toknum, value) ((void) toknum)
@@ -80,7 +82,7 @@ static void token_msg(const char *desc, int indent, mm_buf_state *s)
 
 static void parse_msg(const char *desc, const char *s)
 {
-  mm_buf_region *t = gghc_last_token;
+  mm_buf_region *t = ctx->last_token;
   if ( t ) {
     fprintf(stderr, "gghc: %s%s:%d:%d %s\n",
             desc,
@@ -113,7 +115,7 @@ void	yywarning(const char* s)
 void	yyerror(const char* s)
 {
   parse_msg("ERROR: ", s);
-  gghc_error_code ++;
+  ctx->error_code ++;
 }
 
 /****************************************************************************************/
@@ -930,7 +932,8 @@ direct_declarator_EXT
 
 %%
 
-int gghc_yyparse_y(mm_buf *mb)
+#undef ctx
+int gghc_yyparse_y(gghc_ctx ctx, mm_buf *mb)
 {
   extern int yydebug;
   yydebug = 0;
