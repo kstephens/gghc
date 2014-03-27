@@ -30,7 +30,7 @@ static int parse_C_defines(gghc_ctx ctx, FILE *fp)
             *(s ++) = 0;
             while ( *s && isspace(*s) ) s ++;
             value = s;
-            gghc_define(name, value);
+            gghc_define(ctx, name, value);
             ++ count;
         }
     }

@@ -74,9 +74,15 @@ typedef struct gghc_ctx {
   char *_yytext;
   int _yyleng;
   gghc_YYSTYPE *_yylvalp; /* &yylval */
-} *gghc_ctx;
 
-extern gghc_ctx _gghc_ctx; /* NOT THREAD SAFE! */
+  int _emit;
+    int constant_id;
+    gghc_enum *current_enum;
+    int unnamed_enum_id;
+    gghc_struct *current_struct;
+    int unnamed_struct_id;
+
+} *gghc_ctx;
 
 gghc_ctx gghc_m_ctx();
 

@@ -4,6 +4,7 @@
 #ifndef _gghc_o_h
 #define	_gghc_o_h
 
+#include "gghc.h"
 #include "gghc_t.h"
 
 /*
@@ -12,44 +13,44 @@
 char*	strdup(const char* s);
 char*	ssprintf(const char* format, ...);
 
-void gghc_emit_control(int i); /* -1 to pause, 1 to resume */
+void gghc_emit_control(gghc_ctx ctx, int i); /* -1 to pause, 1 to resume */
 
 /* typedef */
-void	gghc_typedef(const char *name, const char *type);
+void	gghc_typedef(gghc_ctx ctx, const char *name, const char *type);
 /* type reference */
-char*	gghc_type(const char *typename);
+char*	gghc_type(gghc_ctx ctx, const char *typename);
 
 /* enum */
-char   *gghc_enum_type_forward(const char *name);
-char*	gghc_enum_type(const char *name);
-void	gghc_enum_type_element(const char *name);
-char*	gghc_enum_type_end(void);
+char   *gghc_enum_type_forward(gghc_ctx ctx, const char *name);
+char*	gghc_enum_type(gghc_ctx ctx, const char *name);
+void	gghc_enum_type_element(gghc_ctx ctx, const char *name);
+char*	gghc_enum_type_end(gghc_ctx ctx);
 
 /* pointer */
-char*	gghc_pointer_type(const char *type);
+char*	gghc_pointer_type(gghc_ctx ctx, const char *type);
 
 /* array */
-char*	gghc_array_type(const char *type, const char *length);
+char*	gghc_array_type(gghc_ctx ctx, const char *type, const char *length);
 
 /* struct/union */
-char   *gghc_struct_type_forward(const char *s_or_u, const char *name);
-char*	gghc_struct_type(const char *struct_or_union, const char *name);
-void	gghc_struct_type_element(gghc_decl_spec *spec, gghc_decl *decl, const char *text);
-char*	gghc_struct_type_end(void);
+char   *gghc_struct_type_forward(gghc_ctx ctx, const char *s_or_u, const char *name);
+char*	gghc_struct_type(gghc_ctx ctx, const char *struct_or_union, const char *name);
+void	gghc_struct_type_element(gghc_ctx ctx, gghc_decl_spec *spec, gghc_decl *decl, const char *text);
+char*	gghc_struct_type_end(gghc_ctx ctx);
 
 /* function */
-char*	gghc_function_type(const char *type, const char *length);
-char*	gghc_block_type(const char *type, const char *length);
+char*	gghc_function_type(gghc_ctx ctx, const char *type, const char *length);
+char*	gghc_block_type(gghc_ctx ctx, const char *type, const char *length);
 
 /* top-level declaration */
-void	gghc_declaration(gghc_decl_spec *spec, gghc_decl *decl);
+void	gghc_declaration(gghc_ctx ctx, gghc_decl_spec *spec, gghc_decl *decl);
 
 /* global */
-void	gghc_global(const char *name, const char *type);
+void	gghc_global(gghc_ctx ctx, const char *name, const char *type);
 
 /* CCP defines */
-void    gghc_define(const char *name, const char *str);
+void    gghc_define(gghc_ctx ctx, const char *name, const char *str);
 
-void gghc_reset_state();
+void gghc_reset_state(gghc_ctx ctx);
 
 #endif

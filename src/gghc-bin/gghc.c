@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "gghc/gghc.h"
 
+static gghc_ctx _gghc_ctx;
 static void gghc_at_exit()
 {
   gghc_cleanup(_gghc_ctx);

@@ -7,7 +7,6 @@
 #include "gghc_o.h"
 #include "gghc_sym.h"
 
-gghc_ctx _gghc_ctx;
 gghc_ctx gghc_m_ctx()
 {
   int pid = (int) getpid();
@@ -100,13 +99,23 @@ int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv)
   return 0;
 }
 
+void gghc_reset_state(gghc_ctx ctx)
+{
+  ctx->_emit = 1;
+  ctx->constant_id = 0;
+  ctx->current_enum = 0;
+  ctx->unnamed_enum_id = 0;
+  ctx->current_struct = 0;
+  ctx->unnamed_struct_id = 0;
+}
+
 void gghc_reset(gghc_ctx ctx, const char *filename)
 {
   filename = strdup(filename);
   ctx->parse_filename = filename;
   ctx->parse_top_level_filename = filename;
   ctx->parse_lineno = 1;
-  gghc_reset_state();
+  gghc_reset_state(ctx);
 }
 
 

@@ -27,26 +27,26 @@ static gghc_decl *make_decl()
   return x;
 }
 
-static gghc_decl *make_array(gghc_decl *decl, const char *size)
+ static gghc_decl *make_array(gghc_ctx ctx, gghc_decl *decl, const char *size)
 {
     if ( ! size ) size = "";
     if ( decl->is_parenthised ) {
-        decl->declarator = ssprintf(decl->declarator, gghc_array_type("%s", size));
+        decl->declarator = ssprintf(decl->declarator, gghc_array_type(ctx, "%s", size));
     } else {
-        decl->declarator = gghc_array_type(decl->declarator, size);
+        decl->declarator = gghc_array_type(ctx, decl->declarator, size);
     }
     decl->declarator_text = ssprintf("%s[%s]", decl->declarator_text, size);
     decl->type = "array";
     return decl;
 }
 
-static gghc_decl *make_func(gghc_decl *decl, const char *params)
+static gghc_decl *make_func(gghc_ctx ctx, gghc_decl *decl, const char *params)
 {
     if ( ! params ) params  = "";
     if ( decl->is_parenthised ) {
-        decl->declarator = ssprintf(decl->declarator, gghc_function_type("%s", params));
+        decl->declarator = ssprintf(decl->declarator, gghc_function_type(ctx, "%s", params));
     } else {
-        decl->declarator = gghc_function_type(decl->declarator, params);
+        decl->declarator = gghc_function_type(ctx, decl->declarator, params);
     }
     decl->declarator_text = ssprintf("%s(%s)", decl->declarator_text, params);
     decl->type = "function";
@@ -375,14 +375,14 @@ declaration
 
 declaration_ANSI
 	: declaration_specifiers ';'
-        { gghc_declaration(&$1, 0); }
+        { gghc_declaration(ctx, &$1, 0); }
 	| declaration_specifiers init_declarator_list ';'
-        { gghc_declaration(&$1, $2); }
+        { gghc_declaration(ctx, &$1, $2); }
 	;
 
 declaration_specifiers
 	: storage_class_specifier
-        { $$.storage = $1; $$.type = gghc_type($$.type_text = "int"); }
+        { $$.storage = $1; $$.type = gghc_type(ctx, $$.type_text = "int"); }
 
 	| storage_class_specifier declaration_specifiers
         { $$.storage = $1; $$.type = $2.type; $$.type_text = $2.type_text; }
@@ -397,7 +397,7 @@ declaration_specifiers
 */
 
 	| type_qualifier
-        { $$.storage = 0; $$.type = gghc_type($$.type_text = "int"); }
+        { $$.storage = 0; $$.type = gghc_type(ctx, $$.type_text = "int"); }
 
 	| type_qualifier declaration_specifiers
         { $$.storage = $2.storage; $$.type = $2.type; $$.type_text = $2.type_text; }
@@ -451,7 +451,7 @@ storage_class_specifier_TOKEN
 
 type_specifier
 	: VOID
-        { $$ = gghc_type("void"); }
+        { $$ = gghc_type(ctx, "void"); }
 /*
 	| CHAR
 	| SHORT
@@ -463,40 +463,40 @@ type_specifier
 	| UNSIGNED
 */
 	| char_specifier
-        { $$ = gghc_type("char"); }
+        { $$ = gghc_type(ctx, "char"); }
         | uchar_specifer
-        { $$ = gghc_type("unsigned char"); }
+        { $$ = gghc_type(ctx, "unsigned char"); }
 	| sshort_specifer
-        { $$ = gghc_type("short"); }
+        { $$ = gghc_type(ctx, "short"); }
 	| ushort_specifer
-        { $$ = gghc_type("unsigned short"); }
+        { $$ = gghc_type(ctx, "unsigned short"); }
 	| int_specifier
-        { $$ = gghc_type("int"); }
+        { $$ = gghc_type(ctx, "int"); }
 	| uint_specifier
-        { $$ = gghc_type("unsigned int"); }
+        { $$ = gghc_type(ctx, "unsigned int"); }
 	| slong_specifier
-        { $$ = gghc_type("long"); }
+        { $$ = gghc_type(ctx, "long"); }
 	| ulong_specifier
-        { $$ = gghc_type("unsigned long"); }
+        { $$ = gghc_type(ctx, "unsigned long"); }
 	| slong_long_specifier
-        { $$ = gghc_type("long long"); }
+        { $$ = gghc_type(ctx, "long long"); }
 	| ulong_long_specifier
-        { $$ = gghc_type("unsigned long long"); }
+        { $$ = gghc_type(ctx, "unsigned long long"); }
 	| FLOAT
-        { $$ = gghc_type("float"); }
+        { $$ = gghc_type(ctx, "float"); }
 	| DOUBLE
-        { $$ = gghc_type("double"); }
+        { $$ = gghc_type(ctx, "double"); }
         | ldouble_specifier
-        { $$ = gghc_type("long double"); }
+        { $$ = gghc_type(ctx, "long double"); }
         | GGHC___builtin_va_list
-        { $$ = gghc_type("__builtin_va_list"); }
+        { $$ = gghc_type(ctx, "__builtin_va_list"); }
 
 	| struct_or_union_specifier
         { $$ = $1; }
 	| enum_specifier
         { $$ = $1; }
 	| TYPE_NAME
-        { $$ = gghc_type(EXPR($<u>1)); }
+        { $$ = gghc_type(ctx, EXPR($<u>1)); }
 	;
 
 /* Reduce to unique types */
@@ -522,18 +522,18 @@ struct_or_union_specifier
 struct_or_union_specifier_ANSI
         : struct_or_union_specifier_ANSI_def
 	| struct_or_union identifier
-        { $$ = gghc_struct_type_forward($1, EXPR($<u>2)); }
+        { $$ = gghc_struct_type_forward(ctx, $1, EXPR($<u>2)); }
         ;
 
 struct_or_union_specifier_ANSI_def
 	: struct_or_union identifier
-        { gghc_struct_type($1, EXPR($<u>2)); }
+        { gghc_struct_type(ctx, $1, EXPR($<u>2)); }
           '{' struct_declaration_list '}'
-          { $$ = gghc_struct_type_end(); }
+          { $$ = gghc_struct_type_end(ctx); }
 	| struct_or_union
-        { gghc_struct_type($1, ""); }
+        { gghc_struct_type(ctx, $1, ""); }
           '{' struct_declaration_list '}'
-          { $$ = gghc_struct_type_end(); }
+          { $$ = gghc_struct_type_end(ctx); }
 	;
 
 struct_or_union
@@ -554,7 +554,7 @@ struct_declaration
 
 struct_declaration_ANSI
 	: specifier_qualifier_list struct_declarator_list ';'
-        { gghc_struct_type_element(&$1, $2, EXPR($<u>2)); }
+        { gghc_struct_type_element(ctx, &$1, $2, EXPR($<u>2)); }
 	;
 
 specifier_qualifier_list
@@ -585,15 +585,15 @@ struct_declarator
 
 enum_specifier
         : ENUM
-        { gghc_enum_type(0); }
+        { gghc_enum_type(ctx, 0); }
             '{' enumerator_list '}'
-            { $$ = gghc_enum_type_end(); }
+            { $$ = gghc_enum_type_end(ctx); }
 	| ENUM identifier
-        { gghc_enum_type(EXPR($<u>2)); }
+        { gghc_enum_type(ctx, EXPR($<u>2)); }
             '{' enumerator_list '}'
-            { $$ = gghc_enum_type_end(); }
+            { $$ = gghc_enum_type_end(ctx); }
 	| ENUM identifier
-        { $$ = gghc_enum_type_forward(EXPR($<u>2)); }
+        { $$ = gghc_enum_type_forward(ctx, EXPR($<u>2)); }
 	;
 
 enumerator_list
@@ -603,9 +603,9 @@ enumerator_list
 
 enumerator
 	: IDENTIFIER
-        { gghc_enum_type_element(EXPR($<u>1)); }
+        { gghc_enum_type_element(ctx, EXPR($<u>1)); }
 	| IDENTIFIER '=' constant_expression
-        { gghc_enum_type_element(EXPR($<u>1)); }
+        { gghc_enum_type_element(ctx, EXPR($<u>1)); }
 	;
 
 type_qualifier
@@ -645,26 +645,26 @@ direct_declarator_ANSI
           $$->is_parenthised = 1;
         }
 	| direct_declarator_ANSI '[' constant_expression ']'
-        { $$ = make_array($1, EXPR($<u>3)); }
+        { $$ = make_array(ctx, $1, EXPR($<u>3)); }
 	| direct_declarator_ANSI '[' ']'
-        { $$ = make_array($1, ""); }
+        { $$ = make_array(ctx, $1, ""); }
 	| direct_declarator_ANSI '(' parameter_type_list ')'
-        { $$ = make_func($1, TYPE($<u>3)); }
+        { $$ = make_func(ctx, $1, TYPE($<u>3)); }
 	| direct_declarator_ANSI '(' identifier_list ')'
-        { $$ = make_func($1, ""); /* FIXME */}
+        { $$ = make_func(ctx, $1, ""); /* FIXME */}
 	| direct_declarator_ANSI '(' ')'
-        { $$ = make_func($1, ""); }
+        { $$ = make_func(ctx, $1, ""); }
 	;
 
 pointer
 	: '*'
-        { $$ = gghc_pointer_type("%s"); }
+        { $$ = gghc_pointer_type(ctx, "%s"); }
 	| '*' type_qualifier_list
-        { $$ = gghc_pointer_type("%s"); }
+        { $$ = gghc_pointer_type(ctx, "%s"); }
 	| '*' pointer
-        { $$ = gghc_pointer_type($2); }
+        { $$ = gghc_pointer_type(ctx, $2); }
 	| '*' type_qualifier_list pointer
-        { $$ = gghc_pointer_type($3); }
+        { $$ = gghc_pointer_type(ctx, $3); }
 	;
 
 type_qualifier_list
@@ -701,7 +701,7 @@ identifier_list
 
 type_name
         : type_name_ANSI
-        | GGHC___typeof__ '(' expression ')' { $<type>$ = gghc_type("void"); }
+        | GGHC___typeof__ '(' expression ')' { $<type>$ = gghc_type(ctx, "void"); }
         ;
 
 type_name_ANSI
@@ -711,37 +711,37 @@ type_name_ANSI
 
 abstract_declarator
 	: pointer
-        { $$ = gghc_pointer_type("%s"); }
+        { $$ = gghc_pointer_type(ctx, "%s"); }
 	| direct_abstract_declarator
 	| pointer direct_abstract_declarator
-        { $$ = gghc_pointer_type($2); }
+        { $$ = gghc_pointer_type(ctx, $2); }
 	;
 
 direct_abstract_declarator
 	: '(' abstract_declarator ')'
         { $$ = $2; }
 	| '[' ']'
-        { $$ = gghc_array_type("%s", ""); }
+        { $$ = gghc_array_type(ctx, "%s", ""); }
 	| '[' constant_expression ']'
-        { $$ = gghc_array_type("%s", EXPR($<u>2)); }
+        { $$ = gghc_array_type(ctx, "%s", EXPR($<u>2)); }
 	| direct_abstract_declarator '[' ']'
-        { $$ = gghc_array_type($1, ""); }
+        { $$ = gghc_array_type(ctx, $1, ""); }
 	| direct_abstract_declarator '[' constant_expression ']'
-        { $$ = gghc_array_type("%s", EXPR($<u>3)); }
+        { $$ = gghc_array_type(ctx, "%s", EXPR($<u>3)); }
 	| '(' ')'
-        { $$ = gghc_function_type("%s", ""); }
+        { $$ = gghc_function_type(ctx, "%s", ""); }
 	| '(' parameter_type_list ')'
-        { $$ = gghc_function_type("%s", $2); }
+        { $$ = gghc_function_type(ctx, "%s", $2); }
 	| direct_abstract_declarator '(' ')'
-        { $$ = gghc_function_type($1, ""); }
+        { $$ = gghc_function_type(ctx, $1, ""); }
 	| direct_abstract_declarator '(' parameter_type_list ')'
-        { $$ = gghc_function_type($1, $3); }
+        { $$ = gghc_function_type(ctx, $1, $3); }
         | direct_abstract_declarator_EXT
 	;
 
 direct_abstract_declarator_EXT
         : '(' '^' ')' '(' parameter_type_list ')'
-        { $$ = gghc_block_type("%s", $5); }
+        { $$ = gghc_block_type(ctx, "%s", $5); }
         ;
 
 initializer
@@ -825,15 +825,15 @@ external_declaration
 
 function_definition
 	: declaration_specifiers declarator declaration_list function_body
-        { gghc_declaration(&$<u.decl_spec>1, $<u.decl>2); }
+        { gghc_declaration(ctx, &$<u.decl_spec>1, $<u.decl>2); }
 	| declaration_specifiers declarator function_body
-        { gghc_declaration(&$<u.decl_spec>1, $<u.decl>2); }
+        { gghc_declaration(ctx, &$<u.decl_spec>1, $<u.decl>2); }
 	| declarator declaration_list function_body
 	| declarator function_body
 	;
 
 function_body
-  : { gghc_emit_control(-1); } compound_statement { gghc_emit_control(1); }
+  : { gghc_emit_control(ctx, -1); } compound_statement { gghc_emit_control(ctx, 1); }
   ;
 
 /* EXTENSIONS */
@@ -924,8 +924,7 @@ int gghc_yyparse_y(gghc_ctx ctx, mm_buf *mb)
 {
   /* EXT: NATIVE TYPES */
   // gghc_typedef("__uint16_t", gghc_type("unsigned short"));
-    _gghc_ctx = ctx; // FIXME
-  gghc_typedef("_Bool", gghc_type("int"));
+  gghc_typedef(ctx, "_Bool", gghc_type(ctx, "int"));
 
   return yyparse(ctx);
 }
