@@ -226,32 +226,58 @@ size_t ggrt_type_sizeof(ggrt_ctx ctx, ggrt_type *st)
   if ( st->nelems ) {
     size_t offset = 0, size = 0;
     int i;
-    size_t c_alignof, adjust_alignof;
+    size_t e_alignof, e_sizeof, adjust_alignof;
     ggrt_elem *e;
+
     for ( i = 0; i < st->nelems; ++ i ) {
       e = st->elems[i];
-      // FIXME: handle union.
-      c_alignof = ggrt_type_alignof(ctx, e->type);
-      if ( (adjust_alignof = offset % c_alignof) )
-        offset += c_alignof - adjust_alignof;
-      e->offset = offset;
-      offset += ggrt_type_sizeof(ctx, e->type);
+      e_sizeof  = ggrt_type_sizeof(ctx, e->type);
+      e_alignof = ggrt_type_alignof(ctx, e->type);
+      switch ( *st->type ) {
+      case 's':
+        if ( (adjust_alignof = offset % e_alignof) )
+          offset += e_alignof - adjust_alignof;
+        e->offset = offset;
+        offset += ggrt_type_sizeof(ctx, e->type);
+        break;
+      case 'u':
+        // align and size of a union is the max of all elements.
+        // Actually: it should be the LCD of all elements
+        if ( size <= e_sizeof )
+          size = e_sizeof;
+        if ( offset <= e_alignof )
+          offset = e_alignof;
+        e->offset = 0;
+        break;
+      default:
+        abort();
+      }
     }
-    // FIXME: handle union.
 
-    // Align to first elem so array will align.
-    e = st->elems[0];
-    c_alignof = ggrt_type_alignof(ctx, e->type);
-    if ( (adjust_alignof = offset % c_alignof) )
-      offset += c_alignof - adjust_alignof;
+    switch ( *st->type ) {
+    case 's':
+      // Align to first elem so array of this struct will align.
+      e = st->elems[0];
 
-    // Align to 16-byte word?
-    c_alignof = 16;
-    if ( (adjust_alignof = offset % c_alignof) )
-      offset += c_alignof - adjust_alignof;
+      e_alignof = ggrt_type_alignof(ctx, e->type);
+      if ( (adjust_alignof = offset % e_alignof) )
+        offset += e_alignof - adjust_alignof;
 
-    st->c_sizeof = offset;
-    st->c_alignof = ggrt_type_alignof(ctx, e->type);
+      // FIXME: Align to 16-byte word?
+      e_alignof = 16;
+      if ( (adjust_alignof = offset % e_alignof) )
+        offset += e_alignof - adjust_alignof;
+
+      st->c_sizeof = offset;
+      st->c_alignof = ggrt_type_alignof(ctx, e->type);
+      break;
+    case 'u':
+      st->c_sizeof = size;
+      st->c_alignof = offset;
+      break;
+    default:
+      abort();
+    }
     st->c_vararg_size = st->c_sizeof; // ???
   }
   break;
