@@ -2,16 +2,21 @@
 #include <string.h>
 #include <assert.h>
 
-#undef malloc
-#undef realloc
-#undef free
-
 malloc_zone *malloc_zone_new()
 {
   malloc_zone *zone = malloc(sizeof(*zone));
   memset(zone, 0, sizeof(*zone));
   zone->header.next = zone->header.prev = &zone->header;
+  zone->_malloc  = malloc;
+  zone->_realloc = realloc;
+  zone->_free    = free;
   return zone;
+}
+
+void malloc_zone_destroy(malloc_zone *zone)
+{
+  malloc_zone_clear(zone);
+  free(zone);
 }
 
 void malloc_zone_clear(malloc_zone *zone)
@@ -20,18 +25,12 @@ void malloc_zone_clear(malloc_zone *zone)
   size_t n = 0;
   for ( obj = head->next; obj != head; obj = next ) {
     next = obj->next;
-    free(obj);
+    zone->_free(obj);
     ++ n;
   }
   assert(zone->count == n);
   zone->count = 0;
   head->next = head->prev = head;
-}
-
-void malloc_zone_destroy(malloc_zone *zone)
-{
-  malloc_zone_clear(zone);
-  free(zone);
 }
 
 static
@@ -52,7 +51,7 @@ void add_object(malloc_zone *zone, malloc_zone_object *obj)
 void *malloc_zone_malloc(malloc_zone *zone, size_t size)
 {
   malloc_zone_object *obj;
-  obj = malloc(sizeof(*obj) - sizeof(double) + size);
+  obj = zone->_malloc(sizeof(*obj) - sizeof(double) + size);
   obj->size = size;
   add_object(zone, obj);
   return obj->data;
@@ -66,7 +65,7 @@ void _malloc_zone_free(malloc_zone *zone, void *ptr)
   obj = ptr - (sizeof(*obj) - sizeof(obj->data));
   obj->prev->next = obj->next;
   obj->next->prev = obj->prev;
-  free(obj);
+  zone->_free(obj);
   zone->count --;
 }
 

@@ -34,10 +34,15 @@ GEN_HFILES = $(YFILES:%.y=gen/%.h)
 OFILES = $(CFILES:.c=.o) $(GEN_CFILES:.c=.o)
 GEN_FILES = $(GEN_CFILES) $(GEN_HFILES) $(OFILES) $(PRODUCT)
 
+SUBDIRS := $(shell ls -d src/*)
+
 all: src-libs $(PRODUCT)
 
 src-libs :
-	$(MAKE) -C src/ggrt all
+	@set -e; for d in $(SUBDIRS) ;\
+	do  \
+	  $(MAKE) -C "$$d" all ;\
+	done
 
 ###################################################################
 
@@ -72,6 +77,10 @@ code-stats :
 	find * -type f | sort | egrep -e '\.[chyl]$$' | egrep -v -e 'c[yl].[ch]' | xargs wc -l
 
 clean :
+	@set -e; for d in $(SUBDIRS) ;\
+	do  \
+	  $(MAKE) -C "$$d" clean ;\
+	done
 	rm -f $(GEN_FILES) gen/cy.output gdbinit *.dot *.dot.svg
 	$(MAKE) -C src/ggrt clean
 
@@ -83,7 +92,15 @@ TEST_INPUTS := \
   stdlib.h \
   stdio.h
 
-test : all
+test : all test-subdirs test-local
+
+test-subdirs :
+	@set -e; for d in $(SUBDIRS) ;\
+	do  \
+	  $(MAKE) -C "$$d" all test ;\
+	done
+
+test-local :
 	$(PRODUCT) $(CC) -debug -v -g t/test.c
 	$(PRODUCT) gcc   -debug -v -g t/test.c
 	$(PRODUCT) clang -debug -v -g t/test.c

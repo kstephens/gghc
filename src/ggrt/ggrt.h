@@ -88,6 +88,7 @@ struct ggrt_s_ctx {
   ggrt_type *type_pointer; /* void* */
 
   ggrt_symbol_table *st_global, *st_type;
+
   void *(*_malloc)(size_t size);
   void *(*_realloc)(void *ptr, size_t size);
   void  (*_free)(void *ptr);
