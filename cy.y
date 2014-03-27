@@ -4,25 +4,15 @@
 /*
 ** Changes: Copyright 1993, 1994, 2014 Kurt A. Stephens
 */
-
-#include <stdlib.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <stdarg.h>
-#include <string.h>	/* strstr() */
-#include <assert.h>
-#include "gghc.h"
-#include "gghc_sym.h"
-#include "gghc_o.h"
-
-#define ctx _gghc_ctx /* HACK */
+#include "parse.h"
 
 #define YYERROR_VERBOSE 1
 #define YYDEBUG 1
     // #define YYPRINT(output, toknum, value) ((void) toknum)
 
-extern int yylex();
+#define yylex(arg) gghc_yylex(ctx, (arg))
+
+#define ctx _gghc_ctx /* HACK */
 
  void gghc_debug_stop_here()
  {
@@ -71,20 +61,20 @@ static gghc_decl *make_func(gghc_decl *decl, const char *params)
     return decl;
 }
 
-static void token_msg(const char *desc, int indent, mm_buf_state *s)
+static void token_msg(gghc_ctx ctx, const char *desc, int indent, mm_buf_state *s)
 {
   int size = s->size;
   if ( size > 120 ) size = 120;
-  fprintf(stderr, "gghc:%s%*s`", desc, (int) indent, "");
-  fwrite(s->beg, size, 1, stderr);
-  fprintf(stderr, "'\n");
+  fprintf(ctx->_stderr, "gghc:%s%*s`", desc, (int) indent, "");
+  fwrite(s->beg, size, 1, ctx->_stderr);
+  fprintf(ctx->_stderr, "'\n");
 }
 
-static void parse_msg(const char *desc, const char *s)
+static void parse_msg(gghc_ctx ctx, const char *desc, const char *s)
 {
   mm_buf_region *t = ctx->last_token;
   if ( t ) {
-    fprintf(stderr, "gghc: %s%s:%d:%d %s\n",
+    fprintf(ctx->_stderr, "gghc: %s%s:%d:%d %s\n",
             desc,
           t->beg.src.filename ? t->beg.src.filename : "UNKNOWN",
           t->beg.src.lineno,
@@ -99,22 +89,22 @@ static void parse_msg(const char *desc, const char *s)
       s.beg ++;
       while ( s.end < t->mb->s.end && *s.end != '\n' ) s.end ++;
       s.size = s.end - s.beg;
-      token_msg(" token: ", t->beg.beg - s.beg, &t->beg);
-      token_msg(" line:  ", 0, &s);
+      token_msg(ctx, " token: ", t->beg.beg - s.beg, &t->beg);
+      token_msg(ctx, " line:  ", 0, &s);
     }
   } else {
-    fprintf(stderr, "gghc: 0:0:0 %s\n", s);
+    fprintf(ctx->_stderr, "gghc: 0:0:0 %s\n", s);
   }
 }
 
-void	yywarning(const char* s)
+ void gghc_yywarning(gghc_ctx ctx, const char* s)
 {
-  parse_msg("warning: ", s);
+  parse_msg(ctx, "warning: ", s);
 }
 
-void	yyerror(const char* s)
+ void gghc_yyerror(gghc_ctx ctx, const char* s)
 {
-  parse_msg("ERROR: ", s);
+  parse_msg(ctx, "ERROR: ", s);
   ctx->errors ++;
 }
 
@@ -163,7 +153,7 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 }
 
 %}
-
+%define api.pure full
 %verbose
  /*
 %define parse.trace

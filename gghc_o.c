@@ -74,7 +74,7 @@ void	gghc_typedef(const char *name, const char *type)
   gghc_symbol *sym;
 
   if ( (sym = gghc_symbol_get(name)) ) {
-    yyerror(ssprintf("'%s' is already a typedef", name));
+    gghc_yyerror(ctx, ssprintf("'%s' is already a typedef", name));
     return;
   }
 
@@ -537,10 +537,10 @@ void gghc_declaration(gghc_decl_spec *spec, gghc_decl *decl)
     char *type = ssprintf(decl->declarator, spec->type);
     // fprintf(stderr, "  gghc_declaration: type=%s ident=%s\n", type, decl->identifier);
     if ( ! (spec->type && spec->type[0]) ) {
-      yyerror(ssprintf("no type for identifier '%s'", decl->identifier));
+        gghc_yyerror(ctx, ssprintf("no type for identifier '%s'", decl->identifier));
     } else
     if ( ! (decl->identifier && decl->identifier[0]) ) {
-      yyerror(ssprintf("no identifier for type '%s'", type));
+        gghc_yyerror(ctx, ssprintf("no identifier for type '%s'", type));
     } else {
       /* The declaration is a typedef */
       if ( spec->storage == TYPEDEF ) {
@@ -551,7 +551,7 @@ void gghc_declaration(gghc_decl_spec *spec, gghc_decl *decl)
         gghc_global(decl->identifier, type);      
       } else {
       /* The declaration is something else */
-	yywarning(ssprintf("ignoring declaration of '%s'", decl->identifier));
+        gghc_yywarning(ctx, ssprintf("ignoring declaration of '%s'", decl->identifier));
       }
     }
 

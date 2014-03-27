@@ -6,6 +6,7 @@
 
 #include <stdio.h> /* FILE */
 #include "ggrt/mm_buf.h"
+#include "gghc_t.h"
 
 typedef enum gghc_mode {
   gghc_mode_UNDEF = 0,
@@ -30,6 +31,7 @@ typedef struct gghc_ctx {
   FILE *footer_out;
   FILE *defines_in;
   FILE *defines_out;
+  FILE *_stdin, *_stdout, *_stderr;
 
   char *cpp_in_filename;
   char *cpp_out_filename;
@@ -67,7 +69,11 @@ typedef struct gghc_ctx {
 
   char  *initfuncname;
 
-  int yydebug;
+  void *scanner; /* cl.l flex yyscan_t */
+  int _yydebug;
+  char *_yytext;
+  int _yyleng;
+  gghc_YYSTYPE *_yylvalp; /* &yylval */
 } *gghc_ctx;
 
 extern gghc_ctx _gghc_ctx; /* NOT THREAD SAFE! */
@@ -87,8 +93,10 @@ int gghc_system(gghc_ctx ctx, const char* cmd);
 int gghc_yyparse(gghc_ctx ctx, mm_buf *mb);
 int gghc_yyparse_y(gghc_ctx ctx, mm_buf *mb);
 
-void yywarning(const char* s); // FIXME
-void yyerror(const char* s);   // FIXME
+void gghc_yywarning(gghc_ctx ctx, const char* s);
+void gghc_yyerror(gghc_ctx ctx, const char* s);
+
+int gghc_yylex (gghc_ctx ctx, YYSTYPE *lvalp); // , YYLTYPE *llocp);
 
 #include "ggrt/malloc_debug.h"
 #endif

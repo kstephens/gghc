@@ -5,50 +5,25 @@
 ** Changes: Copyright 1993, 1994, 2014 Kurt A. Stephens
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <stddef.h>
-#include <limits.h>
-#include "gghc.h"
-#include "gghc_t.h"
-#include "gghc_sym.h"
-#include "gghc_o.h"
-#include "cy.h"
+#include "parse.h"
 
- void	yywarning(const char* s);
- void	yyerror(const char* s);
 static int yywrap();
-static int comment();
-static int check_type();
 
 #undef fgetc
 #define fgetc(IN) mm_buf_getc(gghc_mb)
 #undef ugetc
 #define ungetc(IN,C) mm_buf_ungetc(gghc_mb, (C))
 
- extern int yydebug;
-int yyparse();
-int gghc_yyparse(gghc_ctx ctx, mm_buf *mb)
-{
-    int result;
+ static gghc_ctx _lex_ctx; // NOT THREAD SAFE!
 
-    ctx->mb = mb;
-    *ctx->mb_token = *ctx->mb;
-
-    result = gghc_yyparse_y(ctx, mb);
-
-    return result;
-}
-
-#define ctx _gghc_ctx /* HACK */
+#define YY_DECL int gghc_yylex_internal (yyscan_t yyscanner, gghc_ctx ctx, YYSTYPE *lvalp)
+#define yylval (*ctx->_yylvalp)
 
 static int _input(char *buf, size_t max_size)
 {
   int c;
-  if ( (c = mm_buf_getc(ctx->mb)) == '\n' )
-    ctx->parse_lineno ++;
+  if ( (c = mm_buf_getc(_lex_ctx->mb)) == '\n' )
+    _lex_ctx->parse_lineno ++;
   return (c == EOF) ? YY_NULL : (buf[0] = c, 1);
 }
 #undef YY_INPUT
@@ -57,22 +32,25 @@ static int _input(char *buf, size_t max_size)
     result = _input(buf, max_size);                                     \
   } while(0)
 
- static void _prepare_token(char *yytext, int yyleng)
- {
+static void _prepare_token(gghc_ctx ctx, YYSTYPE *lvalp, char *text, int leng)
+{
+   ctx->_yytext = text;
+   ctx->_yyleng = leng;
+
      mm_buf_region *token = ctx->last_token;
-     if ( yydebug ) fprintf(stderr, "  gghc: lex: matched '%s'\n", yytext);
+     if ( ctx->debug ) fprintf(stderr, "  gghc: lex: matched '%s'\n", text);
 
      mm_buf_region_begin(token, ctx->mb_token);
-     mm_buf_read(ctx->mb_token, 0, yyleng);
-     mm_buf_region_end(token, ctx->mb_token, yyleng);
+     mm_buf_read(ctx->mb_token, 0, leng);
+     mm_buf_region_end(token, ctx->mb_token, leng);
 
      yylval.t = *token;
-     yylval.leng = yyleng;
+     yylval.leng = leng;
 
      if ( 0 ) {
          char buf[64];
 
-         fprintf(stderr, "  gghc: lex:   len %d '%s'\n", (int) yyleng, yytext);
+         fprintf(stderr, "  gghc: lex:   len %d '%s'\n", (int) leng, text);
 
          memset(buf, 0, sizeof(buf));
          strncpy(buf, (char*) token->beg.pos, 60);
@@ -82,7 +60,7 @@ static int _input(char *buf, size_t max_size)
      }
  }
 
-#define YY_USER_ACTION _prepare_token(yytext, yyleng);
+#define YY_USER_ACTION _prepare_token(ctx, lvalp, yytext, yyleng);
 
 #define _return(X)               \
   do {                           \
@@ -163,7 +141,22 @@ PRAGMA	(pragma)
   ctx->mb_token->s.src = ctx->mb->s.src;
 }
 
-"/*"			{ comment(); }
+"/*"                    {
+  char c, c1;
+
+loop:
+  while ((c = input(yyscanner)) != '*' && c != 0)
+    putchar(c);
+
+  if ((c1 = input(yyscanner)) != '/' && c != 0)
+    {
+      unput(c1);
+      goto loop;
+    }
+
+  if (c != 0)
+    putchar(c1);
+}
 
 "inline"                { _return(GGHC_inline); }
 "__inline"              { _return(GGHC___inline); }
@@ -213,7 +206,15 @@ PRAGMA	(pragma)
 "volatile"		{ _return(VOLATILE); }
 "while"			{ _return(WHILE); }
 
-{L}({L}|{D})*		{ _return(check_type()); }
+{L}({L}|{D})*		{
+  int tok = IDENTIFIER;
+  gghc_symbol *sym;
+  yylval.u.cp = strdup(yytext);
+  if ( (sym = gghc_symbol_get(yytext)) ) { // FIXME
+    tok = TYPE_NAME;
+  }
+  _return(tok);
+}
 
 0[xX]{H}+{IS}?		{ _return(CONSTANT); }
 0{D}+{IS}?		{ _return(CONSTANT); }
@@ -284,45 +285,36 @@ static int yywrap()
 	return(1);
 }
 
-static int comment()
+int gghc_yylex(gghc_ctx ctx, YYSTYPE *lvalp)
 {
-	char c, c1;
+  gghc_ctx save_ctx = _lex_ctx;
+  int result;
 
-loop:
-	while ((c = input()) != '*' && c != 0)
-		putchar(c);
+  _lex_ctx = ctx;
+  ctx->_yylvalp = lvalp;
 
-	if ((c1 = input()) != '/' && c != 0)
-	{
-		unput(c1);
-		goto loop;
-	}
+  result = gghc_yylex_internal(ctx->scanner, ctx, lvalp);
 
-	if (c != 0)
-		putchar(c1);
-return 0;
+  _lex_ctx = save_ctx;
+  return result;
 }
 
-static int check_type()
+int gghc_yyparse(gghc_ctx ctx, mm_buf *mb)
 {
-/*
-* pseudo code --- this is what it should check
-*
-*	if (yytext == type_name)
-*		return(TYPE_NAME);
-*
-*	return(IDENTIFIER);
-*/
+    int result;
+    yyscan_t scanner;
+     
+    gghc_yylex_init(&scanner);
+    ctx->scanner = scanner;
+ 
+    ctx->mb = mb;
+    *ctx->mb_token = *ctx->mb;
 
-  gghc_symbol *sym;
-  yylval.u.cp = strdup(yytext);
-  if ( (sym = gghc_symbol_get(yytext)) ) {
-    return TYPE_NAME;
-  }
+    // calls yylex(scanner)
+    result = gghc_yyparse_y(ctx, mb);
 
-/*
-*	it actually will only return IDENTIFIER
-*/
+    gghc_yylex_destroy(scanner);
 
-	return(IDENTIFIER);
+    return result;
 }
+

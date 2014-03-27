@@ -50,16 +50,13 @@ src-libs :
 
 gen/cy.c : cy.y
 #	@rm -f $*.c $*.h $*.y.dot $*.y.dot.svg
-	$(YACC) $(YACCFLAGS) --graph=$@.y.dot -d cy.y
-	mv cy.tab.c $@
-	mv cy.tab.h gen/cy.h
-	mv cy.output gen/
+	$(YACC) $(YACCFLAGS) --graph=gen/cy.y.dot --xml=gen/cy.y.xml --output=gen/cy.c --defines=gen/cy.h cy.y
 	tool/yy_action $@
 
 gen/cy.h : gen/cy.c
 
 gen/cl.c : cl.l
-	$(LEX) -t cl.l | sed 's?debug = 0;?debug = 1;?' > $@
+	$(LEX) --align --reentrant --prefix=gghc_yy -t cl.l | sed 's?debug = 0;?debug = 1;?' > $@
 
 $(YFILES:.y=.o) :: $(YFILES)
 $(YFILES:.l=.o) :: $(LFILES)
