@@ -2,7 +2,9 @@
 *.a
 *.t
 *.dSYM
-gen/*
+/gen/*
+/src/*/gen/*
+/src/*/gghc
 /bin/*
 /lib/*
 *.bak
