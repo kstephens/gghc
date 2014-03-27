@@ -30,7 +30,7 @@ typedef struct test_struct {
 
 static void test_struct_def(ggrt_ctx ctx)
 {
-  ggrt_type *st = ggrt_m_struct_type(ctx, "struct", "test_struct");
+  ggrt_type_t *st = ggrt_m_struct_type(ctx, "struct", "test_struct");
   test_struct v;
   struct align_struct_dummy v2;
 #define E(N,C,T) ggrt_m_struct_elem(ctx, st, #N, ctx->type_##T);
@@ -50,9 +50,9 @@ static GGRT_V identity(GGRT_V x) { return x + 5; }
 
 static void test_func_call(ggrt_ctx ctx)
 {
-  ggrt_type *ct_rtn  = GGRT_V_type;
-  ggrt_type *ct_params[1] = { GGRT_V_type };
-  ggrt_type *ft = ggrt_m_func_type(ctx, ct_rtn, 1, ct_params);
+  ggrt_type_t *ct_rtn  = GGRT_V_type;
+  ggrt_type_t *ct_params[1] = { GGRT_V_type };
+  ggrt_type_t *ft = ggrt_m_func_type(ctx, ct_rtn, 1, ct_params);
 
   GGRT_V rtn, args[10];
 
