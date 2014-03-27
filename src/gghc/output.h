@@ -10,8 +10,6 @@
 /*
 ** output functions for gghc
 */
-char*	strdup(const char* s);
-char*	ssprintf(const char* format, ...);
 
 void gghc_emit_control(gghc_ctx ctx, int i); /* -1 to pause, 1 to resume */
 

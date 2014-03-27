@@ -10,7 +10,8 @@
 #include "gghc/output.h"
 #include "gghc_sym.h"
 
-static int parse_C_defines(gghc_ctx ctx, FILE *fp)
+static
+int parse_C_defines(gghc_ctx ctx, FILE *fp)
 {
     char *line = NULL;
     size_t linecap = 0;
@@ -37,6 +38,8 @@ static int parse_C_defines(gghc_ctx ctx, FILE *fp)
     free(line);
     return count;
 }
+
+#include "mzone.h"
 
 void gghc_process_files(gghc_ctx ctx)
 {

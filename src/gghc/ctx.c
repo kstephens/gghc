@@ -1,8 +1,10 @@
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <time.h>       /* time() */
 #include <unistd.h>     /* getpid() */
 #include <sys/types.h>  /* pid_t */
+#include <assert.h>
 #include "gghc.h"
 #include "gghc/output.h"
 #include "gghc_sym.h"
@@ -12,6 +14,8 @@ gghc_ctx gghc_m_ctx()
   int pid = (int) getpid();
   gghc_ctx ctx = malloc(sizeof(*ctx));
   memset(ctx, 0, sizeof(*ctx));
+
+  ctx->mz = malloc_zone_new();
 
   ctx->mb = &ctx->_mb;
   ctx->mb_token = &ctx->_mb_token;
@@ -37,6 +41,55 @@ gghc_ctx gghc_m_ctx()
 
   return ctx;
 }
+
+void gghc_ctx_destroy(gghc_ctx ctx)
+{
+  assert(ctx);
+}
+
+void *gghc_malloc(gghc_ctx ctx, size_t s)
+{
+  return malloc_zone_malloc(ctx->mz, s);
+}
+void *gghc_realloc(gghc_ctx ctx, void *p, size_t s)
+{
+  return malloc_zone_realloc(ctx->mz, p, s);
+}
+void  gghc_free(gghc_ctx ctx, void *p)
+{
+  return malloc_zone_free(ctx->mz, p);
+}
+char *gghc_strdup(gghc_ctx ctx, const char* s)
+{
+  return malloc_zone_strdup(ctx->mz, s);
+}
+
+char *ssprintf(const char* format, ...)
+{
+  char *buf = 0;
+  va_list vap;
+  va_start(vap, format);
+  vasprintf(&buf, format, vap);
+  va_end(vap);
+  return buf;
+}
+
+char *gghc_ssprintf(gghc_ctx ctx, const char* format, ...)
+{
+  char *buf = 0, *result = 0;
+  va_list vap;
+  va_start(vap, format);
+  vasprintf(&buf, format, vap);
+  va_end(vap);
+
+  // Copy to zone.
+  result = malloc_zone_strdup(ctx->mz, buf);
+  free(buf);
+
+  return result;
+}
+
+#include "mzone.h"
 
 int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv)
 {
@@ -68,7 +121,7 @@ int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv)
       ctx->_yydebug ++;
     } else
     if ( strcmp(argv[i], "-mallocdebug") == 0 ) {
-      _malloc_debug = 1;
+      ctx->_malloc_debug = 1;
     } else
     if ( strcmp(argv[i], "-sexpr") == 0 ) {
       ctx->output_mode = gghc_mode_sexpr;

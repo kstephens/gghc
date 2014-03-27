@@ -43,7 +43,7 @@ $(LIB) : $(GEN_HFILES) $(GEN_CFILES) $(OFILES)
 	ar -r $(LIB) $(OFILES)
 	cp -p $(LIB) $(ROOT)/lib
 
-$(BIN) : $(GEN_HFILES) $(GEN_CFILES) $(OFILES)
+$(BIN) : $(GEN_HFILES) $(GEN_CFILES) $(OFILES) $(ROOT)/lib/lib*.a
 	$(CC) $(CFLAGS) -o $(BIN) $(OFILES) $(LDFLAGS) $(LDLIBS)
 	cp -p $(BIN) $(ROOT)/bin
 

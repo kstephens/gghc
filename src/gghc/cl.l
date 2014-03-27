@@ -127,7 +127,7 @@ PRAGMA	(pragma)
     memcpy(filename, s, e - s);
     filename[e - s] = '\0';
 
-    free(ctx->parse_filename);
+    // free(ctx->parse_filename); // ZONE!
     ctx->parse_filename = filename;
     if ( ctx->parse_top_level_filename == 0 ) {
       ctx->parse_top_level_filename = strdup(ctx->parse_filename);

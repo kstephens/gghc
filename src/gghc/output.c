@@ -11,28 +11,11 @@
 #include "gghc_sym.h"
 #include "gghc.h"	/* gghc_debug */
 #include "cy.h"
+#include "mzone.h"
 
 /*
 ** Input/output functions for gghc
 */
-
-char*	strdup(const char* s)
-{
-  size_t size = strlen(s) + 1;
-  char*	p = malloc(size);
-  memcpy(p, s, size);
-  return p;
-}
-
-char*	ssprintf(const char* format, ...)
-{
-  char *buf = 0;
-  va_list vap;
-  va_start(vap, format);
-  vasprintf(&buf, format, vap);
-  va_end(vap);
-  return buf;
-}
 
 void gghc_debug_stop()
 {
@@ -47,6 +30,11 @@ void gghc_emit_control(gghc_ctx ctx, int i)
 
 #define eprintf(FH,FMT,ARGS...) \
     do { if ( ctx->_emit ) fprintf(FH,FMT, ## ARGS); } while(0)
+
+void gghc_pragma(gghc_ctx ctx, const char *c_expr)
+{
+    /* NOTHING */
+}
 
 char *  gghc_constant(gghc_ctx ctx, const char *c_expr)
 {

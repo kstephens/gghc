@@ -61,6 +61,7 @@ typedef struct gghc_ctx {
   char *verbose;
   char *debug;
   char *dump;
+  int _malloc_debug;
 
   char *cmd;
   char *cmd_cpp;
@@ -89,6 +90,14 @@ typedef struct gghc_ctx {
 } *gghc_ctx;
 
 gghc_ctx gghc_m_ctx();
+void gghc_ctx_destroy(gghc_ctx ctx);
+
+void *gghc_malloc(gghc_ctx ctx, size_t s);
+void *gghc_realloc(gghc_ctx ctx, void *p, size_t s);
+void  gghc_free(gghc_ctx ctx, void *p);
+char *gghc_strdup(gghc_ctx ctx, const char* s);
+char *gghc_ssprintf(gghc_ctx ctx, const char* format, ...); // uses gghc_malloc().
+char *ssprintf(const char* format, ...); // uses malloc() */
 
 int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv);
 
@@ -108,5 +117,4 @@ void gghc_yyerror(gghc_ctx ctx, const char* s);
 
 int gghc_yylex (gghc_ctx ctx, YYSTYPE *lvalp); // , YYLTYPE *llocp);
 
-#include "ggrt/malloc_debug.h"
 #endif

@@ -10,16 +10,9 @@
  {
  }
 
-void *gghc_malloc0(size_t size)
+gghc_decl *gghc_m_decl(gghc_ctx ctx)
 {
-   void *ptr = malloc(size);
-   memset(ptr, 0, size);
-   return ptr;
-}
-
-gghc_decl *gghc_m_decl()
-{
-  gghc_decl *x = gghc_malloc0(sizeof(gghc_decl));
+  gghc_decl *x = gghc_malloc(ctx, sizeof(gghc_decl));
   x->identifier = "";
   x->declarator = "%s";
   x->declarator_text = "%s";
@@ -578,7 +571,7 @@ struct_declarator_list
 struct_declarator
 	: declarator
 	| ':' constant_expression
-        { $$ = gghc_m_decl(); $$->is_bit_field = 1; $$->bit_field_size = EXPR($<u>2); }
+        { $$ = gghc_m_decl(ctx); $$->is_bit_field = 1; $$->bit_field_size = EXPR($<u>2); }
 	| declarator ':' constant_expression
         { $$ = $1; $$->is_bit_field = 1; $$->bit_field_size = EXPR($<u>3); }
 	;
@@ -637,7 +630,7 @@ direct_declarator:
 
 direct_declarator_ANSI
 	: IDENTIFIER
-        { $$ = gghc_m_decl(); $$->identifier = EXPR($<u>1); }
+        { $$ = gghc_m_decl(ctx); $$->identifier = EXPR($<u>1); }
 	| '(' declarator ')'
         {
           $$ = $2;

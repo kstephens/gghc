@@ -10,11 +10,11 @@ static void gghc_at_exit()
   gghc_cleanup(_gghc_ctx);
 }
 
-int	main(int argc, char** argv)
+int main(int argc, char** argv)
 {
   gghc_ctx ctx;
 /*	char*	dump = 0; */
-  int	i;
+  int	i, result;
 
   ctx = gghc_m_ctx();
   gghc_parse_argv(ctx, argc, argv);
@@ -29,6 +29,10 @@ int	main(int argc, char** argv)
 
   gghc_process_files(ctx);
 
-  return ctx->error_code;
+  result = ctx->error_code;
+
+  gghc_ctx_destroy(ctx);
+
+  return result;
 }
 
