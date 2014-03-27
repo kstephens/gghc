@@ -18,6 +18,8 @@ int main(int argc, char** argv)
 
   ctx = gghc_m_ctx();
   gghc_parse_argv(ctx, argc, argv);
+  if ( ctx->fatal )
+    exit(9);
 
   _gghc_ctx = ctx;
   atexit(gghc_at_exit);

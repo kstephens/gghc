@@ -57,25 +57,26 @@ typedef struct gghc_ctx {
   const char *parse_filename;
   const char * parse_top_level_filename;
 
-  int errors;
+  int errors, fatals;
   int error_code;
 
+  /* Options */
   gghc_mode output_mode;
-  char *verbose;
-  char *debug;
-  char *dump;
+  int verbose;
+  int debug;
+  int dump;
   int _malloc_debug;
+  char *options;
+  char *output_pathname;
 
+  /* Processing */
   char *cmd;
   char *cmd_cpp;
-  char* cc_prog;
-  char*	files;
-  char*	filev[100];
-  int	filen;
-  char*	options;
-  char*	output_pathname;
-
-  char  *initfuncname;
+  char *cc_prog;
+  char *files;
+  char *filev[100];
+  int   filen;
+  char *initfuncname;
 
   ggrt_symbol_table *st_type, *st_struct, *st_union, *st_enum;
 
@@ -85,12 +86,13 @@ typedef struct gghc_ctx {
   int _yyleng;
   gghc_YYSTYPE *_yylvalp; /* &yylval */
 
+  /* Output state. */
   int _emit;
-    int constant_id;
-    gghc_enum *current_enum;
-    int unnamed_enum_id;
-    gghc_struct *current_struct;
-    int unnamed_struct_id;
+  int constant_id;
+  gghc_enum *current_enum;
+  int unnamed_enum_id;
+  gghc_struct *current_struct;
+  int unnamed_struct_id;
 
 } *gghc_ctx;
 
