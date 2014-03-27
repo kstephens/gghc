@@ -10,14 +10,6 @@
 #include "gghc_o.h"
 #include "gghc_sym.h"
 
-/*
-** MAIN
-*/
-static void gghc_at_exit()
-{
-  gghc_cleanup(_gghc_ctx);
-}
-
 static int parse_C_defines(gghc_ctx ctx, FILE *fp)
 {
     char *line = NULL;
@@ -46,22 +38,9 @@ static int parse_C_defines(gghc_ctx ctx, FILE *fp)
     return count;
 }
 
-int	main(int argc, char** argv)
+void gghc_process_files(gghc_ctx ctx)
 {
-  gghc_ctx ctx;
-/*	char*	dump = 0; */
-  int	i;
-
-  ctx = gghc_m_ctx();
-  gghc_parse_argv(ctx, argc, argv);
-
-  _gghc_ctx = ctx;
-  atexit(gghc_at_exit);
-
-  if ( ctx->filen == 0 ) {
-    fprintf(stderr, "gghc: no files given.\n");
-    exit(0);
-  }
+  int i;
 
   /* Initialize function name */
   if ( mode_c ) {
@@ -250,7 +229,7 @@ int	main(int argc, char** argv)
   }
   gghc_system(ctx, ctx->cmd);
 
-  if ( dump ) {
+  if ( ctx->dump ) {
     ctx->cmd = ssprintf("/bin/cat %s %s %s %s %s %s %s %s %s 1>&2",
             ctx->cpp_in_filename,
             ctx->cpp_out_filename,
@@ -264,9 +243,5 @@ int	main(int argc, char** argv)
             );
     gghc_system(ctx, ctx->cmd);
   }
-
-  if ( ctx->error_code ) exit(ctx->error_code);
- 
-  return ctx->error_code;
 }
 
