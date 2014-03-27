@@ -81,14 +81,14 @@ void gghc_process_files(gghc_ctx ctx)
   }
   fclose(ctx->cpp_in); ctx->cpp_in = 0;
 
-  ctx->cmd = ssprintf("%s -E %s '-D__gghc__' '%s' > '%s'", ctx->cc_prog, ctx->options, ctx->cpp_in_filename, ctx->cpp_out_filename);
+  ctx->cmd = ssprintf("%s -E     %s '-D__gghc__' '%s'     > '%s'", ctx->cc_prog, ctx->options, ctx->cpp_in_filename, ctx->cpp_out_filename);
   gghc_system(ctx, ctx->cmd);
   ctx->cmd_cpp = ssprintf("%s", ctx->cmd);
 
   /**************************************/
   /* Collect defines. */
 
-  ctx->cmd = ssprintf("%s -E -dM %s '-D__gghc__' '%s' > '%s'", ctx->cc_prog, ctx->options, ctx->cpp_in_filename, ctx->defines_in_filename);
+  ctx->cmd = ssprintf("%s -E -dM %s '-D__gghc__' '%s'     > '%s'", ctx->cc_prog, ctx->options, ctx->cpp_in_filename, ctx->defines_in_filename);
   gghc_system(ctx, ctx->cmd);
 
   ctx->cmd = ssprintf("/usr/bin/sort %s > %s.tmp && /bin/mv %s.tmp %s", ctx->defines_in_filename, ctx->defines_in_filename, ctx->defines_in_filename, ctx->defines_in_filename);
@@ -200,7 +200,7 @@ void gghc_process_files(gghc_ctx ctx)
   /**************************************/
   /* Compile constants. */
 
-  ctx->cmd = ssprintf("%s %s '%s' -o '%s'",
+  ctx->cmd = ssprintf("%s        %s '-D__gghc__' '%s' -o '%s'",
           ctx->cc_prog, ctx->options, ctx->constants_c_filename, ctx->constants_x_filename);
   // ctx->constants_c_filename = 0;
   gghc_system(ctx, ctx->cmd);

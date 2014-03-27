@@ -16,9 +16,9 @@ GARBAGE += bin/* lib/*
 PROG=bin/gghc
 
 test-local :
-	$(PROG) $(CC) -debug -v -g t/test.c > gen/test.c.gghc.ss
-	$(PROG) gcc   -debug -v -g t/test.c > gen/test.c.gghc.gcc.ss
-	$(PROG) clang -debug -v -g t/test.c > gen/test.c.gghc.clang.ss
+	$(PROG) $(CC) -debug -v -g -o gen/test.c.gghc.ss       t/test.c
+	$(PROG) gcc   -debug -v -g -o gen/test.c.gghc.gcc.ss   t/test.c
+	$(PROG) clang -debug -v -g -o gen/test.c.gghc.clang.ss t/test.c
 	rm -rf /tmp/gghc-*-*.*
 
 test-deep : all test
