@@ -1,9 +1,7 @@
 *.o
-/cl.c
-/cy.c
-/cy.h
-/cy.output
-/*.dot
-/*.dot.svg
+*.a
+*.t
+*.dSYM
+/gen/*
 /gghc
 *.bak

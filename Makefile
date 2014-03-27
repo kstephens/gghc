@@ -1,64 +1,86 @@
+UNAME_S:=$(shell uname -s 2>/dev/null)#
+CFLAGS += -g
+ifneq "$(NO_OPTIMIZE)" ""
+CFLAGS += -O3
+endif
+CPPFLAGS += $(CINCS)
+CFLAGS += $(CPPFLAGS)
+LDLIBS += $(CLIBS)
+CPP = $(CC) $(CPPFLAGS) -E
 
-all:
+CPPFLAGS += -DYYDEBUG # -DLEXDEBUG2 -DLEXDEBUG 
 
 YACC = bison
 LEX = flex
-MV = mv
-CFLAGS = $(OTHER_CFLAGS) -Wall -g -DYYDEBUG # -DLEXDEBUG2 -DLEXDEBUG 
 YACCFLAGS = # -v
 LEXFLAGS = -f
 
 PRODUCT = ./gghc
 
-YFILES = cy.y
-LFILES = cl.l
+YFILES := $(shell ls *.y)
+LFILES := $(shell ls *.l)
+CFILES := $(shell ls *.c)
+HFILES := $(shell ls *.h)
 
-CFILES = \
-  malloc_debug.c \
-  malloc_zone.c \
-  mm_buf.c \
-  gghc.c \
-  gghc_sym.c \
-  gghc_o.c
+CINCS += -I.
+CINCS += -Igen
+CINCS += src
 
-LIBS = # -lMallocDebug
+CLIBS += -Llib
+CLIBS += -lggrt
+
+GEN_CFILES = $(YFILES:%.y=gen/%.c) $(LFILES:%.l=gen/%.c)
+GEN_HFILES = $(YFILES:%.y=gen/%.h)
+OFILES = $(CFILES:.c=.o) $(GEN_CFILES:.c=.o)
+GEN_FILES = $(GEN_CFILES) $(GEN_HFILES) $(OFILES) $(PRODUCT)
+
+all: src-libs $(PRODUCT)
+
+src-libs :
+	$(MAKE) -C src/ggrt all
 
 ###################################################################
 
-.SUFFIXES: .y .l .c .h .o
+.SUFFIXES: .y .l
 
-.c.o :
-	$(CC) -I. $(CFLAGS) -c $*.c -o $*.o
-.y.c .y.h :
-	@rm -f $*.c $*.h $*.y.dot $*.y.dot.svg
-	$(YACC) $(YACCFLAGS) --graph=$*.y.dot -d $*.y && $(MV) $*.tab.c $*.c && $(MV) $*.tab.h $*.h
-	tool/yy_action $*.c
-.l.c :
-	$(LEX) -t $*.l | sed 's?debug = 0;?debug = 1;?' > $*.c
+gen/cy.c : cy.y
+#	@rm -f $*.c $*.h $*.y.dot $*.y.dot.svg
+	$(YACC) $(YACCFLAGS) --graph=$@.y.dot -d cy.y
+	mv cy.tab.c $@
+	mv cy.tab.h gen/cy.h
+	mv cy.output gen/
+	tool/yy_action $@
 
-$(YFILES:.l=.o) :: $(YFILES)
+gen/cy.h : gen/cy.c
 
-DERIVED_CFILES = $(YFILES:.y=.c) $(LFILES:.l=.c)
-DERIVED_HFILES = $(YFILES:.y=.h)
-OFILES = $(CFILES:.c=.o) $(DERIVED_CFILES:.c=.o)
-DERIVED_FILES = $(DERIVED_CFILES) $(DERIVED_HFILES) $(OFILES) $(PRODUCT)
+gen/cl.c : cl.l
+	$(LEX) -t cl.l | sed 's?debug = 0;?debug = 1;?' > $@
 
-$(PRODUCT) : $(DERIVED_HFILES) $(DERIVED_CFILES) $(OFILES)
-	$(CC) -o $(PRODUCT) $(OFILES) $(LIBS)
+$(YFILES:.y=.o) :: $(YFILES)
+$(YFILES:.l=.o) :: $(LFILES)
+
+$(PRODUCT) : $(GEN_HFILES) $(GEN_CFILES) $(OFILES)
+	$(CC) -o $(PRODUCT) $(OFILES) $(LDFLAGS) $(LDLIBS)
 
 ggraph : cy.y.dot.svg
 
 cy.y.dot.svg : all
-	dot -Tsvg -o cy.y.dot.svg cy.y.dot
-	open cy.y.dot.svg
+	dot -Tsvg -o gen/cy.y.dot.svg gen/cy.y.dot
+	open gen/cy.y.dot.svg
 
 code-stats :
 	find * -type f | sort | egrep -e '\.[chyl]$$' | egrep -v -e 'c[yl].[ch]' | xargs wc -l
 
 clean :
-	rm -f $(DERIVED_FILES) cy.output gdbinit *.dot *.dot.svg
+	rm -f $(GEN_FILES) gen/cy.output gdbinit *.dot *.dot.svg
 
-all : $(OFILE_DIR) $(PRODUCT)
+all : $(PRODUCT)
+
+TEST_INPUTS := \
+  t/test.c \
+  $(shell ls *.h) \
+  stdlib.h \
+  stdio.h
 
 test : all
 	$(PRODUCT) $(CC) -debug -v -g t/test.c
@@ -78,6 +100,4 @@ test-deep : all test
 
 debug : all
 	lldb -f $(PRODUCT) -- $(CC) -v -g t/test.c
-
-$(GGHC_OFILES) : $(PRODUCT)
 
