@@ -24,7 +24,7 @@ HFILES := $(shell ls *.h)
 
 CINCS += -I.
 CINCS += -Igen
-CINCS += src
+CINCS += -Isrc
 
 CLIBS += -Llib
 CLIBS += -lggrt
@@ -73,6 +73,7 @@ code-stats :
 
 clean :
 	rm -f $(GEN_FILES) gen/cy.output gdbinit *.dot *.dot.svg
+	$(MAKE) -C src/ggrt clean
 
 all : $(PRODUCT)
 

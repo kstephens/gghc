@@ -1,11 +1,11 @@
 /*
-** Copyright 1993, 1994 Kurt A. Stephens
+** Copyright 1993, 1994, 2014 Kurt A. Stephens
 */
 #ifndef	_gghc_t_h
 #define	_gghc_t_h
 
 #include <stddef.h>	/* wchar_t */
-#include "mm_buf.h"
+#include "ggrt/mm_buf.h"
 
 typedef
 struct gghc_decl_spec {

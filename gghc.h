@@ -5,7 +5,7 @@
 #define	_gghc_h_
 
 #include <stdio.h> /* FILE */
-#include "mm_buf.h"
+#include "ggrt/mm_buf.h"
 
 extern mm_buf *gghc_mb; /* preprocessed header file */
 extern mm_buf *gghc_mb_token; /* token tracking stream. */
@@ -43,5 +43,5 @@ int gghc_yyparse_y(mm_buf *mb);
 extern	void	yywarning(const char* s);
 extern	void	yyerror(const char* s);
 
-#include "malloc_debug.h"
+#include "ggrt/malloc_debug.h"
 #endif
