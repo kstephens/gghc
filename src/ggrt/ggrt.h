@@ -94,6 +94,11 @@ struct ggrt_s_ctx {
   void  (*_free)(void *ptr);
   char *(*_strdup)(const char *);
 
+  /* Users must define these functions. */
+  size_t (*ffi_unbox)(ggrt_ctx ctx, ggrt_type *ct, GGRT_V *valp, void *dst);
+  size_t (*ffi_unbox_arg)(ggrt_ctx ctx, ggrt_type *ct, GGRT_V *valp, void *dst);
+  void   (*ffi_box)(ggrt_ctx ctx, ggrt_type *ct, void *src, GGRT_V *dstp);
+
   ggrt_user_data user_data;
 };
 
@@ -146,7 +151,6 @@ ggrt_symbol *ggrt_symbol_table_add_(ggrt_ctx ctx, ggrt_symbol_table *st, const c
 /* Func call. */
 void ggrt_ffi_call(ggrt_ctx ctx, ggrt_type *ft, GGRT_V *rtn_valp, void *cfunc, int argc, GGRT_V *argv);
 
-/* Users must define these functions. */
 size_t ggrt_ffi_unbox(ggrt_ctx ctx, ggrt_type *ct, GGRT_V *valp, void *dst);
 size_t ggrt_ffi_unbox_arg(ggrt_ctx ctx, ggrt_type *ct, GGRT_V *valp, void *dst);
 void   ggrt_ffi_box(ggrt_ctx ctx, ggrt_type *ct, void *src, GGRT_V *dstp);

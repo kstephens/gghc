@@ -7,14 +7,37 @@
 #include "ggrt.h"
 
 
+size_t ggrt_ffi_unbox_default(ggrt_ctx ctx, ggrt_type *ct, GGRT_V *valp, void *dst)
+{
+  memset(dst, 0, ct->c_sizeof);
+  memcpy(dst, valp, sizeof(*valp)); // dummy
+  return ct->c_sizeof;
+}
+
+size_t ggrt_ffi_unbox_arg_default(ggrt_ctx ctx, ggrt_type *ct, GGRT_V *valp, void *dst)
+{
+  return ggrt_ffi_unbox(ctx, ct, valp, dst);
+}
+
+void ggrt_ffi_box_default(ggrt_ctx ctx, ggrt_type *ct, void *src, GGRT_V *dstp)
+{
+  memcpy(dstp, src, sizeof(*dstp)); // dummy
+}
+
 ggrt_ctx ggrt_m_ctx()
 {
   ggrt_ctx ctx = malloc(sizeof(*ctx));
   memset(ctx, 0, sizeof(*ctx));
+
   ctx->_malloc  = malloc;
   ctx->_realloc = realloc;
   ctx->_free    = free;
   ctx->_strdup  = strdup;
+
+  ctx->ffi_unbox     = ggrt_ffi_unbox_default;
+  ctx->ffi_unbox_arg = ggrt_ffi_unbox_arg_default;
+  ctx->ffi_box       = ggrt_ffi_box_default;
+
   return ctx;
 }
 
@@ -338,26 +361,20 @@ ggrt_type *ggrt_ffi_prepare(ggrt_ctx ctx, ggrt_type *ft)
   return ft;
 }
 
-#ifndef ggrt_BOX_DEFINED
-
 size_t ggrt_ffi_unbox(ggrt_ctx ctx, ggrt_type *ct, GGRT_V *valp, void *dst)
 {
-  memset(dst, 0, ct->c_sizeof);
-  memcpy(dst, valp, sizeof(*valp)); // dummy
-  return ct->c_sizeof;
+  return ctx->ffi_unbox(ctx, ct, valp, dst);
 }
 
 size_t ggrt_ffi_unbox_arg(ggrt_ctx ctx, ggrt_type *ct, GGRT_V *valp, void *dst)
 {
-  return ggrt_ffi_unbox(ctx, ct, valp, dst);
+  return ctx->ffi_unbox(ctx, ct, valp, dst);
 }
 
 void ggrt_ffi_box(ggrt_ctx ctx, ggrt_type *ct, void *src, GGRT_V *dstp)
 {
-  memcpy(dstp, src, sizeof(*dstp)); // dummy
+  ctx->ffi_box(ctx, ct, src, dstp);
 }
-
-#endif
 
 void ggrt_ffi_call(ggrt_ctx ctx, ggrt_type *ft, GGRT_V *rtn_valp, void *cfunc, int argc, GGRT_V *argv)
 {
