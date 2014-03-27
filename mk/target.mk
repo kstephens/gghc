@@ -61,7 +61,7 @@ gen/cy.y.dot.svg : all
 
 clean : clean-subdirs
 	rm -f  $(BIN) $(LIB) $(GEN_FILES) $(TFILES)
-	rm -rf gen/*
+	rm -rf gen/* $(GARBAGE)
 
 clean-subdirs :
 	@set -e; for d in $(SUBDIRS) ;\

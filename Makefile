@@ -1,7 +1,7 @@
 ROOT=.
 include $(ROOT)/mk/common.mk
 
-SUBDIRS = src/*
+SUBDIRS = src/ggrt src/gghc src/gghc-bin
 include $(ROOT)/mk/target.mk
 
 ##############################
@@ -12,6 +12,7 @@ TEST_INPUTS := \
   stdlib.h \
   stdio.h
 
+GARBAGE += bin/* lib/*
 PROG=bin/gghc
 
 test-local :
