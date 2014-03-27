@@ -17,7 +17,7 @@ void *gghc_malloc0(size_t size)
    return ptr;
 }
 
-static gghc_decl *make_decl()
+gghc_decl *gghc_m_decl()
 {
   gghc_decl *x = gghc_malloc0(sizeof(gghc_decl));
   x->identifier = "";
@@ -27,7 +27,7 @@ static gghc_decl *make_decl()
   return x;
 }
 
- static gghc_decl *make_array(gghc_ctx ctx, gghc_decl *decl, const char *size)
+gghc_decl *gghc_m_decl_array(gghc_ctx ctx, gghc_decl *decl, const char *size)
 {
     if ( ! size ) size = "";
     if ( decl->is_parenthised ) {
@@ -40,7 +40,7 @@ static gghc_decl *make_decl()
     return decl;
 }
 
-static gghc_decl *make_func(gghc_ctx ctx, gghc_decl *decl, const char *params)
+gghc_decl *gghc_m_decl_func(gghc_ctx ctx, gghc_decl *decl, const char *params)
 {
     if ( ! params ) params  = "";
     if ( decl->is_parenthised ) {
@@ -578,7 +578,7 @@ struct_declarator_list
 struct_declarator
 	: declarator
 	| ':' constant_expression
-        { $$ = make_decl(); $$->is_bit_field = 1; $$->bit_field_size = EXPR($<u>2); }
+        { $$ = gghc_m_decl(); $$->is_bit_field = 1; $$->bit_field_size = EXPR($<u>2); }
 	| declarator ':' constant_expression
         { $$ = $1; $$->is_bit_field = 1; $$->bit_field_size = EXPR($<u>3); }
 	;
@@ -637,7 +637,7 @@ direct_declarator:
 
 direct_declarator_ANSI
 	: IDENTIFIER
-        { $$ = make_decl(); $$->identifier = EXPR($<u>1); }
+        { $$ = gghc_m_decl(); $$->identifier = EXPR($<u>1); }
 	| '(' declarator ')'
         {
           $$ = $2;
@@ -645,15 +645,15 @@ direct_declarator_ANSI
           $$->is_parenthised = 1;
         }
 	| direct_declarator_ANSI '[' constant_expression ']'
-        { $$ = make_array(ctx, $1, EXPR($<u>3)); }
+        { $$ = gghc_m_decl_array(ctx, $1, EXPR($<u>3)); }
 	| direct_declarator_ANSI '[' ']'
-        { $$ = make_array(ctx, $1, ""); }
+        { $$ = gghc_m_decl_array(ctx, $1, ""); }
 	| direct_declarator_ANSI '(' parameter_type_list ')'
-        { $$ = make_func(ctx, $1, TYPE($<u>3)); }
+        { $$ = gghc_m_decl_func(ctx, $1, TYPE($<u>3)); }
 	| direct_declarator_ANSI '(' identifier_list ')'
-        { $$ = make_func(ctx, $1, ""); /* FIXME */}
+        { $$ = gghc_m_decl_func(ctx, $1, ""); /* FIXME */}
 	| direct_declarator_ANSI '(' ')'
-        { $$ = make_func(ctx, $1, ""); }
+        { $$ = gghc_m_decl_func(ctx, $1, ""); }
 	;
 
 pointer
