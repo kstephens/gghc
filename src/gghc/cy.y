@@ -6,15 +6,6 @@
 */
 #include "parse.h"
 
-#define YYERROR_VERBOSE 1
-#undef YYDEBUG
-#define YYDEBUG 1
-    // #define YYPRINT(output, toknum, value) ((void) toknum)
-
-#define yylex(arg) gghc_yylex(ctx, (arg))
-
-#define ctx _gghc_ctx /* HACK */
-
  void gghc_debug_stop_here()
  {
  }
@@ -127,8 +118,8 @@ static char *_to_type(YYSTYPE *yyvsp)
 }
 #define TYPE(YYV) _to_type((void*)&(YYV))
 
-#define YY_USER_ACTION(yyn) token_merge(yyn, yylen, &yyval, yyvsp);
-static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
+#define YY_USER_ACTION(yyn) token_merge(_ctx, yyn, yylen, &yyval, yyvsp);
+static void token_merge(gghc_ctx ctx, int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
 {
   int i;
   mm_buf_region t, *dst = &yyvalp->t, *src;
@@ -151,8 +142,16 @@ static void token_merge(int yyn, int yylen, YYSTYPE *yyvalp, YYSTYPE *yyvsp)
   *dst = t;
 }
 
+#define yylex(arg) gghc_yylex(_ctx, (arg))
+#define ctx ((gghc_ctx) _ctx)
+
 %}
 %define api.pure full
+ /*
+%lex-param   {gghc_ctx *ctx}
+%parse-param {gghc_ctx *ctx}
+%param       {gghc_ctx *ctx}
+ */
 %verbose
  /*
 %define parse.trace
@@ -928,6 +927,6 @@ int gghc_yyparse_y(gghc_ctx ctx, mm_buf *mb)
     _gghc_ctx = ctx; // FIXME
   gghc_typedef("_Bool", gghc_type("int"));
 
-  return yyparse();
+  return yyparse(ctx);
 }
 
