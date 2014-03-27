@@ -5,6 +5,7 @@
 #define	_gghc_h_
 
 #include <stdio.h> /* FILE */
+#include "ggrt/ctx.h"
 #include "ggrt/malloc_zone.h"
 #include "ggrt/mm_buf.h"
 #include "gghc/decl.h"
@@ -22,6 +23,8 @@ typedef enum gghc_mode {
 typedef struct gghc_ctx {
   malloc_zone *mz;
   void *user_data[4];
+
+  ggrt_ctx rt;
 
   mm_buf *mb, _mb; /* preprocessed header file */
   mm_buf *mb_token, _mb_token; /* token tracking stream. */
@@ -73,6 +76,8 @@ typedef struct gghc_ctx {
   char*	output_pathname;
 
   char  *initfuncname;
+
+  ggrt_symbol_table *st_type, *st_struct, *st_union, *st_enum;
 
   void *scanner; /* cl.l flex yyscan_t */
   int _yydebug;

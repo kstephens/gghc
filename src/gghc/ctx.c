@@ -16,6 +16,13 @@ gghc_ctx gghc_m_ctx()
   memset(ctx, 0, sizeof(*ctx));
 
   ctx->mz = malloc_zone_new();
+  ctx->rt = ggrt_m_ctx();
+  ggrt_ctx_init(ctx->rt);
+
+  ctx->st_type   = ggrt_m_symbol_table(ctx->rt, "type");
+  ctx->st_struct = ggrt_m_symbol_table(ctx->rt, "struct");
+  ctx->st_union  = ggrt_m_symbol_table(ctx->rt, "union");
+  ctx->st_enum   = ggrt_m_symbol_table(ctx->rt, "enums");
 
   ctx->mb = &ctx->_mb;
   ctx->mb_token = &ctx->_mb_token;
