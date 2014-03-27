@@ -1,5 +1,5 @@
 /*
-** Copyright 1993, 1994 Kurt A. Stephens
+** Copyright 1993, 1994, 2014 Kurt A. Stephens
 */
 #ifndef _gghc_h_
 #define	_gghc_h_
@@ -70,7 +70,7 @@ typedef struct gghc_ctx {
   int yydebug;
 } *gghc_ctx;
 
-extern gghc_ctx _gghc_ctx;
+extern gghc_ctx _gghc_ctx; /* NOT THREAD SAFE! */
 
 gghc_ctx gghc_m_ctx();
 
