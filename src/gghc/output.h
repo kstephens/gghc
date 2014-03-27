@@ -15,6 +15,8 @@ char*	ssprintf(const char* format, ...);
 
 void gghc_emit_control(gghc_ctx ctx, int i); /* -1 to pause, 1 to resume */
 
+void	gghc_pragma(gghc_ctx ctx, const char *text);
+
 /* typedef */
 void	gghc_typedef(gghc_ctx ctx, const char *name, const char *type);
 /* type reference */

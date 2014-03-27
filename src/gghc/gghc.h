@@ -5,6 +5,7 @@
 #define	_gghc_h_
 
 #include <stdio.h> /* FILE */
+#include "ggrt/malloc_zone.h"
 #include "ggrt/mm_buf.h"
 #include "gghc/decl.h"
 
@@ -19,6 +20,9 @@ typedef enum gghc_mode {
 #define mode_sexpr (ctx->output_mode == gghc_mode_sexpr)
 
 typedef struct gghc_ctx {
+  malloc_zone *mz;
+  void *user_data[4];
+
   mm_buf *mb, _mb; /* preprocessed header file */
   mm_buf *mb_token, _mb_token; /* token tracking stream. */
   mm_buf_region *last_token, _last_token;

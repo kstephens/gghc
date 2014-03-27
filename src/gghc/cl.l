@@ -102,7 +102,7 @@ PRAGMA	(pragma)
 %%
 
 \#[ \t]*{PRAGMA}.*\n {
-  yywarning(yytext);
+  gghc_pragma(ctx, yytext);
 }
 
 \#[ \t]*{LINE}?[ \t]*[0-9]+([ \t]*\".*\")?.*\n {
