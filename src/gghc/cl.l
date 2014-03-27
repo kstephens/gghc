@@ -208,9 +208,9 @@ loop:
 
 {L}({L}|{D})*		{
   int tok = IDENTIFIER;
-  gghc_symbol *sym;
+  ggrt_symbol *sym;
   yylval.u.cp = strdup(yytext);
-  if ( (sym = gghc_symbol_get(yytext)) ) { // FIXME
+  if ( (sym = ggrt_symbol_table_by_name(ctx->rt, ctx->st_type, yytext)) ) {
     tok = TYPE_NAME;
   }
   _return(tok);

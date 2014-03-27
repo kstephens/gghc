@@ -69,6 +69,12 @@ ggrt_symbol *ggrt_symbol_table_get(ggrt_ctx ctx, ggrt_symbol_table *st, ggrt_sym
   return symp ? *symp : 0;
 }
 
+ggrt_symbol *ggrt_symbol_table_by_name(ggrt_ctx ctx, ggrt_symbol_table *st, const char *name)
+{
+  ggrt_symbol sym; sym.name = name;
+  return ggrt_symbol_table_get(ctx, st, &sym);
+}
+
 ggrt_symbol *ggrt_global_get(ggrt_ctx ctx, const char *name, void *addr)
 {
   ggrt_symbol proto = { name, addr };

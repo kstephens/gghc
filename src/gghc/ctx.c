@@ -7,7 +7,6 @@
 #include <assert.h>
 #include "gghc.h"
 #include "gghc/output.h"
-#include "gghc_sym.h"
 
 gghc_ctx gghc_m_ctx()
 {
@@ -106,51 +105,56 @@ int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv)
   ctx->files = "";
   ctx->options = "-I.";
   for ( i = 1; i < argc; i ++ ) {
-    if ( strcmp(argv[i], "-v") == 0 ) {
-      ctx->verbose = argv[i];
+    char *arg = argv[i];
+    int incr =
+        arg[0] == '-' && arg[1] == '-' && arg[2] ? 1 :
+        arg[0] == '+' && arg[1] == '+' && arg[2] ? -1 : 0;
+
+    if ( strcmp(arg, "-v") == 0 ) {
+      ctx->verbose = arg;
     } else
-    if ( strcmp(argv[i], "-o") == 0 ) {
+    if ( strcmp(arg, "-o") == 0 ) {
       ctx->output_pathname = argv[++ i];
     } else
-    if ( strcmp(argv[i], "-typedef") == 0 ) {
-      gghc_symbol* s;
-
-      s = gghc_symbol_set(argv[++ i]);
-      s->value = "typedef";
+    if ( strcmp(arg, "--typedef") == 0 ) {
+      ggrt_symbol* s;
+      const char *name = argv[++ i];
+      s = ggrt_symbol_table_add_(ctx->rt, ctx->st_type, name, 0, 0);
+      s->value = strdup(name);
     } else
-    if ( strcmp(argv[i], "-dump") == 0 ) {
-      ctx->dump = argv[i];
+    if ( strcmp(arg, "-dump") == 0 ) {
+      ctx->dump = arg;
     } else
-    if ( strcmp(argv[i], "-debug") == 0 ) {
-      ctx->debug = argv[i];
+    if ( strcmp(arg, "-debug") == 0 ) {
+      ctx->debug = arg;
     } else
-    if ( strcmp(argv[i], "-yydebug") == 0 ) {
+    if ( strcmp(arg, "-yydebug") == 0 ) {
       ctx->_yydebug ++;
     } else
-    if ( strcmp(argv[i], "-mallocdebug") == 0 ) {
+    if ( strcmp(arg, "-mallocdebug") == 0 ) {
       ctx->_malloc_debug = 1;
     } else
-    if ( strcmp(argv[i], "-sexpr") == 0 ) {
+    if ( strcmp(arg, "-sexpr") == 0 ) {
       ctx->output_mode = gghc_mode_sexpr;
     } else
-    if ( strcmp(argv[i], "-C") == 0 ) {
+    if ( strcmp(arg, "-C") == 0 ) {
       ctx->output_mode = gghc_mode_c;
     } else
-    if ( strcmp(argv[i], "-C++") == 0 ) {
+    if ( strcmp(arg, "-C++") == 0 ) {
       ctx->output_mode = gghc_mode_cxx;
     } else
-    if ( argv[i][0] == '-' ) {
-      ctx->options = ssprintf("%s %s", ctx->options, argv[i]);
+    if ( arg[0] == '-' ) {
+      ctx->options = ssprintf("%s %s", ctx->options, arg);
     } else {
       if ( ctx->cc_prog ) {
-        ctx->files = ssprintf((ctx->files[0] ? "%s %s" : "%s%s"), ctx->files, argv[i]);
-        ctx->filev[ctx->filen ++] = argv[i];
+        ctx->files = ssprintf((ctx->files[0] ? "%s %s" : "%s%s"), ctx->files, arg);
+        ctx->filev[ctx->filen ++] = arg;
         if ( ctx->filen > 100 ) {
           fprintf(stderr, "gghc: too many files\n");
           exit(1);
         }
       } else {
-        ctx->cc_prog = argv[i];
+        ctx->cc_prog = arg;
       }
     }
   }

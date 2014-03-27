@@ -8,8 +8,7 @@
 #include <string.h>
 #include <assert.h>
 #include "gghc/output.h"
-#include "gghc_sym.h"
-#include "gghc.h"	/* gghc_debug */
+#include "gghc.h"
 #include "cy.h"
 #include "mzone.h"
 
@@ -53,19 +52,18 @@ char *  gghc_constant(gghc_ctx ctx, const char *c_expr)
   return expr;
 }
 
-void	gghc_typedef(gghc_ctx ctx, const char *name, const char *type)
+void gghc_typedef(gghc_ctx ctx, const char *name, const char *type)
 {
-  gghc_symbol *sym;
+  ggrt_symbol *sym;
 
-  if ( (sym = gghc_symbol_get(name)) ) {
+  if ( (sym = ggrt_symbol_table_by_name(ctx->rt, ctx->st_type, name)) ) {
     gghc_yyerror(ctx, ssprintf("'%s' is already a typedef", name));
     return;
   }
 
   // fprintf(stderr, "  @@@ gghc_typedef %s ==> %s\n", name, type);
 
-  sym = gghc_symbol_set(name);
-  sym->type  = "typedef";
+  sym = ggrt_symbol_table_add_(ctx->rt, ctx->st_type, name, 0, 0);
   sym->value = strdup(type);
 
   if ( mode_sexpr ) {
@@ -84,9 +82,9 @@ void	gghc_typedef(gghc_ctx ctx, const char *name, const char *type)
 
 char*	gghc_type(gghc_ctx ctx, const char *name)
 {
-  gghc_symbol *sym;
+  ggrt_symbol *sym;
 
-  if ( (sym = gghc_symbol_get(name)) ) {
+  if ( (sym = ggrt_symbol_table_by_name(ctx->rt, ctx->st_type, name)) ) {
     return sym->value;
   }
 
@@ -104,15 +102,12 @@ gghc_enum *_gghc_enum_type(gghc_ctx ctx, const char *name)
 {
   gghc_enum *s;
   int named = name && *name;
-  char *typename = 0;
 
   if ( named ) {
-    gghc_symbol *sym;
-    typename = ssprintf("enum %s", name);
-    if ( (sym = gghc_symbol_get(typename)) ) {
-      // fprintf(stderr, "  @@@ gghc_enum_type enum %s ==> %s\n", typename, sym->value);
-      free(typename);
-      s = sym->ptr;
+    ggrt_symbol *sym;
+    if ( (sym = ggrt_symbol_table_by_name(ctx->rt, ctx->st_enum, name)) ) {
+      // fprintf(stderr, "  @@@ gghc_enum_type enum %s ==> %s\n", name, sym->value);
+      s = sym->addr;
       return s;
     }
   }
@@ -129,12 +124,10 @@ gghc_enum *_gghc_enum_type(gghc_ctx ctx, const char *name)
   /* Create a enum type variable declaration */
   s->type = ssprintf("_gghc_type_enum_%s", s->name);
 
-  if ( typename ) {
-    gghc_symbol *sym = gghc_symbol_set(typename);
-    sym->type  = "enum";
+  if ( s->named ) {
+    ggrt_symbol *sym = ggrt_symbol_table_add_(ctx->rt, ctx->st_enum, name, 0, 0);
     sym->value = strdup(s->type);
-    sym->ptr   = s;
-    free(typename);
+    sym->addr  = s;
   }
 
   return s;
@@ -142,7 +135,7 @@ gghc_enum *_gghc_enum_type(gghc_ctx ctx, const char *name)
 
 char   *gghc_enum_type_forward(gghc_ctx ctx, const char *name)
 {
-    gghc_enum *s = _gghc_enum_type(ctx, name);
+  gghc_enum *s = _gghc_enum_type(ctx, name);
 
   if ( ! s->emitted ) {
     s->emitted = 1;
@@ -200,7 +193,7 @@ void	gghc_enum_type_element(gghc_ctx ctx, const char *name)
   // if ( gghc_debug ) fprintf(stderr, "  /* enum %s:%s */\n", current_enum->name, name);
 }
 
-char *gghc_enum_type_end(gghc_ctx ctx)
+char *gghc_enum_type_end(gghc_ctx ctx) // FIXME
 {
   gghc_enum *s = ctx->current_enum, *prev = s->prev;
   char *result = s->type;
@@ -261,15 +254,14 @@ char*	gghc_array_type(gghc_ctx ctx, const char *type, const char *length)
 gghc_struct *_gghc_struct_type(gghc_ctx ctx, const char *s_or_u, const char *name)
 {
   gghc_struct* s;
-  char *typename = 0;
   int named = name && *name;
+  ggrt_symbol_table *st = s_or_u[0] == 's' ? ctx->st_struct : ctx->st_union;
 
   if ( named ) {
-    gghc_symbol *sym;
-    typename = ssprintf("%s %s", s_or_u, name);
-    if ( (sym = gghc_symbol_get(typename)) ) {
+    ggrt_symbol *sym;
+    if ( (sym = ggrt_symbol_table_by_name(ctx->rt, st, name))  ) {
       // fprintf(stderr, "  @@@ gghc_struct_type %s ==> %s\n", typename, sym->value);
-      return sym->ptr;
+      return sym->addr;
     }
   }
 
@@ -283,18 +275,17 @@ gghc_struct *_gghc_struct_type(gghc_ctx ctx, const char *s_or_u, const char *nam
   s->slots_text = strdup("");
   s->type = ssprintf("_gghc_type_%s_%s", s->struct_or_union, s->name);
 
-  if ( typename ) {
-    gghc_symbol *sym = gghc_symbol_set(typename);
-    sym->type  = s->struct_or_union[0] == 's' ? "struct" : "union";
+  if ( s->named ) {
+    ggrt_symbol *sym = sym = ggrt_symbol_table_add_(ctx->rt, st, name, 0, 0);
     sym->value = strdup(s->type);
-    sym->ptr   = s;
+    sym->addr  = s;
   }
   return s;
 }
 
 char *gghc_struct_type_forward(gghc_ctx ctx, const char *s_or_u, const char *name)
 {
-    gghc_struct* s = _gghc_struct_type(ctx, s_or_u, name);
+  gghc_struct *s = _gghc_struct_type(ctx, s_or_u, name);
 
   if ( ! s->emitted ) {
     s->emitted = 1;
@@ -314,7 +305,7 @@ char *gghc_struct_type_forward(gghc_ctx ctx, const char *s_or_u, const char *nam
 
 char *gghc_struct_type(gghc_ctx ctx, const char *s_or_u, const char *name)
 {
-    gghc_struct* s = _gghc_struct_type(ctx, s_or_u, name);
+  gghc_struct *s = _gghc_struct_type(ctx, s_or_u, name);
 
   s->emitted = 1;
   if ( mode_sexpr ) {
@@ -512,6 +503,7 @@ char *gghc_block_type(gghc_ctx ctx, const char *rtntype, const char *argtypes)
 void gghc_declaration(gghc_ctx ctx, gghc_decl_spec *spec, gghc_decl *decl)
 {
   while ( decl ) {
+    gghc_decl *next = decl->next;
     char *type = ssprintf(decl->declarator, spec->type);
     // fprintf(stderr, "  gghc_declaration: type=%s ident=%s\n", type, decl->identifier);
     if ( ! (spec->type && spec->type[0]) ) {
@@ -534,11 +526,8 @@ void gghc_declaration(gghc_ctx ctx, gghc_decl_spec *spec, gghc_decl *decl)
     }
 
     free(type);
-    {
-    gghc_decl *decl__next = decl->next;
     free(decl);
-    decl = decl__next;
-    }
+    decl = next;
   }
   eprintf(ctx->body_out, "\n");
 }
@@ -555,7 +544,7 @@ void	gghc_global(gghc_ctx ctx, const char *name, const char *type)
   }
 }
 
-void    gghc_define(gghc_ctx ctx, const char *name, const char *str)
+char *gghc_escape_string(gghc_ctx ctx, const char *str)
 {
     char *out = malloc(strlen(str) * 2 + 1);
     char *t = out;
@@ -567,6 +556,12 @@ void    gghc_define(gghc_ctx ctx, const char *name, const char *str)
     }
     *(t ++) = 0;
 
+    return out;
+}
+
+void    gghc_define(gghc_ctx ctx, const char *name, const char *str)
+{
+  char *out = gghc_escape_string(ctx, str);
   if ( mode_sexpr ) {
     eprintf(ctx->defines_out, "  (gghc:define \"%s\" \"%s\")\n", name, out);
   }

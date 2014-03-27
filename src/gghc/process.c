@@ -8,7 +8,6 @@
 #include <ctype.h>
 #include "gghc.h"
 #include "gghc/output.h"
-#include "gghc_sym.h"
 
 static
 int parse_C_defines(gghc_ctx ctx, FILE *fp)
