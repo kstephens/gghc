@@ -884,19 +884,18 @@ KEYWORD_EXT :
 
 attr_list
   : attr
-  | attr_list ', ' attr
+  | attr_list ',' attr
   ;
 
 attr
-  : /* EMPTY */
-  | attr_ident '(' attr_arg_list ')'
+  : attr_ident '(' attr_arg_list ')'
+  | attr_ident '(' ')'
   | attr_ident
   ;
 
 attr_arg_list
-  : /* EMPTY */
-  | attr_arg
-  | attr_arg ',' attr_arg_list
+  : attr_arg
+  | attr_arg_list ',' attr_arg
   ;
 
 attr_arg
