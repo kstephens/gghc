@@ -4,11 +4,6 @@
 #include <stdlib.h>
 #include "ggrt/malloc_zone.h"
 
-#ifndef GGRT_V
-typedef void *GGRT_V;
-#define GGRT_V GGRT_V
-#endif
-
 struct ggrt_s_ctx;
 typedef struct ggrt_s_ctx *ggrt_ctx;
 
@@ -66,9 +61,9 @@ struct ggrt_s_ctx {
 #include "ggrt/type.def"
 
   /* Users must define these functions. */
-  size_t (*_ffi_unbox)(ggrt_ctx ctx, ggrt_type_t *ct, GGRT_V *valp, void *dst);
-  size_t (*_ffi_unbox_arg)(ggrt_ctx ctx, ggrt_type_t *ct, GGRT_V *valp, void *dst);
-  void   (*_ffi_box)(ggrt_ctx ctx, ggrt_type_t *ct, void *src, GGRT_V *dstp);
+  size_t (*_ffi_unbox)(ggrt_ctx ctx, ggrt_type_t *ct, const void *boxp, void *dst);
+  size_t (*_ffi_unbox_arg)(ggrt_ctx ctx, ggrt_type_t *ct, const void *boxp, void *dst);
+  void   (*_ffi_box)(ggrt_ctx ctx, ggrt_type_t *ct, const void *src, void *boxp);
 };
 
 typedef struct ggrt_module_t {

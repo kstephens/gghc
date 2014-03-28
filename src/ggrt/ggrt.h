@@ -72,6 +72,9 @@ ggrt_elem_t *ggrt_m_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name,
 ggrt_type_t *ggrt_m_struct_type_end(ggrt_ctx ctx, ggrt_type_t *st);
 ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name);
 
+/* Make bitfield type. */
+ggrt_type_t *ggrt_m_bitfield_type(ggrt_ctx ctx, ggrt_type_t *t, int bits);
+
 /* Make function type. */
 ggrt_type_t *ggrt_m_func_type(ggrt_ctx ctx, void *rtn_type, int nelem, ggrt_type_t **elem_types);
 
@@ -84,11 +87,20 @@ ggrt_symbol *ggrt_global(ggrt_ctx ctx, const char *name, void *address, ggrt_typ
 ggrt_symbol *ggrt_global_get(ggrt_ctx ctx, const char *name, void *addr);
 
 /* Func call. */
-void ggrt_ffi_call(ggrt_ctx ctx, ggrt_type_t *ft, GGRT_V *rtn_valp, void *cfunc, int argc, GGRT_V *argv);
+void ggrt_ffi_call(ggrt_ctx ctx, ggrt_type_t *ft, void *rtn_boxp, void *cfunc, int argc, const void *argv);
 
-size_t ggrt_ffi_unbox(ggrt_ctx ctx, ggrt_type_t *ct, GGRT_V *valp, void *dst);
-size_t ggrt_ffi_unbox_arg(ggrt_ctx ctx, ggrt_type_t *ct, GGRT_V *valp, void *dst);
-void   ggrt_ffi_box(ggrt_ctx ctx, ggrt_type_t *ct, void *src, GGRT_V *dstp);
+/* Unboxes a boxed value into a destination of type t.
+ * Must return the number of bytes to increment ggrt_ffi_call's argv to next
+ * boxed argument.
+ * Often a boxed value is a tagged pointer, therefore the return
+ * value is sizeof(void*).
+ */
+size_t ggrt_ffi_unbox(ggrt_ctx ctx, ggrt_type_t *t, const void *boxp, void *dst);
+
+/* Unboxes a boxed value into an argument of type t. */
+size_t ggrt_ffi_unbox_arg(ggrt_ctx ctx, ggrt_type_t *t, const void *boxp, void *dst);
+/* Boxes a C value of type t. */
+void   ggrt_ffi_box(ggrt_ctx ctx, ggrt_type_t *t, const void *src, void *boxp);
 
 /* Internal */
 ggrt_type_t *ggrt_ffi_prepare(ggrt_ctx ctx, ggrt_type_t *ft);

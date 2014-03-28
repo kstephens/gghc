@@ -6,21 +6,21 @@
 #include "ggrt.h"
 #include <ffi.h>
 
-size_t ggrt_ffi_unbox_default(ggrt_ctx ctx, ggrt_type_t *ct, GGRT_V *valp, void *dst)
+size_t ggrt_ffi_unbox_dummy(ggrt_ctx ctx, ggrt_type_t *ct, const void *boxp, void *dst)
 {
   memset(dst, 0, ct->c_sizeof);
-  memcpy(dst, valp, sizeof(*valp)); // dummy
+  memcpy(dst, boxp, sizeof(void*)); // dummy
   return ct->c_sizeof;
 }
 
-size_t ggrt_ffi_unbox_arg_default(ggrt_ctx ctx, ggrt_type_t *ct, GGRT_V *valp, void *dst)
+size_t ggrt_ffi_unbox_arg_dummy(ggrt_ctx ctx, ggrt_type_t *ct, const void *boxp, void *dst)
 {
-  return ggrt_ffi_unbox(ctx, ct, valp, dst);
+  return ggrt_ffi_unbox(ctx, ct, boxp, dst);
 }
 
-void ggrt_ffi_box_default(ggrt_ctx ctx, ggrt_type_t *ct, void *src, GGRT_V *dstp)
+void ggrt_ffi_box_dummy(ggrt_ctx ctx, ggrt_type_t *ct, const void *src, void *boxp)
 {
-  memcpy(dstp, src, sizeof(*dstp)); // dummy
+  *(void**) boxp = *(void**) src;
 }
 
 ggrt_ctx ggrt_ctx_init_ffi(ggrt_ctx ctx)
@@ -42,42 +42,45 @@ ggrt_ctx ggrt_ctx_init_ffi(ggrt_ctx ctx)
 #define BOTH_TYPE(FFI,T) ctx->type_##T->_ffi_type = ctx->_ffi_type_##FFI;
 #include "type.def"
 
-  ctx->_ffi_unbox     = ggrt_ffi_unbox_default;
-  ctx->_ffi_unbox_arg = ggrt_ffi_unbox_arg_default;
-  ctx->_ffi_box       = ggrt_ffi_box_default;
+  ctx->_ffi_unbox     = ggrt_ffi_unbox_dummy;
+  ctx->_ffi_unbox_arg = ggrt_ffi_unbox_arg_dummy;
+  ctx->_ffi_box       = ggrt_ffi_box_dummy;
 
   return ctx;
 }
 
-size_t ggrt_ffi_unbox(ggrt_ctx ctx, ggrt_type_t *ct, GGRT_V *valp, void *dst)
+size_t ggrt_ffi_unbox(ggrt_ctx ctx, ggrt_type_t *ct, const void *boxp, void *dst)
 {
-  return ctx->_ffi_unbox(ctx, ct, valp, dst);
+  return ctx->_ffi_unbox(ctx, ct, boxp, dst);
 }
 
-size_t ggrt_ffi_unbox_arg(ggrt_ctx ctx, ggrt_type_t *ct, GGRT_V *valp, void *dst)
+size_t ggrt_ffi_unbox_arg(ggrt_ctx ctx, ggrt_type_t *ct, const void *boxp, void *dst)
 {
-  return ctx->_ffi_unbox(ctx, ct, valp, dst);
+  return ctx->_ffi_unbox(ctx, ct, boxp, dst);
 }
 
-void ggrt_ffi_box(ggrt_ctx ctx, ggrt_type_t *ct, void *src, GGRT_V *dstp)
+void ggrt_ffi_box(ggrt_ctx ctx, ggrt_type_t *ct, const void *src, void *boxp)
 {
-  ctx->_ffi_box(ctx, ct, src, dstp);
+  ctx->_ffi_box(ctx, ct, src, boxp);
 }
 
-void ggrt_ffi_call(ggrt_ctx ctx, ggrt_type_t *ft, GGRT_V *rtn_valp, void *cfunc, int argc, GGRT_V *argv)
+void ggrt_ffi_call(ggrt_ctx ctx, ggrt_type_t *ft, void *rtn_valp, void *cfunc, int argc, const void *argv)
 {
-  void **f_args   = alloca(sizeof(*f_args) * ggrt_ffi_prepare(ctx, ft)->nelems);
-  void *arg_space = alloca(ft->c_args_size);
-  void *rtn_space = alloca(ggrt_type_sizeof(ctx, ft->rtn_type));
-  GGRT_V rtn_val;
+  // Array of pointers to individual arguments.
+  void **f_args     = alloca(sizeof(*f_args) * ggrt_ffi_prepare(ctx, ft)->nelems);
+  // Space for unboxed arguments.
+  void *f_arg_space = alloca(ft->c_args_size);
+  // Space for return value.
+  void *rtn_space   = alloca(ggrt_type_sizeof(ctx, ft->rtn_type));
 
-  memset(arg_space, 0, ft->c_args_size);
+  memset(f_arg_space, 0, ft->c_args_size);
   {
-    void *arg_p = arg_space;
     int i;
     for ( i = 0; i < argc; ++ i ) {
-      f_args[i] = arg_p;
-      arg_p += ggrt_ffi_unbox_arg(ctx, ft->elems[i]->type, &argv[i], arg_p);
+      ggrt_type_t *param_t = ft->elems[i]->type->param_type;
+      f_args[i] = f_arg_space;
+      argv += ggrt_ffi_unbox_arg(ctx, param_t, argv, f_arg_space);
+      f_arg_space += ggrt_type_sizeof(ctx, param_t);
     }
   }
 

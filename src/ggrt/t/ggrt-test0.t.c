@@ -3,7 +3,6 @@
 #include <assert.h>
 
 #include "ggrt/ggrt.h"
-#define GGRT_V_type ctx->type_voidP
 
 struct align_struct_dummy {
   char c[23];
@@ -118,19 +117,19 @@ static void test_struct_def(ggrt_ctx ctx)
 
 }
 
-static GGRT_V identity(GGRT_V x) { return x + 5; }
+typedef void *boxed;
+static boxed identity(boxed x) { return x + 5; }
 
 static void test_func_call(ggrt_ctx ctx)
 {
-  ggrt_type_t *ct_rtn  = GGRT_V_type;
-  ggrt_type_t *ct_params[1] = { GGRT_V_type };
+  ggrt_type_t *boxed_type = ctx->type_voidP;
+  ggrt_type_t *ct_rtn  = boxed_type;
+  ggrt_type_t *ct_params[1] = { boxed_type };
   ggrt_type_t *ft = ggrt_m_func_type(ctx, ct_rtn, 1, ct_params);
-
-  GGRT_V rtn, args[10];
-
   ggrt_symbol *sym = ggrt_global(ctx, "identity", &identity, ft);
+  boxed rtn, args[10];
 
-  args[0] = (GGRT_V) 0x1234;
+  args[0] = (boxed) 0x1234;
   ggrt_ffi_call(ctx, ft, &rtn, ggrt_global_get(ctx, "identity", 0)->addr, 1, args);
   printf("identity(%p) => %p\n", args[0], rtn);
   assert(rtn == args[0] + 5);
