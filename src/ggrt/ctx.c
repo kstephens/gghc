@@ -22,6 +22,7 @@ ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx)
   assert(ctx);
 
   ctx->st._type   = ggrt_m_symbol_table(ctx, "type");
+  ctx->st._intrinsic = ggrt_m_symbol_table(ctx, "intrinsic");
   ctx->st._struct = ggrt_m_symbol_table(ctx, "struct");
   ctx->st._union  = ggrt_m_symbol_table(ctx, "union");
   ctx->st._enum   = ggrt_m_symbol_table(ctx, "enum");

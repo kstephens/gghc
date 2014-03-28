@@ -80,8 +80,20 @@ ggrt_type_t *ggrt_m_type(ggrt_ctx ctx, const char *name, size_t c_size)
 ggrt_type_t *ggrt_intrinsic(ggrt_ctx ctx, const char *name, size_t c_size)
 {
   ggrt_type_t *t = ggrt_m_type(ctx, name, c_size);
+  // FIXME: Check for existing typedef.
+  ggrt_symbol_table_add_(ctx, ctx->st._intrinsic, name, 0, t);
   if ( ctx->cb._intrinsic )
     t->cb_val = ctx->cb._intrinsic(ctx, t);
+  ggrt_typedef(ctx, name, t);
+  return t;
+}
+
+ggrt_type_t *ggrt_typedef(ggrt_ctx ctx, const char *name, ggrt_type_t *t)
+{
+  // FIXME: Check for existing typedef.
+  ggrt_symbol_table_add_(ctx, ctx->st._type, name, 0, t);
+  if ( ctx->cb._typedef )
+    t->cb_val = ctx->cb._typedef(ctx, name, t);
   return t;
 }
 
@@ -101,6 +113,10 @@ ggrt_type_t *ggrt_pointer(ggrt_ctx ctx, ggrt_type_t *t)
   pt->c_vararg_size = sizeof(void*);
 
   t->pointer_to = pt;
+
+  if ( ctx->cb._pointer )
+    t->cb_val = ctx->cb._pointer(ctx, t);
+
   return pt;
 }
 
@@ -121,6 +137,10 @@ ggrt_type_t *ggrt_array(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
   // int a[10];
   // typeof(&a) == typeof(&a[0]);
   pt->pointer_to = ggrt_pointer(ctx, t);
+
+  if ( ctx->cb._array )
+    t->cb_val = ctx->cb._array(ctx, t);
+
   return pt;
 }
 
@@ -143,9 +163,12 @@ ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelems, const char **
   ct->_ffi_type = ctx->_ffi_type_sint;
   assert(sizeof(enum ggrt_enum) == sizeof(int));
   ct->type = "enum";
-  if ( nelems && names ) {
+  if ( nelems && names )
     ggrt_enum_define(ctx, ct, nelems, names, values);
-  }
+
+  if ( ctx->cb._enum )
+    ct->cb_val = ctx->cb._enum(ctx, ct);
+
   return ct;
 }
 
@@ -166,6 +189,10 @@ ggrt_type_t *ggrt_enum_define(ggrt_ctx ctx, ggrt_type_t *ct, int nelems, const c
       e->enum_val = values ? values[i] : default_value ++;
     }
   }
+
+  if ( ctx->cb._enum_define )
+    ct->cb_val = ctx->cb._enum_define(ctx, ct);
+
   return ct;
 }
 
@@ -183,6 +210,10 @@ ggrt_type_t *ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
   st->elems = ggrt_malloc(sizeof(st->elems[0]) * st->nelems);
 
   ctx->current_struct = st;
+
+  if ( ctx->cb._struct )
+    st->cb_val = ctx->cb._struct(ctx, st);
+
   return st;
 }
 
@@ -199,6 +230,9 @@ ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, g
   e = st->elems[i] = ggrt_m_elem(ctx, name, t);
   e->parent = st;
   e->parent_i = i;
+
+  if ( ctx->cb._struct_elem )
+    e->cb_val = ctx->cb._struct_elem(ctx, st, e);
 
   return e;
 }
@@ -221,6 +255,9 @@ ggrt_type_t *ggrt_struct_end(ggrt_ctx ctx, ggrt_type_t *st)
 {
   if ( ! st )
     st = ctx->current_struct;
+
+  if ( ctx->cb._struct_end )
+    st->cb_val = ctx->cb._struct_end(ctx, st);
 
   ctx->current_struct = st->struct_scope;
   return st;
@@ -324,6 +361,10 @@ ggrt_type_t *ggrt_func(ggrt_ctx ctx, void *rtn_type, int nelems, ggrt_type_t **p
       e->parent_i = i;
     }
   }
+
+  if ( ctx->cb._func )
+    ct->cb_val = ctx->cb._func(ctx, ct);
+
   return ct;
 }
 

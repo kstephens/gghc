@@ -10,6 +10,8 @@ typedef struct ggrt_s_ctx *ggrt_ctx;
 struct ggrt_type_t;
 typedef struct ggrt_type_t ggrt_type_t;
 
+struct ggrt_elem_t;
+
 typedef void *ggrt_user_data[4];
 
 /* struct or enum element. */
@@ -47,7 +49,7 @@ struct ggrt_s_ctx {
 #include "ggrt/type.def"
 
   struct ggrt_sts {
-    ggrt_symbol_table *_type, *_struct, *_union, *_enum, *_global, *_macro;
+    ggrt_symbol_table *_type, *_intrinsic, *_struct, *_union, *_enum, *_global, *_macro;
   } st;
 
   /* Collected C runtime data. */
@@ -65,15 +67,15 @@ struct ggrt_s_ctx {
     void *(*_pragma)(ggrt_ctx ctx, struct ggrt_pragma_t *p);
     void *(*_macro)(ggrt_ctx ctx, struct ggrt_macro_t *m);
     void *(*_intrinsic)(ggrt_ctx ctx, struct ggrt_type_t *t);
+    void *(*_typedef)(ggrt_ctx ctx, const char *name, struct ggrt_type_t *t);
     void *(*_pointer)(ggrt_ctx ctx, struct ggrt_type_t *t);
     void *(*_array)(ggrt_ctx ctx, struct ggrt_type_t *at);
-    void *(*_enum)(ggrt_ctx ctx, const char *name);
-    void *(*_enum_define)(ggrt_ctx ctx, struct ggrt_type_t *et, int nelems, const char **names, long *values);
-    void *(*_enum_elem)(ggrt_ctx ctx, struct ggrt_type_t *et, const char *name);
-    void *(*_struct)(ggrt_ctx ctx, const char *s_or_u, const char *name);
-    void *(*_struct_elem)(ggrt_ctx ctx, struct ggrt_type_t *st, const char *name, struct ggrt_type_t *t);
+    void *(*_enum)(ggrt_ctx ctx, struct ggrt_type_t *et);
+    void *(*_enum_define)(ggrt_ctx ctx, struct ggrt_type_t *et);
+    void *(*_struct)(ggrt_ctx ctx, struct ggrt_type_t *st);
+    void *(*_struct_elem)(ggrt_ctx ctx, struct ggrt_type_t *st, struct ggrt_elem_t *elem);
     void *(*_struct_end)(ggrt_ctx ctx, struct ggrt_type_t *st);
-    void *(*_func)(ggrt_ctx ctx, void *rtn_type, int nelems, struct ggrt_type_t **param_types);
+    void *(*_func)(ggrt_ctx ctx, struct ggrt_type_t *ft);
   } cb;
 
   /* ffi support. */
