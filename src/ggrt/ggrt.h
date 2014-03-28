@@ -26,7 +26,7 @@ struct ggrt_type_t {
   const char *c_declarator; /* printf format with %s for the name. */
 
   /* func type: generated */
-  void *_ffi_type;
+  void *_ffi_type, *_ffi_arg_type;
   void *_ffi_cif;
   short _ffi_cif_inited;
   void *_ffi_rtn_type;

@@ -30,8 +30,10 @@ ggrt_ctx ggrt_ctx_init_ffi(ggrt_ctx ctx)
   ggrt_ctx_init(ctx);
 
   // Patch in libffi types.
-#define BOTH_TYPE(FFI,T) ctx->_ffi_type_##T   = &ffi_type_##FFI;
-#define FFI_TYPE(FFI,T)  ctx->_ffi_type_##FFI = &ffi_type_##FFI;
+#define BOTH_TYPE(FFI,T) \
+  ctx->_ffi_type_##T = &ffi_type_##FFI;
+#define FFI_TYPE(FFI,T) \
+  ctx->_ffi_type_##FFI = &ffi_type_##FFI;
 #include "type.def"
 
   // Patch into ggrt types.
@@ -92,11 +94,48 @@ void ggrt_ffi_call(ggrt_ctx ctx, ggrt_type_t *ft, GGRT_V *rtn_valp, void *cfunc,
 
 ffi_type *ggrt_ffi_type(ggrt_ctx ctx, ggrt_type_t *t)
 {
+  ffi_type *ft;
   if ( t->_ffi_type )
     return t->_ffi_type;
-  // TODO BUILD ffi_type for struct/union.
+
+  switch ( t->type[0] ) {
+  case 'a': // array
+    assert(t->nelems);
+    ft = ggrt_malloc(sizeof(*ft));
+    ft->size      = ggrt_type_sizeof(ctx, t) * t->nelems;
+    ft->alignment = ggrt_type_alignof(ctx, t);
+    t->_ffi_type = ft;
+    break;
+  case 's': // struct
+    assert(t->nelems);
+    ft = ggrt_malloc(sizeof(*ft));
+    ft->size = ft->alignment = 0;
+    ft->type = FFI_TYPE_STRUCT;
+    ft->elements = ggrt_malloc(sizeof(ft->elements[0]) * (t->nelems + 1));
+    {
+      int i;
+      for ( i = 0; i < t->nelems; ++ i )
+        ft->elements[i] = ggrt_ffi_type(ctx, t->elems[i]->type);
+      ft->elements[i] = 0;
+    }
+    t->_ffi_type = ft;
+    break;
+    // case 'u': //??
+  default:
+    abort();
+    break;
+  }
+
   assert(t->_ffi_type);
   return 0;
+}
+
+ffi_type *ggrt_ffi_arg_type(ggrt_ctx ctx, ggrt_type_t *t)
+{
+  if ( ! t->_ffi_arg_type )
+    t->_ffi_arg_type = ggrt_ffi_type(ctx, t);
+  assert(t->_ffi_arg_type);
+  return t->_ffi_arg_type;
 }
 
 ggrt_type_t *ggrt_ffi_prepare(ggrt_ctx ctx, ggrt_type_t *ft)
@@ -112,7 +151,7 @@ ggrt_type_t *ggrt_ffi_prepare(ggrt_ctx ctx, ggrt_type_t *ft)
       for ( i = 0; i < ft->nelems; ++ i ) {
         ggrt_elem_t *e = ft->elems[i];
         assert(e->type->_ffi_type);
-        ft->_ffi_elem_types[i] = ggrt_ffi_type(ctx, e->type);
+        ft->_ffi_elem_types[i] = ggrt_ffi_arg_type(ctx, e->type);
         e->offset = offset;
         offset += ggrt_type_sizeof(ctx, e->type);
         ft->c_args_size = offset;

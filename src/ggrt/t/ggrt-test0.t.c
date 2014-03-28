@@ -26,6 +26,28 @@ typedef struct test_struct {
 #undef E
 } test_struct;
 
+static void fill_bytes(void *_p, size_t s)
+{
+  unsigned char *p = _p, *e = _p + s;
+  int i = (int) s;
+  while ( p < e ) {
+    *(p ++) = i ++;
+  }
+}
+
+#define E(N,T,TN)                                                       \
+  static ggrt_type_t *st_##N;                                           \
+  static struct test_align_##TN {                                       \
+    char hdr[3]; T x; char ftr[5];                                      \
+  } ta_##TN, tr_##TN;                                                   \
+  static struct test_align_##TN tf_##TN(struct test_align_##TN a) {     \
+    printf("%s()\n", "struct test_align_" #TN);                         \
+    assert(memcmp(&a, &ta_##TN, sizeof(ta_##TN)) == 0);                 \
+    return a;                                                           \
+  }
+  SELEMS(E)
+#undef E
+
 #define my_offsetof(T,E) ((size_t) &(((T*)0)->E))
 
 static void test_struct_def(ggrt_ctx ctx)
@@ -33,7 +55,8 @@ static void test_struct_def(ggrt_ctx ctx)
   ggrt_type_t *st = ggrt_m_struct_type(ctx, "struct", "test_struct");
   test_struct v;
   struct align_struct_dummy v2;
-#define E(N,C,T) ggrt_m_struct_elem(ctx, st, #N, ctx->type_##T);
+#define E(N,C,T) \
+  ggrt_m_struct_elem(ctx, st, #N, ctx->type_##T);
   SELEMS(E)
 #undef E
     ggrt_m_struct_type_end(ctx, st);
@@ -49,11 +72,6 @@ static void test_struct_def(ggrt_ctx ctx)
   // Test alignment of prime size padding.
   {
     ggrt_type_t *st;
-#define E(N,T,TN)                                                       \
-    ggrt_type_t *st_##N;                                                \
-    struct test_align_##TN { char hdr[3]; T x; char ftr[5]; } N;
-  SELEMS(E)
-#undef E
 
 #define E(N,T,TN) \
     st = st_##N = ggrt_m_struct_type(ctx, "struct", 0); \
@@ -64,9 +82,9 @@ static void test_struct_def(ggrt_ctx ctx)
   SELEMS(E)
 #undef E
 
-#define E(N,T,TN)                                               \
-    assert(ggrt_type_sizeof(ctx,  st_##N) == sizeof(N));        \
-    assert(ggrt_type_alignof(ctx, st_##N) == __alignof(N));
+#define E(N,T,TN)                                                     \
+    assert(ggrt_type_sizeof(ctx,  st_##N) == sizeof(ta_##TN));        \
+    assert(ggrt_type_alignof(ctx, st_##N) == __alignof(ta_##TN));
   SELEMS(E)
 #undef E
 
@@ -74,6 +92,14 @@ static void test_struct_def(ggrt_ctx ctx)
   assert(ggrt_struct_elem(ctx, st_##N, "x")->offset == my_offsetof(struct test_align_##TN, x));
   SELEMS(E)
 #undef E
+
+#define E(N,C,TN)                                               \
+  fill_bytes(&ta_##TN, sizeof(ta_##TN));                        \
+  tr_##TN = tf_##TN(ta_##TN);                                   \
+  assert(memcmp(&tr_##TN, &ta_##TN, sizeof(tr_##TN)) == 0);  
+  SELEMS(E)
+#undef E
+
   }
 
 }

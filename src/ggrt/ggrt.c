@@ -89,7 +89,7 @@ ggrt_type_t *ggrt_m_pointer_type(ggrt_ctx ctx, ggrt_type_t *t)
     return t->pointer_to;
 
   pt = ggrt_m_type(ctx, 0, sizeof(void*));
-  pt->_ffi_type = ctx->_ffi_type_pointer;
+  pt->_ffi_type = pt->_ffi_arg_type = ctx->_ffi_type_pointer;
   pt->type = "pointer";
   pt->rtn_type = t;
   pt->c_sizeof = sizeof(void*);
@@ -104,7 +104,7 @@ ggrt_type_t *ggrt_m_array_type(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
 {
   ggrt_type_t *pt;
   pt = ggrt_m_type(ctx, 0, 0);
-  pt->_ffi_type = ctx->_ffi_type_pointer;
+  pt->_ffi_type = pt->_ffi_arg_type = ctx->_ffi_type_pointer;
   pt->type = "array";
   pt->rtn_type = t;
   pt->nelems = len;
