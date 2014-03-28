@@ -54,6 +54,24 @@ struct ggrt_s_ctx {
   struct ggrt_type_t *current_enum;
   struct ggrt_type_t *current_struct;
 
+  /* Callbacks */
+  struct ggrt_cb {
+    void *(*_module_begin)(ggrt_ctx ctx, const char *name);
+    void *(*_module_end)(ggrt_ctx ctx, struct ggrt_module_t *mod);
+    void *(*_pragma)(ggrt_ctx ctx, const char *text);
+    void *(*_macro)(ggrt_ctx ctx, const char *name, const char *text);
+    void *(*_intrinsic)(ggrt_ctx ctx, const char *name, size_t c_size);
+    void *(*_pointer)(ggrt_ctx ctx, struct ggrt_type_t *t);
+    void *(*_array)(ggrt_ctx ctx, struct ggrt_type_t *t, size_t len); /* len= -1 if unspecified. */
+    void *(*_enum)(ggrt_ctx ctx, const char *name);
+    void *(*_enum_define)(ggrt_ctx ctx, struct ggrt_type_t *et, int nelems, const char **names, long *values);
+    void *(*_enum_elem)(ggrt_ctx ctx, struct ggrt_type_t *et, const char *name);
+    void *(*_struct)(ggrt_ctx ctx, const char *s_or_u, const char *name);
+    void *(*_struct_elem)(ggrt_ctx ctx, struct ggrt_type_t *st, const char *name, struct ggrt_type_t *t);
+    void *(*_struct_end)(ggrt_ctx ctx, struct ggrt_type_t *st);
+    void *(*_func)(ggrt_ctx ctx, void *rtn_type, int nelems, struct ggrt_type_t **param_types);
+  } cb;
+
   /* ffi support. */
   // libffi type names.
 #define FFI_TYPE(FFI,T)    void *_ffi_type_##FFI;
@@ -74,6 +92,7 @@ typedef struct ggrt_module_t {
   ggrt_symbol_table *st_type, *st_struct, *st_union, *st_enum;
 
   struct ggrt_module_t *prev;
+  void *cb_val; /* callback value. */
 } ggrt_module_t;
 
 typedef struct ggrt_pragma_t {
@@ -82,6 +101,7 @@ typedef struct ggrt_pragma_t {
   const char *text;
   struct ggrt_module_t *mod;
   struct ggrt_pragma_t *prev;
+  void *cb_val; /* callback value. */
 } ggrt_pragma_t;
 
 typedef struct ggrt_macro_t {
@@ -91,6 +111,7 @@ typedef struct ggrt_macro_t {
   const char *text;
   struct ggrt_module_t *mod;
   struct ggrt_macro_t *prev;
+  void *cb_val; /* callback value. */
 } ggrt_macro_t;
 
 ggrt_ctx ggrt_m_ctx();

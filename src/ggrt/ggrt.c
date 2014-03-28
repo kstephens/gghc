@@ -160,9 +160,9 @@ ggrt_type_t *ggrt_m_enum_type_define(ggrt_ctx ctx, ggrt_type_t *ct, int nelems, 
   return ct;
 }
 
-ggrt_elem_t *ggrt_enum_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name)
+ggrt_elem_t *ggrt_enum_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name)
 {
-  return ggrt_struct_elem(ctx, st, name);
+  return ggrt_struct_get_elem(ctx, st, name);
 }
 
 ggrt_type_t *ggrt_m_struct_type(ggrt_ctx ctx, const char *s_or_u, const char *name)
@@ -194,7 +194,7 @@ ggrt_elem_t *ggrt_m_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name,
   return e;
 }
 
-ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name)
+ggrt_elem_t *ggrt_struct_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name)
 {
   int i;
 

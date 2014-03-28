@@ -78,7 +78,7 @@ static void test_struct_def(ggrt_ctx ctx)
   assert(ggrt_type_alignof(ctx, st) == __alignof(v));
 
 #define E(N,T,TN) \
-  assert(ggrt_struct_elem(ctx, st, #N)->offset == my_offsetof(test_struct, N));
+  assert(ggrt_struct_get_elem(ctx, st, #N)->offset == my_offsetof(test_struct, N));
   SELEMS(E)
 #undef E
 
@@ -102,7 +102,7 @@ static void test_struct_def(ggrt_ctx ctx)
 #undef E
 
 #define E(N,T,TN) \
-  assert(ggrt_struct_elem(ctx, st_##N, "x")->offset == my_offsetof(struct test_align_##TN, x));
+  assert(ggrt_struct_get_elem(ctx, st_##N, "x")->offset == my_offsetof(struct test_align_##TN, x));
   SELEMS(E)
 #undef E
 

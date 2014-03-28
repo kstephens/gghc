@@ -36,6 +36,8 @@ struct ggrt_type_t {
   /* C declarator. */
   const char *c_declarator; /* printf format with %s for the name. */
 
+  void *cb_val; /* callback value. */
+
   /* func type: generated */
   void *_ffi_type, *_ffi_arg_type;
   void *_ffi_cif;
@@ -56,6 +58,7 @@ typedef struct ggrt_elem_t {
   size_t offset;
   ggrt_type_t *parent;
   int parent_i;
+  void *cb_val; /* callback value. */
 } ggrt_elem_t;
 
 /* Must call before using libffi interfaces. */
@@ -73,14 +76,14 @@ ggrt_type_t *ggrt_m_array_type(ggrt_ctx ctx, ggrt_type_t *t, size_t len);
 
 /* Make enum type. */
 ggrt_type_t *ggrt_m_enum_type(ggrt_ctx ctx, const char *name, int nelem, const char **names, long *elem_values);
-ggrt_elem_t *ggrt_enum_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name);
 ggrt_type_t *ggrt_m_enum_type_define(ggrt_ctx ctx, ggrt_type_t *ct, int nelems, const char **names, long *values);
+ggrt_elem_t *ggrt_enum_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name);
 
 /* Make struct type. */
 ggrt_type_t *ggrt_m_struct_type(ggrt_ctx ctx, const char *s_or_u, const char *name);
 ggrt_elem_t *ggrt_m_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, ggrt_type_t *t);
 ggrt_type_t *ggrt_m_struct_type_end(ggrt_ctx ctx, ggrt_type_t *st);
-ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name);
+ggrt_elem_t *ggrt_struct_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name);
 
 /* Make bitfield type. */
 ggrt_type_t *ggrt_m_bitfield_type(ggrt_ctx ctx, ggrt_type_t *t, int bits);
