@@ -86,7 +86,7 @@ ggrt_type_t *ggrt_intrinsic(ggrt_ctx ctx, const char *name, size_t c_size)
 }
 
 /* intrinsic types. */
-ggrt_type_t *ggrt_m_pointer_type(ggrt_ctx ctx, ggrt_type_t *t)
+ggrt_type_t *ggrt_pointer(ggrt_ctx ctx, ggrt_type_t *t)
 {
   ggrt_type_t *pt;
   if ( t->pointer_to )
@@ -104,7 +104,7 @@ ggrt_type_t *ggrt_m_pointer_type(ggrt_ctx ctx, ggrt_type_t *t)
   return pt;
 }
 
-ggrt_type_t *ggrt_m_array_type(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
+ggrt_type_t *ggrt_array(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
 {
   ggrt_type_t *pt;
 
@@ -120,7 +120,7 @@ ggrt_type_t *ggrt_m_array_type(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
     t->array0_of = pt;
   // int a[10];
   // typeof(&a) == typeof(&a[0]);
-  pt->pointer_to = ggrt_m_pointer_type(ctx, t);
+  pt->pointer_to = ggrt_pointer(ctx, t);
   return pt;
 }
 
@@ -137,19 +137,19 @@ enum ggrt_enum {
   x, y, z
 };
 
-ggrt_type_t *ggrt_m_enum_type(ggrt_ctx ctx, const char *name, int nelems, const char **names, long *values)
+ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelems, const char **names, long *values)
 {
   ggrt_type_t *ct = ggrt_m_type(ctx, name, sizeof(enum ggrt_enum));
   ct->_ffi_type = ctx->_ffi_type_sint;
   assert(sizeof(enum ggrt_enum) == sizeof(int));
   ct->type = "enum";
   if ( nelems && names ) {
-    ggrt_m_enum_type_define(ctx, ct, nelems, names, values);
+    ggrt_enum_define(ctx, ct, nelems, names, values);
   }
   return ct;
 }
 
-ggrt_type_t *ggrt_m_enum_type_define(ggrt_ctx ctx, ggrt_type_t *ct, int nelems, const char **names, long *values)
+ggrt_type_t *ggrt_enum_define(ggrt_ctx ctx, ggrt_type_t *ct, int nelems, const char **names, long *values)
 {
   assert(ct);
   assert(nelems);
@@ -174,7 +174,7 @@ ggrt_elem_t *ggrt_enum_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name)
   return ggrt_struct_get_elem(ctx, st, name);
 }
 
-ggrt_type_t *ggrt_m_struct_type(ggrt_ctx ctx, const char *s_or_u, const char *name)
+ggrt_type_t *ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
 {
   ggrt_type_t *st = ggrt_m_type(ctx, name, 0);
   st->type = s_or_u;
@@ -186,7 +186,7 @@ ggrt_type_t *ggrt_m_struct_type(ggrt_ctx ctx, const char *s_or_u, const char *na
   return st;
 }
 
-ggrt_elem_t *ggrt_m_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, ggrt_type_t *t)
+ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, ggrt_type_t *t)
 {
   int i;
   ggrt_elem_t *e;
@@ -217,7 +217,7 @@ ggrt_elem_t *ggrt_struct_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *nam
   return 0;
 }
 
-ggrt_type_t *ggrt_m_struct_type_end(ggrt_ctx ctx, ggrt_type_t *st)
+ggrt_type_t *ggrt_struct_end(ggrt_ctx ctx, ggrt_type_t *st)
 {
   if ( ! st )
     st = ctx->current_struct;
@@ -307,7 +307,7 @@ size_t ggrt_type_alignof(ggrt_ctx ctx, ggrt_type_t *st)
   return st->c_alignof;
 }
 
-ggrt_type_t *ggrt_m_func_type(ggrt_ctx ctx, void *rtn_type, int nelems, ggrt_type_t **param_types)
+ggrt_type_t *ggrt_func(ggrt_ctx ctx, void *rtn_type, int nelems, ggrt_type_t **param_types)
 {
   ggrt_type_t *ct = ggrt_m_type(ctx, 0, 0);
   ct->type = "function";

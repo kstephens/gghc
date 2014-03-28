@@ -55,24 +55,24 @@ void test_type_construction(ggrt_ctx ctx)
   ggrt_type_t *t = ctx->type_int;
 
   // Cached.
-  assert(ggrt_m_pointer_type(ctx, t)  == ggrt_m_pointer_type(ctx, t));
-  assert(ggrt_m_array_type(ctx, t, 0) == ggrt_m_array_type(ctx, t, 0));
-  assert(ggrt_m_array_type(ctx, t, (size_t) -1) == ggrt_m_array_type(ctx, t, (size_t) -1));
+  assert(ggrt_pointer(ctx, t)  == ggrt_pointer(ctx, t));
+  assert(ggrt_array(ctx, t, 0) == ggrt_array(ctx, t, 0));
+  assert(ggrt_array(ctx, t, (size_t) -1) == ggrt_array(ctx, t, (size_t) -1));
 
   // Not cached.
-  assert(ggrt_m_array_type(ctx, t, 1) != ggrt_m_array_type(ctx, t, 1));
+  assert(ggrt_array(ctx, t, 1) != ggrt_array(ctx, t, 1));
 }
 
 static void test_struct_def(ggrt_ctx ctx)
 {
-  ggrt_type_t *st = ggrt_m_struct_type(ctx, "struct", "test_struct");
+  ggrt_type_t *st = ggrt_struct(ctx, "struct", "test_struct");
   test_struct v;
   struct align_struct_dummy v2;
 #define E(N,C,T) \
-  ggrt_m_struct_elem(ctx, st, #N, ctx->type_##T);
+  ggrt_struct_elem(ctx, st, #N, ctx->type_##T);
   SELEMS(E)
 #undef E
-    ggrt_m_struct_type_end(ctx, st);
+    ggrt_struct_end(ctx, st);
 
   assert(ggrt_type_sizeof(ctx, st) == sizeof(v));
   assert(ggrt_type_alignof(ctx, st) == __alignof(v));
@@ -87,11 +87,11 @@ static void test_struct_def(ggrt_ctx ctx)
     ggrt_type_t *st;
 
 #define E(N,T,TN) \
-    st = st_##N = ggrt_m_struct_type(ctx, "struct", 0); \
-      ggrt_m_struct_elem(ctx, st, "hdr", ggrt_m_array_type(ctx, ctx->type_char, 3)); \
-      ggrt_m_struct_elem(ctx, st, "x",   ctx->type_##TN); \
-      ggrt_m_struct_elem(ctx, st, "ftr", ggrt_m_array_type(ctx, ctx->type_char, 5)); \
-    ggrt_m_struct_type_end(ctx, st);
+    st = st_##N = ggrt_struct(ctx, "struct", 0); \
+      ggrt_struct_elem(ctx, st, "hdr", ggrt_array(ctx, ctx->type_char, 3)); \
+      ggrt_struct_elem(ctx, st, "x",   ctx->type_##TN); \
+      ggrt_struct_elem(ctx, st, "ftr", ggrt_array(ctx, ctx->type_char, 5)); \
+    ggrt_struct_end(ctx, st);
   SELEMS(E)
 #undef E
 
@@ -125,7 +125,7 @@ static void test_func_call(ggrt_ctx ctx)
   ggrt_type_t *boxed_type = ctx->type_voidP;
   ggrt_type_t *ct_rtn  = boxed_type;
   ggrt_type_t *ct_params[1] = { boxed_type };
-  ggrt_type_t *ft = ggrt_m_func_type(ctx, ct_rtn, 1, ct_params);
+  ggrt_type_t *ft = ggrt_func(ctx, ct_rtn, 1, ct_params);
   ggrt_symbol *sym = ggrt_global(ctx, "identity", &identity, ft);
   boxed rtn, args[10];
 
