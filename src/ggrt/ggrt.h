@@ -3,12 +3,22 @@
 
 #include "ggrt/ctx.h"
 
+enum ggrt_type_enum_t {
+  ggrt_te_UNDEF = 0,
+  ggrt_te_INTRINSICS_BEGIN,
+#define GG_TYPE(FFI,T,N)  ggrt_te_##N,
+#define BOTH_TYPE(FFI,T)  ggrt_te_##T,
+#include "ggrt/type.def"
+  ggrt_te_INTRINSICS_END
+};
+
 struct ggrt_type_t {
   /* user data */
   ggrt_user_data user_data;
 
   const char *name;
-  const char *type; /* "pointer", "array", "struct", "union", "function". */
+  const char *type; /* "intrinsic", "pointer", "array", "struct", "union", "function". */
+  enum ggrt_type_enum_t te;
   size_t c_sizeof;  /* C sizeof() */
   size_t c_alignof; /* C __alignof__() */
   size_t c_vararg_size;

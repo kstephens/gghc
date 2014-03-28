@@ -26,6 +26,9 @@ v :
 show-uname :
 	@echo "  UNAME_S=$(UNAME_S)"
 
+code-stats :
+	find * -type f | sort | egrep -e '(Makefile|\.[chyl])$$' | egrep -v -e 'gen/|lab/' | sort | xargs wc -l
+
 .SUFFIXES: .y .l
 
 gen/cy.c : cy.y
