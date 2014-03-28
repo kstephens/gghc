@@ -48,13 +48,18 @@ ggrt_module_t *ggrt_m_module(ggrt_ctx ctx, const char *name)
   mod->name = ggrt_strdup(name);
 
   mod->st._type   = ggrt_m_symbol_table(ctx, "type");
-  mod->st._intrinsic = ggrt_m_symbol_table(ctx, "intrinsic");
   mod->st._struct = ggrt_m_symbol_table(ctx, "struct");
   mod->st._union  = ggrt_m_symbol_table(ctx, "union");
   mod->st._enum   = ggrt_m_symbol_table(ctx, "enum");
   mod->st._global = ggrt_m_symbol_table(ctx, "global");
   mod->st._macro  = ggrt_m_symbol_table(ctx, "macro");
 
+  /* intrinsics are shared. */
+  if ( ctx->default_module ) {
+    mod->st._intrinsic = ctx->default_module->st._intrinsic;
+  } else {
+    mod->st._intrinsic = ggrt_m_symbol_table(ctx, "intrinsic");
+  }
 
   return mod;
 }
