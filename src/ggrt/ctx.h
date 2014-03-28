@@ -2,6 +2,7 @@
 #define __ggrt_CTX_H
 
 #include <stdlib.h>
+#include "ggrt/malloc_zone.h"
 
 #ifndef GGRT_V
 typedef void *GGRT_V;
@@ -43,17 +44,14 @@ typedef struct ggrt_symbol_table {
 struct ggrt_s_ctx {
   ggrt_user_data user_data;
 
+  malloc_zone *mz;
+
   /* intrinsic types. */
 #define GG_TYPE(FFI,T,N)  struct ggrt_type_t *type_##N;
 #define BOTH_TYPE(FFI,T)  struct ggrt_type_t *type_##T;
 #include "ggrt/type.def"
 
   ggrt_symbol_table *st_type, *st_struct, *st_union, *st_enum, *st_global, *st_macro;
-
-  void *(*_malloc)(size_t size);
-  void *(*_realloc)(void *ptr, size_t size);
-  void  (*_free)(void *ptr);
-  char *(*_strdup)(const char *);
 
   struct ggrt_pragma_t *pragmas;
   struct ggrt_macro_t *macros;

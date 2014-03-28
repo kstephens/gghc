@@ -10,20 +10,12 @@ ggrt_ctx ggrt_m_ctx()
   ggrt_ctx ctx = malloc(sizeof(*ctx));
   memset(ctx, 0, sizeof(*ctx));
 
-  ctx->_malloc  = malloc;
-  ctx->_realloc = realloc;
-  ctx->_free    = free;
-  ctx->_strdup  = strdup;
+  ctx->mz = malloc_zone_new();
 
   return ctx;
 }
 
-#ifndef ggrt_malloc
-#define ggrt_malloc(s)    ctx->_malloc(s)
-#define ggrt_realloc(p,s) ctx->_realloc(p,s)
-#define ggrt_free(p)      ctx->_free(p)
-#define ggrt_strdup(p)    ctx->_strdup(p)
-#endif
+#include "mz.h"
 
 ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx)
 {

@@ -12,6 +12,7 @@ typedef struct malloc_zone_object {
 typedef struct malloc_zone {
   struct malloc_zone_object header;
   size_t nobjects, nbytes, nmallocs, nfrees;
+  short passthru;
   void *(*_malloc)(size_t size);
   void *(*_realloc)(void *ptr, size_t size);
   void  (*_free)(void *ptr);

@@ -27,7 +27,8 @@ ggrt_ctx ggrt_ctx_init_ffi(ggrt_ctx ctx)
 {
   assert(ctx);
 
-  ggrt_ctx_init(ctx);
+  // ggrt_ctx_init() should have been called.
+  assert(ctx->st_type);
 
   // Patch in libffi types.
 #define BOTH_TYPE(FFI,T) \
@@ -85,12 +86,7 @@ void ggrt_ffi_call(ggrt_ctx ctx, ggrt_type_t *ft, GGRT_V *rtn_valp, void *cfunc,
   ggrt_ffi_box(ctx, ft->rtn_type, rtn_space, rtn_valp);
 }
 
-#ifndef ggrt_malloc
-#define ggrt_malloc(s)    ctx->_malloc(s)
-#define ggrt_realloc(p,s) ctx->_realloc(p,s)
-#define ggrt_free(p)      ctx->_free(p)
-#define ggrt_strdup(p)    ctx->_strdup(p)
-#endif
+#include "mz.h"
 
 ffi_type *ggrt_ffi_type(ggrt_ctx ctx, ggrt_type_t *t)
 {

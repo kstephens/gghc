@@ -24,12 +24,14 @@ void malloc_zone_clear(malloc_zone *zone)
 {
   malloc_zone_object *obj, *next, *head = &zone->header;
   size_t n = 0;
+  if ( ! zone->passthru ) {
   for ( obj = head->next; obj != head; obj = next ) {
     next = obj->next;
     zone->_free(obj);
     ++ n;
   }
   assert(zone->nobjects == n);
+  }
   zone->nobjects = zone->nbytes = zone->nmallocs = zone->nfrees = 0;
   head->next = head->prev = head;
 }
@@ -70,6 +72,8 @@ static inline malloc_zone_object *ptr_to_mzo(void *ptr)
 void *malloc_zone_malloc(malloc_zone *zone, size_t size)
 {
   malloc_zone_object *obj;
+  if ( zone->passthru )
+    return zone->_malloc(size);
   obj = zone->_malloc(mzo_size(size));
   obj->size = size;
   memset(obj->data, 0, obj->size);
@@ -80,6 +84,8 @@ void *malloc_zone_malloc(malloc_zone *zone, size_t size)
 void _malloc_zone_free(malloc_zone *zone, void *ptr)
 {
   malloc_zone_object *obj;
+  if ( zone->passthru )
+    return zone->_free(ptr);
   if ( ! ptr ) return;
   assert(zone->nobjects);
   assert(zone->nbytes);
@@ -98,6 +104,8 @@ void *malloc_zone_realloc(malloc_zone *zone, void *ptr, size_t size)
   malloc_zone_object *obj;
   void *new_ptr;
   size_t old_size;
+  if ( zone->passthru )
+    return zone->_realloc(ptr, size);
   obj = ptr_to_mzo(ptr);
   old_size = ptr ? obj->size : 0;
   new_ptr = malloc_zone_malloc(zone, size);

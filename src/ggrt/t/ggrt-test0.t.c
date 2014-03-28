@@ -138,7 +138,7 @@ static void test_func_call(ggrt_ctx ctx)
 
 int main()
 {
-  ggrt_ctx ctx = ggrt_ctx_init_ffi(ggrt_m_ctx());
+  ggrt_ctx ctx = ggrt_ctx_init_ffi(ggrt_ctx_init(ggrt_m_ctx()));
 
   test_type_construction(ctx);
   test_struct_def(ctx);

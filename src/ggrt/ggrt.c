@@ -5,12 +5,7 @@
 
 #include "ggrt.h"
 
-#ifndef ggrt_malloc
-#define ggrt_malloc(s)    ctx->_malloc(s)
-#define ggrt_realloc(p,s) ctx->_realloc(p,s)
-#define ggrt_free(p)      ctx->_free(p)
-#define ggrt_strdup(p)    ctx->_strdup(p)
-#endif
+#include "mz.h"
 
 ggrt_module_t *ggrt_m_module(ggrt_ctx ctx, const char *name)
 {
@@ -104,7 +99,7 @@ ggrt_type_t *ggrt_m_array_type(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
 {
   ggrt_type_t *pt;
 
-  if ( len == 0 || len == (size_t) -1 && t->array0_of )
+  if ( (len == 0 || len == (size_t) -1) && t->array0_of )
     return t->array0_of;
 
   pt = ggrt_m_type(ctx, 0, 0);
@@ -112,7 +107,7 @@ ggrt_type_t *ggrt_m_array_type(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
   pt->type = "array";
   pt->rtn_type = t;
   pt->nelems = len;
-  if ( len == 0 || len == (size_t) -1 )
+  if ( (len == 0 || len == (size_t) -1) )
     t->array0_of = pt;
   // int a[10];
   // typeof(&a) == typeof(&a[0]);
