@@ -44,10 +44,9 @@ struct ggrt_s_ctx {
   ggrt_user_data user_data;
 
   /* intrinsic types. */
-#define TYPE(N,T,A)  struct ggrt_type_t *type_##A;
-#define ATYPE(N,T,A) struct ggrt_type_t *type_##N;
+#define GG_TYPE(FFI,T,N)  struct ggrt_type_t *type_##N;
+#define BOTH_TYPE(FFI,T)  struct ggrt_type_t *type_##T;
 #include "ggrt/type.def"
-  struct ggrt_type_t *type_pointer; /* void* */
 
   ggrt_symbol_table *st_type, *st_struct, *st_union, *st_enum, *st_global, *st_macro;
 
@@ -64,15 +63,9 @@ struct ggrt_s_ctx {
 
   /* ffi support. */
   // libffi type names.
-#define TYPE(N,T,A)  void *_ffi_type_##N;
-#define ATYPE(N,T,A) void *_ffi_type_##N;
-#define ITYPE(N,T,A) void *_ffi_type_##N;
+#define FFI_TYPE(FFI,T)  void *_ffi_type_##FFI;
+#define BOTH_TYPE(FFI,T) void *_ffi_type_##T;
 #include "ggrt/type.def"
-  // ggrt type names.
-#define TYPE(N,T,A)
-#define ITYPE(N,T,A) void *_ffi_type_##A;
-#include "ggrt/type.def"
-  void *_ffi_type_voidP; // ffi_type_pointer
 
   /* Users must define these functions. */
   size_t (*_ffi_unbox)(ggrt_ctx ctx, ggrt_type_t *ct, GGRT_V *valp, void *dst);

@@ -30,16 +30,14 @@ ggrt_ctx ggrt_ctx_init_ffi(ggrt_ctx ctx)
   ggrt_ctx_init(ctx);
 
   // Patch in libffi types.
-#define TYPE(N,T,A)  ctx->_ffi_type_##N = &ffi_type_##N;
-#define ITYPE(N,T,A) ctx->_ffi_type_##N = &ffi_type_##N;
-#define ATYPE(N,T,A) ctx->_ffi_type_##N = &ffi_type_##N;
+#define BOTH_TYPE(FFI,T) ctx->_ffi_type_##T   = &ffi_type_##FFI;
+#define FFI_TYPE(FFI,T)  ctx->_ffi_type_##FFI = &ffi_type_##FFI;
 #include "type.def"
 
-  // ggrt aliases
-#define TYPE(N,T,A)  ctx->type_##A->_ffi_type = &ffi_type_##N;
-#define ATYPE(N,T,A) ctx->type_##N->_ffi_type = &ffi_type_##N;
+  // Patch into ggrt types.
+#define GG_TYPE(FFI,T,N) ctx->type_##N->_ffi_type = ctx->_ffi_type_##FFI;
+#define BOTH_TYPE(FFI,T) ctx->type_##T->_ffi_type = ctx->_ffi_type_##FFI;
 #include "type.def"
-  ctx->_ffi_type_voidP = &ffi_type_pointer;
 
   ctx->_ffi_unbox     = ggrt_ffi_unbox_default;
   ctx->_ffi_unbox_arg = ggrt_ffi_unbox_arg_default;

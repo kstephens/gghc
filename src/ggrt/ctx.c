@@ -37,27 +37,22 @@ ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx)
   ctx->st_macro  = ggrt_m_symbol_table(ctx, "macro");
 
   // Define basic types.
-#define TYPE(N,T,AN) \
-  ctx->type_##AN = ggrt_m_type(ctx, #T, sizeof(T));      \
-  ctx->type_##AN->c_alignof = __alignof__(T);
+#define GG_TYPE(FFI,T,N)                                \
+  ctx->type_##N = ggrt_m_type(ctx, #T, sizeof(T));      \
+  ctx->type_##N->c_alignof = __alignof__(T);
+#define BOTH_TYPE(FFI,T) GG_TYPE(FFI,T,T)
 #include "type.def"
-
-  /* Aliased types */
-#define TYPE(N,T,AN)
-#define ATYPE(N,T,AN) ctx->type_##N = ctx->type_##AN;
-#include "type.def"
-  ctx->type_pointer = ctx->type_voidP;
 
   /* Coerce args to int */
-#define TYPE(N,T,AN) if ( sizeof(T) < sizeof(int) ) ctx->type_##AN->param_type = ctx->type_int;
+#define GG_TYPE(FFI,T,N) if ( sizeof(T) < sizeof(int) ) ctx->type_##N->param_type = ctx->type_int;
 #include "type.def"
 
   /* Declarators */
-#define TYPE(N,T,AN) ctx->type_##AN->c_declarator = #T " %s";
+#define GG_TYPE(FFI,T,N) ctx->type_##N->c_declarator = #T " %s";
 #include "type.def"
 
   /* In symbol table */
-#define TYPE(N,T,AN) ggrt_symbol_table_add_(ctx, ctx->st_type, #T, ctx->type_##AN, 0);
+#define GG_TYPE(FFI,T,N) ggrt_symbol_table_add_(ctx, ctx->st_type, #T, ctx->type_##N, 0);
 #include "type.def"
 
   return ctx;

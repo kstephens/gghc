@@ -3,7 +3,7 @@
 #include <assert.h>
 
 #include "ggrt/ggrt.h"
-#define GGRT_V_type ctx->type_pointer
+#define GGRT_V_type ctx->type_voidP
 
 struct align_struct_dummy {
   char c[23];

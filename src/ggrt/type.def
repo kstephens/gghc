@@ -1,38 +1,58 @@
-#ifndef ITYPE
-#define ITYPE(N,T,AN) TYPE(N,T,AN)
+#ifndef GG_TYPE
+#define GG_TYPE(FFI,T,N)
 #endif
-#ifndef ATYPE
-#define ATYPE(N,T,AN)
+#ifndef FFI_TYPE
+#define FFI_TYPE(FFI,T)
+#endif
+#ifndef BOTH_TYPE
+#define BOTH_TYPE(FFI,T)
 #endif
 
 /* XXX(ffi name, C type, C type w/ underscore) */
 
-TYPE(void,void,void)
-ATYPE(uint8,unsigned char,unsigned_char)
-ATYPE(sint8,char,char)
-ATYPE(uint16,unsigned short,unsigned_short)
-ATYPE(sint16,short,short)
-ATYPE(uint32,unsigned int,unsigned_int)
-ATYPE(sint32,int,int)
+BOTH_TYPE(void,void)
+GG_TYPE(uchar,unsigned char, unsigned_char)
+GG_TYPE(schar,char,char)
+GG_TYPE(ushort,unsigned short,unsigned_short)
+GG_TYPE(sshort,short,short)
+GG_TYPE(uint,unsigned int,unsigned_int)
+GG_TYPE(sint,int,int)
+GG_TYPE(ulong,unsigned long,unsigned_long)
+GG_TYPE(slong,long,long)
+BOTH_TYPE(float,float)
+BOTH_TYPE(double,double)
+GG_TYPE(longdouble,long double,long_double)
+GG_TYPE(pointer,void*,voidP)
+
+/*******************/
+
+// FFI_TYPE(void,void)
+FFI_TYPE(uint8,unsigned char)
+FFI_TYPE(sint8,char)
+FFI_TYPE(uint16,unsigned short)
+FFI_TYPE(sint16,short)
+FFI_TYPE(uint32,unsigned int)
+FFI_TYPE(sint32,int)
 // int64 may be long long!!
-ATYPE(uint64,unsigned long,unsigned_long)
-ATYPE(sint64,long,long)
+FFI_TYPE(uint64,unsigned long)
+FFI_TYPE(sint64,long)
 
-TYPE(float,float,float)
-TYPE(double,double,double)
+// FFI_TYPE(float,float)
+// FFI_TYPE(double,double)
 
-ITYPE(uchar,unsigned char,unsigned_char)
-ITYPE(schar,char,char)
-ITYPE(ushort,unsigned short,unsigned_short)
-ITYPE(sshort,short,short)
-ITYPE(uint,unsigned int,unsigned_int)
-ITYPE(sint,int,int)
-ITYPE(ulong,unsigned long,unsigned_long)
-ITYPE(slong,long,long)
+FFI_TYPE(uchar,unsigned char)
+FFI_TYPE(schar,char)
+FFI_TYPE(ushort,unsigned short)
+FFI_TYPE(sshort,short)
+FFI_TYPE(uint,unsigned int)
+FFI_TYPE(sint,int)
+FFI_TYPE(ulong,unsigned long)
+FFI_TYPE(slong,long)
 
-TYPE(longdouble,long double,long_double)
-TYPE(pointer,void*,voidP)
-#undef TYPE
-#undef ATYPE
-#undef ITYPE
+FFI_TYPE(longdouble,long double)
+FFI_TYPE(pointer,void*)
+
+#undef GG_TYPE
+#undef FFI_TYPE
+#undef BOTH_TYPE
 

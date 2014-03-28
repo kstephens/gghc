@@ -93,7 +93,7 @@ ggrt_type_t *ggrt_m_pointer_type(ggrt_ctx ctx, ggrt_type_t *t)
   pt->type = "pointer";
   pt->rtn_type = t;
   pt->c_sizeof = sizeof(void*);
-  pt->c_alignof = ctx->type_pointer->c_alignof;
+  pt->c_alignof = ctx->type_voidP->c_alignof;
   pt->c_vararg_size = sizeof(void*);
 
   t->pointer_to = pt;
@@ -304,7 +304,7 @@ ggrt_type_t *ggrt_m_func_type(ggrt_ctx ctx, void *rtn_type, int nelems, ggrt_typ
 {
   ggrt_type_t *ct = ggrt_m_type(ctx, 0, 0);
   ct->type = "function";
-  ct->param_type = ctx->type_pointer;
+  ct->param_type = ctx->type_voidP;
   ct->rtn_type = rtn_type;
   ct->nelems = nelems;
   ct->elems = ggrt_malloc(sizeof(ct->elems[0]) * ct->nelems);
