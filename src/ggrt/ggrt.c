@@ -190,7 +190,7 @@ ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelems, const char **
   assert(sizeof(enum ggrt_enum) == sizeof(int));
   ct->type = "enum";
 
-  if ( name )
+  if ( name && *name )
     ggrt_symbol_table_add_(ctx, ctx->st._enum, name, 0, ct);
 
   if ( nelems && names )
@@ -248,7 +248,7 @@ ggrt_type_t *ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
 
   ctx->current_struct = st;
 
-  if ( name )
+  if ( name && *name )
     ggrt_symbol_table_add_(ctx, ctx->st._enum, name, 0, st);
 
   if ( ctx->cb._struct )
