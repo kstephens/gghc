@@ -90,19 +90,29 @@ void ggrt_ffi_call(ggrt_ctx ctx, ggrt_type_t *ft, GGRT_V *rtn_valp, void *cfunc,
 #define ggrt_strdup(p)    ctx->_strdup(p)
 #endif
 
+ffi_type *ggrt_ffi_type(ggrt_ctx ctx, ggrt_type_t *t)
+{
+  if ( t->_ffi_type )
+    return t->_ffi_type;
+  // TODO BUILD ffi_type for struct/union.
+  assert(t->_ffi_type);
+  return 0;
+}
+
 ggrt_type_t *ggrt_ffi_prepare(ggrt_ctx ctx, ggrt_type_t *ft)
 {
   if ( ! ft->_ffi_cif_inited ) {
     if ( ! ft->_ffi_cif )
       ft->_ffi_cif = ggrt_malloc(sizeof(ffi_cif));
-    ft->_ffi_rtn_type = ft->rtn_type->_ffi_type;
+    ft->_ffi_rtn_type = ggrt_ffi_type(ctx, ft->rtn_type);
     if ( ! ft->_ffi_elem_types ) {
       int i;
       size_t offset = 0;
       ft->_ffi_elem_types = ggrt_malloc(sizeof(ft->_ffi_elem_types[0]) * ft->nelems);
       for ( i = 0; i < ft->nelems; ++ i ) {
         ggrt_elem_t *e = ft->elems[i];
-        ft->_ffi_elem_types[i] = e->type->_ffi_type;
+        assert(e->type->_ffi_type);
+        ft->_ffi_elem_types[i] = ggrt_ffi_type(ctx, e->type);
         e->offset = offset;
         offset += ggrt_type_sizeof(ctx, e->type);
         ft->c_args_size = offset;

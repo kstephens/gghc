@@ -213,6 +213,7 @@ ggrt_type_t *ggrt_m_struct_type_end(ggrt_ctx ctx, ggrt_type_t *st)
     st = ctx->current_struct;
 
   // TODO BUILD ->_ffi_type!!
+  // see ggrt_ffi_type in ffi.c.
   ctx->current_struct = st->struct_scope;
   return st;
 }
