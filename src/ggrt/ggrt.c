@@ -80,18 +80,38 @@ ggrt_type_t *ggrt_m_type(ggrt_ctx ctx, const char *name, size_t c_size)
 ggrt_type_t *ggrt_intrinsic(ggrt_ctx ctx, const char *name, size_t c_size)
 {
   ggrt_type_t *t = ggrt_m_type(ctx, name, c_size);
-  // FIXME: Check for existing typedef.
+  ggrt_symbol *sym;
+  assert(name && *name);
+  if ( (sym = ggrt_symbol_table_by_name(ctx, ctx->st._intrinsic, name)) ) {
+    if ( sym->addr != t )
+      // FIXME: Check for existing typedef.
+      abort();
+    return sym->addr;
+  }
+
   ggrt_symbol_table_add_(ctx, ctx->st._intrinsic, name, 0, t);
+
   if ( ctx->cb._intrinsic )
     t->cb_val = ctx->cb._intrinsic(ctx, t);
+
   ggrt_typedef(ctx, name, t);
+
   return t;
 }
 
 ggrt_type_t *ggrt_typedef(ggrt_ctx ctx, const char *name, ggrt_type_t *t)
 {
-  // FIXME: Check for existing typedef.
+  ggrt_symbol *sym;
+  assert(name && *name);
+  if ( (sym = ggrt_symbol_table_by_name(ctx, ctx->st._type, name)) ) {
+    if ( sym->addr != t )
+      // FIXME: Check for existing typedef.
+      abort();
+    return sym->addr;
+  }
+
   ggrt_symbol_table_add_(ctx, ctx->st._type, name, 0, t);
+
   if ( ctx->cb._typedef )
     t->cb_val = ctx->cb._typedef(ctx, name, t);
   return t;
@@ -159,10 +179,20 @@ enum ggrt_enum {
 
 ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelems, const char **names, long *values)
 {
-  ggrt_type_t *ct = ggrt_m_type(ctx, name, sizeof(enum ggrt_enum));
+  ggrt_type_t *ct;
+  ggrt_symbol *sym;
+  if ( name && *name && (sym = ggrt_symbol_table_by_name(ctx, ctx->st._enum, name)) ) {
+    return sym->addr;
+  }
+
+  ct = ggrt_m_type(ctx, name, sizeof(enum ggrt_enum));
   ct->_ffi_type = ctx->_ffi_type_sint;
   assert(sizeof(enum ggrt_enum) == sizeof(int));
   ct->type = "enum";
+
+  if ( name )
+    ggrt_symbol_table_add_(ctx, ctx->st._enum, name, 0, ct);
+
   if ( nelems && names )
     ggrt_enum_define(ctx, ct, nelems, names, values);
 
@@ -203,13 +233,23 @@ ggrt_elem_t *ggrt_enum_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name)
 
 ggrt_type_t *ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
 {
-  ggrt_type_t *st = ggrt_m_type(ctx, name, 0);
+  ggrt_type_t *st;
+  ggrt_symbol *sym;
+
+  if ( name && *name && (sym = ggrt_symbol_table_by_name(ctx, s_or_u[0] == 's' ? ctx->st._struct : ctx->st._union, name)) ) {
+    return sym->addr;
+  }
+
+  st = ggrt_m_type(ctx, name, 0);
   st->type = s_or_u;
   st->struct_scope = ctx->current_struct;
 
   st->elems = ggrt_malloc(sizeof(st->elems[0]) * st->nelems);
 
   ctx->current_struct = st;
+
+  if ( name )
+    ggrt_symbol_table_add_(ctx, ctx->st._enum, name, 0, st);
 
   if ( ctx->cb._struct )
     st->cb_val = ctx->cb._struct(ctx, st);
