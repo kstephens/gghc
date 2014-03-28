@@ -82,9 +82,6 @@ ggrt_type_t *ggrt_typedef(ggrt_ctx ctx, const char *name, ggrt_type_t *type);
 ggrt_symbol *ggrt_global(ggrt_ctx ctx, const char *name, void *address, ggrt_type_t *type);
 ggrt_symbol *ggrt_global_get(ggrt_ctx ctx, const char *name, void *addr);
 
-/* Create a symbol definition. */
-extern ggrt_symbol_table *ggrt_st_type, *ggrt_st_global;
-
 /* Func call. */
 void ggrt_ffi_call(ggrt_ctx ctx, ggrt_type_t *ft, GGRT_V *rtn_valp, void *cfunc, int argc, GGRT_V *argv);
 
