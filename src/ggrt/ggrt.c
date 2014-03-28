@@ -63,6 +63,7 @@ ggrt_macro_t *ggrt_macro(ggrt_ctx ctx, const char *name, const char *text)
   return p;
 }
 
+static
 ggrt_type_t *ggrt_m_type(ggrt_ctx ctx, const char *name, size_t c_size)
 {
   ggrt_type_t *ct = ggrt_malloc(sizeof(*ct));
@@ -74,6 +75,14 @@ ggrt_type_t *ggrt_m_type(ggrt_ctx ctx, const char *name, size_t c_size)
   ct->c_vararg_size = c_size; /* can be overridden. */
   ct->param_type = ct;
   return ct;
+}
+
+ggrt_type_t *ggrt_intrinsic(ggrt_ctx ctx, const char *name, size_t c_size)
+{
+  ggrt_type_t *t = ggrt_m_type(ctx, name, c_size);
+  if ( ctx->cb._intrinsic )
+    t->cb_val = ctx->cb._intrinsic(ctx, t);
+  return t;
 }
 
 /* intrinsic types. */

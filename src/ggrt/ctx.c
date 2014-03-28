@@ -30,7 +30,7 @@ ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx)
 
   // Define basic types.
 #define GG_TYPE(FFI,T,N)                                \
-  ctx->type_##N = ggrt_m_type(ctx, #T, sizeof(T));      \
+  ctx->type_##N = ggrt_intrinsic(ctx, #T, sizeof(T));      \
   ctx->type_##N->c_alignof = __alignof__(T); \
   ctx->type_##N->te = ggrt_te_##N;
 #define BOTH_TYPE(FFI,T,N) GG_TYPE(FFI,T,N)

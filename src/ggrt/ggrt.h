@@ -69,9 +69,10 @@ size_t ggrt_type_sizeof(ggrt_ctx ctx, ggrt_type_t *st);
 size_t ggrt_type_alignof(ggrt_ctx ctx, ggrt_type_t *st);
 
 /* Make intrinsic type. */
-ggrt_type_t *ggrt_m_type(ggrt_ctx ctx, const char *name, size_t c_size);
+ggrt_type_t *ggrt_intrinsic(ggrt_ctx ctx, const char *name, size_t c_size);
 
 ggrt_type_t *ggrt_m_pointer_type(ggrt_ctx ctx, ggrt_type_t *t);
+/* len = (size_t) -1 if unspecified. */
 ggrt_type_t *ggrt_m_array_type(ggrt_ctx ctx, ggrt_type_t *t, size_t len);
 
 /* Make enum type. */

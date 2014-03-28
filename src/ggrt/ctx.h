@@ -59,13 +59,14 @@ struct ggrt_s_ctx {
 
   /* Callbacks */
   struct ggrt_cb {
-    void *(*_module_begin)(ggrt_ctx ctx, const char *name);
+    void *_data; /* opaque callback data hook. */
+    void *(*_module_begin)(ggrt_ctx ctx, struct ggrt_module_t *mod);
     void *(*_module_end)(ggrt_ctx ctx, struct ggrt_module_t *mod);
-    void *(*_pragma)(ggrt_ctx ctx, const char *text);
-    void *(*_macro)(ggrt_ctx ctx, const char *name, const char *text);
-    void *(*_intrinsic)(ggrt_ctx ctx, const char *name, size_t c_size);
+    void *(*_pragma)(ggrt_ctx ctx, struct ggrt_pragma_t *p);
+    void *(*_macro)(ggrt_ctx ctx, struct ggrt_macro_t *m);
+    void *(*_intrinsic)(ggrt_ctx ctx, struct ggrt_type_t *t);
     void *(*_pointer)(ggrt_ctx ctx, struct ggrt_type_t *t);
-    void *(*_array)(ggrt_ctx ctx, struct ggrt_type_t *t, size_t len); /* len= -1 if unspecified. */
+    void *(*_array)(ggrt_ctx ctx, struct ggrt_type_t *at);
     void *(*_enum)(ggrt_ctx ctx, const char *name);
     void *(*_enum_define)(ggrt_ctx ctx, struct ggrt_type_t *et, int nelems, const char **names, long *values);
     void *(*_enum_elem)(ggrt_ctx ctx, struct ggrt_type_t *et, const char *name);
