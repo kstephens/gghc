@@ -103,7 +103,7 @@ ggrt_type_t *ggrt_m_pointer_type(ggrt_ctx ctx, ggrt_type_t *t)
 ggrt_type_t *ggrt_m_array_type(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
 {
   ggrt_type_t *pt;
-  pt = ggrt_m_type(ctx, 0, sizeof(void*));
+  pt = ggrt_m_type(ctx, 0, 0);
   pt->_ffi_type = ctx->_ffi_type_pointer;
   pt->type = "array";
   pt->rtn_type = t;
@@ -212,8 +212,6 @@ ggrt_type_t *ggrt_m_struct_type_end(ggrt_ctx ctx, ggrt_type_t *st)
   if ( ! st )
     st = ctx->current_struct;
 
-  // TODO BUILD ->_ffi_type!!
-  // see ggrt_ffi_type in ffi.c.
   ctx->current_struct = st->struct_scope;
   return st;
 }
