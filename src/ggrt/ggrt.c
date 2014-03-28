@@ -7,13 +7,6 @@
 
 #include "mz.h"
 
-ggrt_module_t *ggrt_m_module(ggrt_ctx ctx, const char *name)
-{
-  ggrt_module_t *mod = ggrt_malloc(sizeof(*mod));
-  mod->name = ggrt_strdup(name);
-  return mod;
-}
-
 ggrt_module_t *ggrt_module_begin(ggrt_ctx ctx, const char *name)
 {
   ggrt_module_t *mod = ggrt_m_module(ctx, name);
@@ -21,6 +14,7 @@ ggrt_module_t *ggrt_module_begin(ggrt_ctx ctx, const char *name)
   ctx->current_module = mod;
   return mod;
 }
+
 ggrt_module_t *ggrt_module_end(ggrt_ctx ctx, ggrt_module_t *mod)
 {
   if ( ! mod ) {
@@ -82,14 +76,14 @@ ggrt_type_t *ggrt_intrinsic(ggrt_ctx ctx, const char *name, size_t c_size)
   ggrt_type_t *t = ggrt_m_type(ctx, name, c_size);
   ggrt_symbol *sym;
   assert(name && *name);
-  if ( (sym = ggrt_symbol_table_by_name(ctx, ctx->st._intrinsic, name)) ) {
+  if ( (sym = ggrt_symbol_table_by_name(ctx, ggrt_current_module(ctx)->st._intrinsic, name)) ) {
     if ( sym->addr != t )
       // FIXME: Check for existing typedef.
       abort();
     return sym->addr;
   }
 
-  ggrt_symbol_table_add_(ctx, ctx->st._intrinsic, name, 0, t);
+  ggrt_symbol_table_add_(ctx, ggrt_current_module(ctx)->st._intrinsic, name, 0, t);
 
   if ( ctx->cb._intrinsic )
     t->cb_val = ctx->cb._intrinsic(ctx, t);
@@ -103,14 +97,14 @@ ggrt_type_t *ggrt_typedef(ggrt_ctx ctx, const char *name, ggrt_type_t *t)
 {
   ggrt_symbol *sym;
   assert(name && *name);
-  if ( (sym = ggrt_symbol_table_by_name(ctx, ctx->st._type, name)) ) {
+  if ( (sym = ggrt_symbol_table_by_name(ctx, ggrt_current_module(ctx)->st._type, name)) ) {
     if ( sym->addr != t )
       // FIXME: Check for existing typedef.
       abort();
     return sym->addr;
   }
 
-  ggrt_symbol_table_add_(ctx, ctx->st._type, name, 0, t);
+  ggrt_symbol_table_add_(ctx, ggrt_current_module(ctx)->st._type, name, 0, t);
 
   if ( ctx->cb._typedef )
     t->cb_val = ctx->cb._typedef(ctx, name, t);
@@ -181,7 +175,7 @@ ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelems, const char **
 {
   ggrt_type_t *ct;
   ggrt_symbol *sym;
-  if ( name && *name && (sym = ggrt_symbol_table_by_name(ctx, ctx->st._enum, name)) ) {
+  if ( name && *name && (sym = ggrt_symbol_table_by_name(ctx, ggrt_current_module(ctx)->st._enum, name)) ) {
     return sym->addr;
   }
 
@@ -191,7 +185,7 @@ ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelems, const char **
   ct->type = "enum";
 
   if ( name && *name )
-    ggrt_symbol_table_add_(ctx, ctx->st._enum, name, 0, ct);
+    ggrt_symbol_table_add_(ctx, ggrt_current_module(ctx)->st._enum, name, 0, ct);
 
   if ( nelems && names )
     ggrt_enum_define(ctx, ct, nelems, names, values);
@@ -236,7 +230,7 @@ ggrt_type_t *ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
   ggrt_type_t *st;
   ggrt_symbol *sym;
 
-  if ( name && *name && (sym = ggrt_symbol_table_by_name(ctx, s_or_u[0] == 's' ? ctx->st._struct : ctx->st._union, name)) ) {
+  if ( name && *name && (sym = ggrt_symbol_table_by_name(ctx, s_or_u[0] == 's' ? ggrt_current_module(ctx)->st._struct : ggrt_current_module(ctx)->st._union, name)) ) {
     return sym->addr;
   }
 
@@ -249,7 +243,7 @@ ggrt_type_t *ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
   ctx->current_struct = st;
 
   if ( name && *name )
-    ggrt_symbol_table_add_(ctx, ctx->st._enum, name, 0, st);
+    ggrt_symbol_table_add_(ctx, ggrt_current_module(ctx)->st._enum, name, 0, st);
 
   if ( ctx->cb._struct )
     st->cb_val = ctx->cb._struct(ctx, st);
@@ -261,6 +255,7 @@ ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, g
 {
   int i;
   ggrt_elem_t *e;
+
   if ( ! st )
     st = ctx->current_struct;
 
@@ -300,6 +295,7 @@ ggrt_type_t *ggrt_struct_end(ggrt_ctx ctx, ggrt_type_t *st)
     st->cb_val = ctx->cb._struct_end(ctx, st);
 
   ctx->current_struct = st->struct_scope;
+
   return st;
 }
 

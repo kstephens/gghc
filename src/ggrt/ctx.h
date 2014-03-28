@@ -38,6 +38,10 @@ typedef struct ggrt_symbol_table {
   ggrt_symbol *next;
 } ggrt_symbol_table;
 
+struct ggrt_sts {
+  ggrt_symbol_table *_type, *_intrinsic, *_struct, *_union, *_enum, *_global, *_macro;
+} st;
+
 struct ggrt_s_ctx {
   ggrt_user_data user_data;
 
@@ -48,14 +52,10 @@ struct ggrt_s_ctx {
 #define BOTH_TYPE(FFI,T,N)  struct ggrt_type_t *type_##N;
 #include "ggrt/type.def"
 
-  struct ggrt_sts {
-    ggrt_symbol_table *_type, *_intrinsic, *_struct, *_union, *_enum, *_global, *_macro;
-  } st;
-
   /* Collected C runtime data. */
   struct ggrt_pragma_t *pragmas;
   struct ggrt_macro_t *macros;
-  struct ggrt_module_t *current_module;
+  struct ggrt_module_t *current_module, *default_module;
   struct ggrt_type_t *current_enum;
   struct ggrt_type_t *current_struct;
 
@@ -95,7 +95,7 @@ typedef struct ggrt_module_t {
 
   const char *name;
 
-  ggrt_symbol_table *st_type, *st_struct, *st_union, *st_enum;
+  struct ggrt_sts st;
 
   struct ggrt_module_t *prev;
   void *cb_val; /* callback value. */
@@ -129,6 +129,7 @@ ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx);
 ggrt_module_t *ggrt_m_module(ggrt_ctx ctx, const char *name);
 ggrt_module_t *ggrt_module_begin(ggrt_ctx ctx, const char *name);
 ggrt_module_t *ggrt_module_end(ggrt_ctx ctx, ggrt_module_t *m);
+ggrt_module_t *ggrt_current_module(ggrt_ctx ctx);
 
 /* Pragma */
 ggrt_pragma_t *ggrt_m_pragma(ggrt_ctx ctx, const char *text);

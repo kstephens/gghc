@@ -21,13 +21,7 @@ ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx)
 {
   assert(ctx);
 
-  ctx->st._type   = ggrt_m_symbol_table(ctx, "type");
-  ctx->st._intrinsic = ggrt_m_symbol_table(ctx, "intrinsic");
-  ctx->st._struct = ggrt_m_symbol_table(ctx, "struct");
-  ctx->st._union  = ggrt_m_symbol_table(ctx, "union");
-  ctx->st._enum   = ggrt_m_symbol_table(ctx, "enum");
-  ctx->st._global = ggrt_m_symbol_table(ctx, "global");
-  ctx->st._macro  = ggrt_m_symbol_table(ctx, "macro");
+  ctx->default_module = ggrt_m_module(ctx, "%default");
 
   // Define basic types.
 #define GG_TYPE(FFI,T,N)                                \
@@ -45,11 +39,29 @@ ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx)
 #define GG_TYPE(FFI,T,N) ctx->type_##N->c_declarator = #T " %s";
 #include "type.def"
 
-  /* In symbol table */
-#define GG_TYPE(FFI,T,N) ggrt_symbol_table_add_(ctx, ctx->st._type, #T, ctx->type_##N, 0);
-#include "type.def"
-
   return ctx;
+}
+
+ggrt_module_t *ggrt_m_module(ggrt_ctx ctx, const char *name)
+{
+  ggrt_module_t *mod = ggrt_malloc(sizeof(*mod));
+  mod->name = ggrt_strdup(name);
+
+  mod->st._type   = ggrt_m_symbol_table(ctx, "type");
+  mod->st._intrinsic = ggrt_m_symbol_table(ctx, "intrinsic");
+  mod->st._struct = ggrt_m_symbol_table(ctx, "struct");
+  mod->st._union  = ggrt_m_symbol_table(ctx, "union");
+  mod->st._enum   = ggrt_m_symbol_table(ctx, "enum");
+  mod->st._global = ggrt_m_symbol_table(ctx, "global");
+  mod->st._macro  = ggrt_m_symbol_table(ctx, "macro");
+
+
+  return mod;
+}
+
+ggrt_module_t *ggrt_current_module(ggrt_ctx ctx)
+{
+  return ctx->current_module ? ctx->current_module : ctx->default_module;
 }
 
 /* Symbol table */
@@ -103,7 +115,7 @@ ggrt_symbol *ggrt_global_get(ggrt_ctx ctx, const char *name, void *addr)
   ggrt_symbol proto;
   proto.name = name;
   proto.addr = addr;
-  return ggrt_symbol_table_get(ctx, ctx->st._global, &proto);
+  return ggrt_symbol_table_get(ctx, ggrt_current_module(ctx)->st._global, &proto);
 }
 
 void ggrt_symbol_table_add(ggrt_ctx ctx, ggrt_symbol_table *st, ggrt_symbol *sym)
@@ -139,6 +151,6 @@ ggrt_symbol *ggrt_m_symbol(ggrt_ctx ctx, const char *name, void *addr, ggrt_type
 ggrt_symbol *ggrt_global(ggrt_ctx ctx, const char *name, void *addr, ggrt_type_t *type)
 {
   ggrt_symbol *sym = ggrt_m_symbol(ctx, name, addr, type);
-  ggrt_symbol_table_add(ctx, ctx->st._global, sym);
+  ggrt_symbol_table_add(ctx, ggrt_current_module(ctx)->st._global, sym);
   return sym;
 }

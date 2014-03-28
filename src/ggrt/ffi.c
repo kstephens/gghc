@@ -28,7 +28,7 @@ ggrt_ctx ggrt_ctx_init_ffi(ggrt_ctx ctx)
   assert(ctx);
 
   // ggrt_ctx_init() should have been called.
-  assert(ctx->st._type);
+  assert(ctx->default_module);
 
   // Patch in libffi types.
 #define BOTH_TYPE(FFI,T,N)                       \
