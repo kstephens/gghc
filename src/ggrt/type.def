@@ -5,12 +5,12 @@
 #define FFI_TYPE(FFI,T)
 #endif
 #ifndef BOTH_TYPE
-#define BOTH_TYPE(FFI,T)
+#define BOTH_TYPE(FFI,T,N)
 #endif
 
 /* XXX(ffi name, C type, C type w/ underscore) */
 
-BOTH_TYPE(void,void)
+BOTH_TYPE(void,void,void)
 GG_TYPE(uchar,unsigned char, unsigned_char)
 GG_TYPE(schar,char,char)
 GG_TYPE(ushort,unsigned short,unsigned_short)
@@ -19,8 +19,8 @@ GG_TYPE(uint,unsigned int,unsigned_int)
 GG_TYPE(sint,int,int)
 GG_TYPE(ulong,unsigned long,unsigned_long)
 GG_TYPE(slong,long,long)
-BOTH_TYPE(float,float)
-BOTH_TYPE(double,double)
+BOTH_TYPE(float,float,float)
+BOTH_TYPE(double,double,double)
 GG_TYPE(longdouble,long double,long_double)
 GG_TYPE(pointer,void*,voidP)
 

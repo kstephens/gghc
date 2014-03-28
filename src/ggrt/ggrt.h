@@ -6,8 +6,8 @@
 enum ggrt_type_enum_t {
   ggrt_te_UNDEF = 0,
   ggrt_te_INTRINSICS_BEGIN,
-#define GG_TYPE(FFI,T,N)  ggrt_te_##N,
-#define BOTH_TYPE(FFI,T)  ggrt_te_##T,
+#define GG_TYPE(FFI,T,N)   ggrt_te_##N,
+#define BOTH_TYPE(FFI,T,N) ggrt_te_##N,
 #include "ggrt/type.def"
   ggrt_te_INTRINSICS_END
 };

@@ -43,7 +43,7 @@ struct ggrt_s_ctx {
 
   /* intrinsic types. */
 #define GG_TYPE(FFI,T,N)  struct ggrt_type_t *type_##N;
-#define BOTH_TYPE(FFI,T)  struct ggrt_type_t *type_##T;
+#define BOTH_TYPE(FFI,T,N)  struct ggrt_type_t *type_##N;
 #include "ggrt/type.def"
 
   ggrt_symbol_table *st_type, *st_struct, *st_union, *st_enum, *st_global, *st_macro;
@@ -56,8 +56,8 @@ struct ggrt_s_ctx {
 
   /* ffi support. */
   // libffi type names.
-#define FFI_TYPE(FFI,T)  void *_ffi_type_##FFI;
-#define BOTH_TYPE(FFI,T) void *_ffi_type_##T;
+#define FFI_TYPE(FFI,T)    void *_ffi_type_##FFI;
+#define BOTH_TYPE(FFI,T,N) void *_ffi_type_##N;
 #include "ggrt/type.def"
 
   /* Users must define these functions. */

@@ -31,15 +31,15 @@ ggrt_ctx ggrt_ctx_init_ffi(ggrt_ctx ctx)
   assert(ctx->st_type);
 
   // Patch in libffi types.
-#define BOTH_TYPE(FFI,T) \
+#define BOTH_TYPE(FFI,T,N)                       \
   ctx->_ffi_type_##T = &ffi_type_##FFI;
-#define FFI_TYPE(FFI,T) \
+#define FFI_TYPE(FFI,T)                        \
   ctx->_ffi_type_##FFI = &ffi_type_##FFI;
 #include "type.def"
 
   // Patch into ggrt types.
 #define GG_TYPE(FFI,T,N) ctx->type_##N->_ffi_type = ctx->_ffi_type_##FFI;
-#define BOTH_TYPE(FFI,T) ctx->type_##T->_ffi_type = ctx->_ffi_type_##FFI;
+#define BOTH_TYPE(FFI,T,N) ctx->type_##N->_ffi_type = ctx->_ffi_type_##FFI;
 #include "type.def"
 
   ctx->_ffi_unbox     = ggrt_ffi_unbox_dummy;
