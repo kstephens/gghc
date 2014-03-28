@@ -106,7 +106,9 @@ ggrt_symbol *ggrt_symbol_table_by_name(ggrt_ctx ctx, ggrt_symbol_table *st, cons
 
 ggrt_symbol *ggrt_global_get(ggrt_ctx ctx, const char *name, void *addr)
 {
-  ggrt_symbol proto = { name, addr };
+  ggrt_symbol proto;
+  proto.name = name;
+  proto.addr = addr;
   return ggrt_symbol_table_get(ctx, ctx->st_global, &proto);
 }
 

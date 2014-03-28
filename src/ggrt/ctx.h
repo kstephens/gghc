@@ -18,6 +18,8 @@ typedef void *ggrt_user_data[4];
 
 /* struct or enum element. */
 typedef struct ggrt_symbol {
+  ggrt_user_data user_data;
+
   const char *name;
   void *addr;
   ggrt_type_t *type;
@@ -26,18 +28,16 @@ typedef struct ggrt_symbol {
   struct ggrt_symbol *next;
   struct ggrt_symbol_table *st;
   int st_i;
-
-  ggrt_user_data user_data;
 } ggrt_symbol;
 
 typedef struct ggrt_symbol_table {
+  ggrt_user_data user_data;
+
   const char *name;
   int nsymbs;
   ggrt_symbol **by_name;
   ggrt_symbol **by_addr;
   ggrt_symbol *next;
-
-  ggrt_user_data user_data;
 } ggrt_symbol_table;
 
 struct ggrt_s_ctx {
@@ -74,6 +74,8 @@ struct ggrt_s_ctx {
 };
 
 typedef struct ggrt_module_t {
+  ggrt_user_data user_data;
+
   const char *name;
 
   ggrt_symbol_table *st_type, *st_struct, *st_union, *st_enum;
@@ -82,12 +84,16 @@ typedef struct ggrt_module_t {
 } ggrt_module_t;
 
 typedef struct ggrt_pragma_t {
+  ggrt_user_data user_data;
+
   const char *text;
   struct ggrt_module_t *mod;
   struct ggrt_pragma_t *prev;
 } ggrt_pragma_t;
 
 typedef struct ggrt_macro_t {
+  ggrt_user_data user_data;
+
   const char *name;
   const char *text;
   struct ggrt_module_t *mod;
