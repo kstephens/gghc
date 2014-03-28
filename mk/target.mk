@@ -47,6 +47,8 @@ $(BIN) : $(GEN_HFILES) $(GEN_CFILES) $(OFILES) $(ROOT)/lib/lib*.a
 	$(CC) $(CFLAGS) -o $(BIN) $(OFILES) $(LDFLAGS) $(LDLIBS)
 	cp -p $(BIN) $(ROOT)/bin
 
+$(TFILES) : $(ROOT)/lib/lib*.a
+
 all-subdirs :
 	@set -e; for d in $(SUBDIRS) ;\
 	do  \
