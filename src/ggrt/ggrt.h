@@ -9,7 +9,21 @@ enum ggrt_type_enum_t {
 #define GG_TYPE(FFI,T,N)   ggrt_te_##N,
 #define BOTH_TYPE(FFI,T,N) ggrt_te_##N,
 #include "ggrt/type.def"
-  ggrt_te_INTRINSICS_END
+  ggrt_te_INTRINSICS_END,
+  ggrt_te_GENERATED,
+  ggrt_te_enum        = 0x010000,
+  ggrt_te_enum_END    = 0x020000,
+  ggrt_te_union       = 0x020000,
+  ggrt_te_union_END   = 0x040000,
+  ggrt_te_struct      = 0x040000,
+  ggrt_te_struct_END  = 0x080000,
+  ggrt_te_pointer     = 0x080000,
+  ggrt_te_pointer_END = 0x100000,
+  ggrt_te_array       = 0x100000,
+  ggrt_te_array_END   = 0x200000,
+  ggrt_te_func        = 0x200000,
+  ggrt_te_func_END    = 0x400000,
+  ggrt_te_END
 };
 
 struct ggrt_type_t {

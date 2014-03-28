@@ -12,6 +12,10 @@ typedef struct ggrt_type_t ggrt_type_t;
 
 struct ggrt_elem_t;
 
+struct ggrt_pragma_t;
+struct ggrt_macro_t;
+struct ggrt_constant_t;
+
 typedef void *ggrt_user_data[4];
 
 /* struct or enum element. */
@@ -53,11 +57,7 @@ struct ggrt_s_ctx {
 #include "ggrt/type.def"
 
   /* Collected C runtime data. */
-  struct ggrt_pragma_t *pragmas;
-  struct ggrt_macro_t *macros;
   struct ggrt_module_t *current_module, *default_module;
-  struct ggrt_type_t *current_enum;
-  struct ggrt_type_t *current_struct;
 
   /* Callbacks */
   struct ggrt_cb {
@@ -97,6 +97,16 @@ typedef struct ggrt_module_t {
 
   struct ggrt_sts st;
 
+  struct ggrt_pragma_t *pragmas;
+  struct ggrt_macro_t *macros;
+  struct ggrt_constant_t *constants;
+
+  struct ggrt_type_t *current_enum;
+  struct ggrt_type_t *current_struct;
+
+  int _next_te;
+  int _next_id;
+
   struct ggrt_module_t *prev;
   void *cb_val; /* callback value. */
 } ggrt_module_t;
@@ -119,6 +129,14 @@ typedef struct ggrt_macro_t {
   struct ggrt_macro_t *prev;
   void *cb_val; /* callback value. */
 } ggrt_macro_t;
+
+typedef struct ggrt_constant_t {
+  ggrt_user_data user_data;
+  char *name;
+  char *c_expr;
+  int _id;
+  struct ggrt_constant_t *next;
+} ggrt_constant_t;
 
 ggrt_ctx ggrt_m_ctx();
 

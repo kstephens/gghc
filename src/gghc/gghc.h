@@ -86,13 +86,8 @@ typedef struct gghc_ctx {
   int _yyleng;
   gghc_YYSTYPE *_yylvalp; /* &yylval */
 
-  /* Output state. */
+  /* Output control. */
   int _emit;
-  int constant_id;
-  gghc_enum *current_enum;
-  int unnamed_enum_id;
-  gghc_struct *current_struct;
-  int unnamed_struct_id;
 
 } *gghc_ctx;
 

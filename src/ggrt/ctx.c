@@ -61,6 +61,8 @@ ggrt_module_t *ggrt_m_module(ggrt_ctx ctx, const char *name)
     mod->st._intrinsic = ggrt_m_symbol_table(ctx, "intrinsic");
   }
 
+  mod->_next_te = (int) ggrt_te_GENERATED;
+
   return mod;
 }
 
