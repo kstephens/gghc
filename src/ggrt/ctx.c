@@ -21,12 +21,12 @@ ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx)
 {
   assert(ctx);
 
-  ctx->st_type   = ggrt_m_symbol_table(ctx, "type");
-  ctx->st_struct = ggrt_m_symbol_table(ctx, "struct");
-  ctx->st_union  = ggrt_m_symbol_table(ctx, "union");
-  ctx->st_enum   = ggrt_m_symbol_table(ctx, "enum");
-  ctx->st_global = ggrt_m_symbol_table(ctx, "global");
-  ctx->st_macro  = ggrt_m_symbol_table(ctx, "macro");
+  ctx->st._type   = ggrt_m_symbol_table(ctx, "type");
+  ctx->st._struct = ggrt_m_symbol_table(ctx, "struct");
+  ctx->st._union  = ggrt_m_symbol_table(ctx, "union");
+  ctx->st._enum   = ggrt_m_symbol_table(ctx, "enum");
+  ctx->st._global = ggrt_m_symbol_table(ctx, "global");
+  ctx->st._macro  = ggrt_m_symbol_table(ctx, "macro");
 
   // Define basic types.
 #define GG_TYPE(FFI,T,N)                                \
@@ -45,7 +45,7 @@ ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx)
 #include "type.def"
 
   /* In symbol table */
-#define GG_TYPE(FFI,T,N) ggrt_symbol_table_add_(ctx, ctx->st_type, #T, ctx->type_##N, 0);
+#define GG_TYPE(FFI,T,N) ggrt_symbol_table_add_(ctx, ctx->st._type, #T, ctx->type_##N, 0);
 #include "type.def"
 
   return ctx;
@@ -102,7 +102,7 @@ ggrt_symbol *ggrt_global_get(ggrt_ctx ctx, const char *name, void *addr)
   ggrt_symbol proto;
   proto.name = name;
   proto.addr = addr;
-  return ggrt_symbol_table_get(ctx, ctx->st_global, &proto);
+  return ggrt_symbol_table_get(ctx, ctx->st._global, &proto);
 }
 
 void ggrt_symbol_table_add(ggrt_ctx ctx, ggrt_symbol_table *st, ggrt_symbol *sym)
@@ -138,6 +138,6 @@ ggrt_symbol *ggrt_m_symbol(ggrt_ctx ctx, const char *name, void *addr, ggrt_type
 ggrt_symbol *ggrt_global(ggrt_ctx ctx, const char *name, void *addr, ggrt_type_t *type)
 {
   ggrt_symbol *sym = ggrt_m_symbol(ctx, name, addr, type);
-  ggrt_symbol_table_add(ctx, ctx->st_global, sym);
+  ggrt_symbol_table_add(ctx, ctx->st._global, sym);
   return sym;
 }

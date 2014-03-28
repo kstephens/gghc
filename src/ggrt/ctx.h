@@ -46,8 +46,11 @@ struct ggrt_s_ctx {
 #define BOTH_TYPE(FFI,T,N)  struct ggrt_type_t *type_##N;
 #include "ggrt/type.def"
 
-  ggrt_symbol_table *st_type, *st_struct, *st_union, *st_enum, *st_global, *st_macro;
+  struct ggrt_sts {
+    ggrt_symbol_table *_type, *_struct, *_union, *_enum, *_global, *_macro;
+  } st;
 
+  /* Collected C runtime data. */
   struct ggrt_pragma_t *pragmas;
   struct ggrt_macro_t *macros;
   struct ggrt_module_t *current_module;
