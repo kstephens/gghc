@@ -103,11 +103,17 @@ ggrt_type_t *ggrt_m_pointer_type(ggrt_ctx ctx, ggrt_type_t *t)
 ggrt_type_t *ggrt_m_array_type(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
 {
   ggrt_type_t *pt;
+
+  if ( len == 0 || len == (size_t) -1 && t->array0_of )
+    return t->array0_of;
+
   pt = ggrt_m_type(ctx, 0, 0);
   pt->_ffi_type = pt->_ffi_arg_type = ctx->_ffi_type_pointer;
   pt->type = "array";
   pt->rtn_type = t;
   pt->nelems = len;
+  if ( len == 0 || len == (size_t) -1 )
+    t->array0_of = pt;
   // int a[10];
   // typeof(&a) == typeof(&a[0]);
   pt->pointer_to = ggrt_m_pointer_type(ctx, t);

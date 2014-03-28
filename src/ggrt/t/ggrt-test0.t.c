@@ -50,6 +50,20 @@ static void fill_bytes(void *_p, size_t s)
 
 #define my_offsetof(T,E) ((size_t) &(((T*)0)->E))
 
+static
+void test_type_constrution(ggrt_ctx ctx)
+{
+  ggrt_type_t *t = ctx->type_int;
+
+  // Cached.
+  assert(ggrt_m_pointer_type(ctx, t)  == ggrt_m_pointer_type(ctx, t));
+  assert(ggrt_m_array_type(ctx, t, 0) == ggrt_m_array_type(ctx, t, 0));
+  assert(ggrt_m_array_type(ctx, t, (size_t) -1) == ggrt_m_array_type(ctx, t, (size_t) -1));
+
+  // Not cached.
+  assert(ggrt_m_array_type(ctx, t, 1) != ggrt_m_array_type(ctx, t, 1));
+}
+
 static void test_struct_def(ggrt_ctx ctx)
 {
   ggrt_type_t *st = ggrt_m_struct_type(ctx, "struct", "test_struct");
@@ -126,6 +140,7 @@ int main()
 {
   ggrt_ctx ctx = ggrt_ctx_init_ffi(ggrt_m_ctx());
 
+  test_type_constrution(ctx);
   test_struct_def(ctx);
   test_func_call(ctx);
 

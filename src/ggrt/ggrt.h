@@ -15,6 +15,7 @@ struct ggrt_type_t {
   struct ggrt_type_t *param_type; /* as an function parameter. */
   struct ggrt_type_t *alias_of;
   struct ggrt_type_t *pointer_to; /* this type. */
+  struct ggrt_type_t *array0_of;  /* this type. */
 
   /* struct, union, enum, func type */
   struct ggrt_type_t *rtn_type; /* AND array, pointer element type. */
