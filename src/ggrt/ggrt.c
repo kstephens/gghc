@@ -233,7 +233,7 @@ size_t ggrt_type_sizeof(ggrt_ctx ctx, ggrt_type_t *st)
   if ( st->nelems ) {
     size_t offset = 0, size = 0;
     int i;
-    size_t e_alignof, e_sizeof, adjust_alignof;
+    size_t e_alignof, e_sizeof, adjust_alignof, x;
     ggrt_elem_t *e;
 
     for ( i = 0; i < st->nelems; ++ i ) {
@@ -245,14 +245,14 @@ size_t ggrt_type_sizeof(ggrt_ctx ctx, ggrt_type_t *st)
         if ( (adjust_alignof = offset % e_alignof) )
           offset += e_alignof - adjust_alignof;
         e->offset = offset;
-        offset += ggrt_type_sizeof(ctx, e->type);
+        offset += e_sizeof;
         break;
       case 'u':
         // align and size of a union is the max of all elements.
         // Actually: it should be the LCD of all elements
-        if ( size <= e_sizeof )
+        if ( size < e_sizeof )
           size = e_sizeof;
-        if ( offset <= e_alignof )
+        if ( offset < e_alignof )
           offset = e_alignof;
         e->offset = 0;
         break;
@@ -263,23 +263,21 @@ size_t ggrt_type_sizeof(ggrt_ctx ctx, ggrt_type_t *st)
 
     switch ( *st->type ) {
     case 's':
-      // Align to first elem so array of this struct will align.
-      e = st->elems[0];
-
-      e_alignof = ggrt_type_alignof(ctx, e->type);
-      if ( (adjust_alignof = offset % e_alignof) )
-        offset += e_alignof - adjust_alignof;
-
-      // FIXME: Align to 16-byte word?
-      e_alignof = 16;
-      if ( (adjust_alignof = offset % e_alignof) )
-        offset += e_alignof - adjust_alignof;
-
-      st->c_sizeof = offset;
-      st->c_alignof = ggrt_type_alignof(ctx, e->type);
+      // Align all elems so array of this struct will align its members.
+      x = 0;
+      for ( i = 0; i < st->nelems; ++ i ) {
+        e = st->elems[i];
+        e_alignof = ggrt_type_alignof(ctx, e->type);
+        if ( (adjust_alignof = offset % e_alignof) )
+          offset += e_alignof - adjust_alignof;
+        if ( x < e_alignof ) // LCD == max alignment of all members?
+          x = e_alignof;
+      }
+      st->c_sizeof  = offset;
+      st->c_alignof = x;
       break;
     case 'u':
-      st->c_sizeof = size;
+      st->c_sizeof  = size;
       st->c_alignof = offset;
       break;
     default:
