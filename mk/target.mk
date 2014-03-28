@@ -16,6 +16,8 @@ CINCS += -I/usr/include/x86_64-linux-gnu
 CLIBS += -L/usr/lib/x86_64-linux-gnu
 endif
 
+ROOT_LIBS := $(shell ls $(ROOT)/lib/lib*.a 2>/dev/null)
+
 all : show-uname all-subdirs $(PRODUCTS) $(TARGETS)
 
 v :
@@ -43,11 +45,11 @@ $(LIB) : $(GEN_HFILES) $(GEN_CFILES) $(OFILES)
 	ar -r $(LIB) $(OFILES)
 	cp -p $(LIB) $(ROOT)/lib
 
-$(BIN) : $(GEN_HFILES) $(GEN_CFILES) $(OFILES) $(ROOT)/lib/lib*.a
+$(BIN) : $(GEN_HFILES) $(GEN_CFILES) $(OFILES) $(ROOT_LIBS)
 	$(CC) $(CFLAGS) -o $(BIN) $(OFILES) $(LDFLAGS) $(LDLIBS)
 	cp -p $(BIN) $(ROOT)/bin
 
-$(TFILES) : $(ROOT)/lib/lib*.a
+$(TFILES) : $(ROOT_LIBS)
 
 all-subdirs :
 	@set -e; for d in $(SUBDIRS) ;\
@@ -73,10 +75,10 @@ clean-subdirs :
 
 test : all test-subdirs test-local test-t
 
-test-subdirs :
+test-subdirs : all
 	@set -e; for d in $(SUBDIRS) ;\
 	do  \
-	  $(MAKE) -C "$$d" all test ;\
+	  $(MAKE) -C "$$d" test ;\
 	done
 
 test-local :
