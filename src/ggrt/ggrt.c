@@ -74,10 +74,38 @@ ggrt_constant_t *ggrt_m_constant(ggrt_ctx ctx, const char *name, const char *tex
 ggrt_constant_t *ggrt_constant(ggrt_ctx ctx, const char *name, const char *text)
 {
   ggrt_module_t *mod = ggrt_current_module(ctx);
-  ggrt_constant_t *p = ggrt_m_constant(ctx, name, text);
-  p->next = mod->constants;
-  mod->constants = p;
+  ggrt_constant_t *obj = ggrt_m_constant(ctx, name, text);
+  obj->_id = ++ mod->_next_id;
+  if ( ctx->cb._constant )
+    obj->cb_val = ctx->cb._constant(ctx, obj);
+  obj->prev = mod->constants;
+  mod->constants = obj;
+  return obj;
+}
+
+ggrt_global_t *ggrt_m_global(ggrt_ctx ctx, const char *name, ggrt_type_t *type, void *addr)
+{
+  ggrt_module_t *mod = ggrt_current_module(ctx);
+  ggrt_global_t *p = ggrt_malloc(sizeof(*p));
+  p->name = ggrt_strdup(name);
+  p->addr = addr;
+  p->type = type;
   return p;
+}
+
+ggrt_global_t *ggrt_global(ggrt_ctx ctx, const char *name, ggrt_type_t *type, void *addr)
+{
+  ggrt_module_t *mod = ggrt_current_module(ctx);
+  ggrt_global_t *obj = ggrt_m_global(ctx, name, type, addr);
+  ggrt_symbol *sym;
+  obj->_id = ++ mod->_next_id;
+  if ( ctx->cb._global )
+    obj->cb_val = ctx->cb._global(ctx, obj);
+  sym = ggrt_symbol_table_add_(ctx, mod->st._global, name, addr, type);
+  sym->value = obj;
+  obj->prev = mod->globals;
+  mod->globals = obj;
+  return obj;
 }
 
 static

@@ -2,45 +2,9 @@
 #define __ggrt_CTX_H
 
 #include <stdlib.h>
+#include "ggrt/data.h"
+#include "ggrt/st.h"
 #include "ggrt/malloc_zone.h"
-
-struct ggrt_s_ctx;
-typedef struct ggrt_s_ctx *ggrt_ctx;
-
-struct ggrt_type_t;
-typedef struct ggrt_type_t ggrt_type_t;
-
-struct ggrt_elem_t;
-
-struct ggrt_pragma_t;
-struct ggrt_macro_t;
-struct ggrt_constant_t;
-
-typedef void *ggrt_user_data[4];
-
-/* struct or enum element. */
-typedef struct ggrt_symbol {
-  ggrt_user_data user_data;
-
-  const char *name;
-  void *addr;
-  ggrt_type_t *type;
-  void *value;
-
-  struct ggrt_symbol *next;
-  struct ggrt_symbol_table *st;
-  int st_i;
-} ggrt_symbol;
-
-typedef struct ggrt_symbol_table {
-  ggrt_user_data user_data;
-
-  const char *name;
-  int nsymbs;
-  ggrt_symbol **by_name;
-  ggrt_symbol **by_addr;
-  ggrt_symbol *next;
-} ggrt_symbol_table;
 
 struct ggrt_sts {
   ggrt_symbol_table *_type, *_intrinsic, *_struct, *_union, *_enum, *_global, *_macro;
@@ -67,7 +31,7 @@ struct ggrt_s_ctx {
     void *(*_pragma)(ggrt_ctx ctx, struct ggrt_pragma_t *p);
     void *(*_macro)(ggrt_ctx ctx, struct ggrt_macro_t *m);
     void *(*_intrinsic)(ggrt_ctx ctx, struct ggrt_type_t *t);
-    void *(*_typedef)(ggrt_ctx ctx, const char *name, struct ggrt_type_t *t);
+    void *(*_typedef)(ggrt_ctx ctx, struct ggrt_typedef_t *obj);
     void *(*_pointer)(ggrt_ctx ctx, struct ggrt_type_t *t);
     void *(*_array)(ggrt_ctx ctx, struct ggrt_type_t *at);
     void *(*_enum)(ggrt_ctx ctx, struct ggrt_type_t *et);
@@ -76,6 +40,7 @@ struct ggrt_s_ctx {
     void *(*_struct_elem)(ggrt_ctx ctx, struct ggrt_type_t *st, struct ggrt_elem_t *elem);
     void *(*_struct_end)(ggrt_ctx ctx, struct ggrt_type_t *st);
     void *(*_func)(ggrt_ctx ctx, struct ggrt_type_t *ft);
+    void *(*_global)(ggrt_ctx ctx, struct ggrt_global_t *g);
   } cb;
 
   /* ffi support. */
@@ -100,6 +65,8 @@ typedef struct ggrt_module_t {
   struct ggrt_pragma_t *pragmas;
   struct ggrt_macro_t *macros;
   struct ggrt_constant_t *constants;
+  struct ggrt_typedef_t  *typedefs;
+  struct ggrt_global_t   *globals;
 
   struct ggrt_type_t *current_enum;
   struct ggrt_type_t *current_struct;
@@ -138,6 +105,20 @@ typedef struct ggrt_constant_t {
   struct ggrt_constant_t *next;
 } ggrt_constant_t;
 
+typedef struct ggrt_typedef_t {
+  ggrt_HEADER(ggrt_typedef_t);
+  const char *name;
+  struct ggrt_type_t *type;
+} ggrt_typedef_t;
+
+typedef struct ggrt_global_t {
+  ggrt_HEADER(ggrt_global_t);
+  const char *name;
+  void *addr;
+  struct ggrt_type_t *type;
+  ggrt_symbol *sym;
+} ggrt_global_t;
+
 ggrt_ctx ggrt_m_ctx();
 
 /* Must call before use. */
@@ -157,17 +138,8 @@ ggrt_pragma_t *ggrt_pragma(ggrt_ctx ctx, const char *text);
 ggrt_macro_t *ggrt_m_macro(ggrt_ctx ctx, const char *name, const char *text);
 ggrt_macro_t *ggrt_macro(ggrt_ctx ctx, const char *name, const char *text);
 
-/* Symbol tables. */
-ggrt_symbol_table* ggrt_m_symbol_table(ggrt_ctx ctx, const char *name);
-
-void ggrt_symbol_table_add(ggrt_ctx ctx, ggrt_symbol_table *st, ggrt_symbol *sym);
-
-ggrt_symbol *ggrt_symbol_table_get(ggrt_ctx ctx, ggrt_symbol_table *st, ggrt_symbol *proto);
-ggrt_symbol *ggrt_symbol_table_by_name(ggrt_ctx ctx, ggrt_symbol_table *st, const char *name);
-ggrt_symbol *ggrt_symbol_table_by_addr(ggrt_ctx ctx, ggrt_symbol_table *st, void *addr);
-
-ggrt_symbol *ggrt_m_symbol(ggrt_ctx ctx, const char *name, void *address, ggrt_type_t *type);
-
-ggrt_symbol *ggrt_symbol_table_add_(ggrt_ctx ctx, ggrt_symbol_table *st, const char *name, void *address, ggrt_type_t *type);
+/* Global */
+ggrt_global_t *ggrt_m_global(ggrt_ctx ctx, const char *name, ggrt_type_t *t, void *addr);
+ggrt_global_t *ggrt_global(ggrt_ctx ctx, const char *name, ggrt_type_t *t, void *addr);
 
 #endif

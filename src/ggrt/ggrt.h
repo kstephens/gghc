@@ -111,7 +111,6 @@ ggrt_type_t *ggrt_type_by_name(ggrt_ctx ctx, const char *name);
 ggrt_type_t *ggrt_typedef(ggrt_ctx ctx, const char *name, ggrt_type_t *type);
 
 /* Globals */
-ggrt_symbol *ggrt_global(ggrt_ctx ctx, const char *name, void *address, ggrt_type_t *type);
 ggrt_symbol *ggrt_global_get(ggrt_ctx ctx, const char *name, void *addr);
 
 /* Func call. */

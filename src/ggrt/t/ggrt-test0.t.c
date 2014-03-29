@@ -126,8 +126,9 @@ static void test_func_call(ggrt_ctx ctx)
   ggrt_type_t *ct_rtn  = boxed_type;
   ggrt_type_t *ct_params[1] = { boxed_type };
   ggrt_type_t *ft = ggrt_func(ctx, ct_rtn, 1, ct_params);
-  ggrt_symbol *sym = ggrt_global(ctx, "identity", &identity, ft);
   boxed rtn, args[10];
+
+  ggrt_global(ctx, "identity", ft, &identity);
 
   args[0] = (boxed) 0x1234;
   ggrt_ffi_call(ctx, ft, &rtn, ggrt_global_get(ctx, "identity", 0)->addr, 1, args);

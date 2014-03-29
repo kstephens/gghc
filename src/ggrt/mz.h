@@ -1,3 +1,6 @@
+#include "ggrt/malloc_zone.h"
+#include "ggrt/ctx.h"
+
 #ifndef ggrt_malloc
 #define ggrt_malloc(s)    malloc_zone_malloc(ctx->mz,(s))
 #define ggrt_realloc(p,s) malloc_zone_realloc(ctx->mz,(p),(s))
