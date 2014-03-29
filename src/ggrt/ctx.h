@@ -27,23 +27,23 @@ struct ggrt_s_ctx {
   /* Callbacks */
   struct ggrt_cb {
     ggrt_user_data data; /* opaque callback data hook. */
-    void *(*_module_begin)(ggrt_ctx ctx, struct ggrt_module_t *mod);
-    void *(*_module_end)(ggrt_ctx ctx, struct ggrt_module_t *mod);
-    void *(*_pragma)(ggrt_ctx ctx, struct ggrt_pragma_t *obj);
-    void *(*_macro)(ggrt_ctx ctx, struct ggrt_macro_t *obj);
-    void *(*_constant)(ggrt_ctx ctx, struct ggrt_constant_t *obj);
-    void *(*_intrinsic)(ggrt_ctx ctx, struct ggrt_type_t *t);
-    void *(*_typedef)(ggrt_ctx ctx, struct ggrt_typedef_t *obj);
-    void *(*_pointer)(ggrt_ctx ctx, struct ggrt_type_t *t);
-    void *(*_array)(ggrt_ctx ctx, struct ggrt_type_t *at);
-    void *(*_enum)(ggrt_ctx ctx, struct ggrt_type_t *et);
-    void *(*_enum_elem)(ggrt_ctx ctx, struct ggrt_type_t *et, struct ggrt_elem_t *elem);
-    void *(*_enum_end)(ggrt_ctx ctx, struct ggrt_type_t *et);
-    void *(*_struct)(ggrt_ctx ctx, struct ggrt_type_t *st);
-    void *(*_struct_elem)(ggrt_ctx ctx, struct ggrt_type_t *st, struct ggrt_elem_t *elem);
-    void *(*_struct_end)(ggrt_ctx ctx, struct ggrt_type_t *st);
-    void *(*_func)(ggrt_ctx ctx, struct ggrt_type_t *ft);
-    void *(*_global)(ggrt_ctx ctx, struct ggrt_global_t *g);
+    void (*_module_begin)(ggrt_ctx ctx, struct ggrt_module_t *mod);
+    void (*_module_end)(ggrt_ctx ctx, struct ggrt_module_t *mod);
+    void (*_pragma)(ggrt_ctx ctx, struct ggrt_pragma_t *obj);
+    void (*_macro)(ggrt_ctx ctx, struct ggrt_macro_t *obj);
+    void (*_constant)(ggrt_ctx ctx, struct ggrt_constant_t *obj);
+    void (*_intrinsic)(ggrt_ctx ctx, struct ggrt_type_t *t);
+    void (*_typedef)(ggrt_ctx ctx, struct ggrt_typedef_t *obj);
+    void (*_pointer)(ggrt_ctx ctx, struct ggrt_type_t *t);
+    void (*_array)(ggrt_ctx ctx, struct ggrt_type_t *at);
+    void (*_enum)(ggrt_ctx ctx, struct ggrt_type_t *et);
+    void (*_enum_elem)(ggrt_ctx ctx, struct ggrt_type_t *et, struct ggrt_elem_t *elem);
+    void (*_enum_end)(ggrt_ctx ctx, struct ggrt_type_t *et);
+    void (*_struct)(ggrt_ctx ctx, struct ggrt_type_t *st);
+    void (*_struct_elem)(ggrt_ctx ctx, struct ggrt_type_t *st, struct ggrt_elem_t *elem);
+    void (*_struct_end)(ggrt_ctx ctx, struct ggrt_type_t *st);
+    void (*_func)(ggrt_ctx ctx, struct ggrt_type_t *ft);
+    void (*_global)(ggrt_ctx ctx, struct ggrt_global_t *g);
   } cb;
 
   /* ffi support. */

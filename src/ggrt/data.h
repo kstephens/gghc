@@ -22,6 +22,6 @@ typedef void *ggrt_user_data[4];
   int _id; \
   struct ggrt_module_t *mod; \
   struct T *prev; \
-  void *cb_val; /* callback value. */
+  ggrt_user_data cb_data; /* opaque cb. */
 
 #endif
