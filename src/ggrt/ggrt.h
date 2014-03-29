@@ -45,12 +45,13 @@ struct ggrt_type_t {
   struct ggrt_type_t *rtn_type; /* AND array, pointer element type. */
   size_t nelems;
   struct ggrt_elem_t **elems;
+  long last_value;
   struct ggrt_type_t *struct_scope;
+
+  ggrt_user_data cb_data; /* cb_data[0] is the callback return value. */
 
   /* C declarator. */
   const char *c_declarator; /* printf format with %s for the name. */
-
-  void *cb_val; /* callback value. */
 
   /* func type: generated */
   void *_ffi_type, *_ffi_arg_type;
@@ -72,7 +73,7 @@ typedef struct ggrt_elem_t {
   size_t offset;
   ggrt_type_t *parent;
   int parent_i;
-  void *cb_val; /* callback value. */
+  ggrt_user_data cb_data; /* cb_data[0] is the callback return value. */
 } ggrt_elem_t;
 
 /* Must call before using libffi interfaces. */
@@ -82,6 +83,8 @@ ggrt_ctx ggrt_ctx_init_ffi(ggrt_ctx ctx);
 size_t ggrt_type_sizeof(ggrt_ctx ctx, ggrt_type_t *st);
 size_t ggrt_type_alignof(ggrt_ctx ctx, ggrt_type_t *st);
 
+ggrt_constant_t *ggrt_constant(ggrt_ctx ctx, const char *name, const char *text);
+
 /* Make intrinsic type. */
 ggrt_type_t *ggrt_intrinsic(ggrt_ctx ctx, const char *name, size_t c_size);
 
@@ -90,14 +93,17 @@ ggrt_type_t *ggrt_pointer(ggrt_ctx ctx, ggrt_type_t *t);
 ggrt_type_t *ggrt_array(ggrt_ctx ctx, ggrt_type_t *t, size_t len);
 
 /* Make enum type. */
-ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelem, const char **names, long *elem_values);
-ggrt_type_t *ggrt_enum_define(ggrt_ctx ctx, ggrt_type_t *ct, int nelems, const char **names, long *values);
+ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelem, const char **names, const long *elem_values);
+ggrt_elem_t *ggrt_enum_elem(ggrt_ctx ctx, ggrt_type_t *ct, const char *name, const long *valuep);
+ggrt_type_t *ggrt_enum_end(ggrt_ctx ctx, ggrt_type_t *ct, const char *name);
+
 ggrt_elem_t *ggrt_enum_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name);
 
 /* Make struct type. */
 ggrt_type_t *ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name);
 ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, ggrt_type_t *t);
 ggrt_type_t *ggrt_struct_end(ggrt_ctx ctx, ggrt_type_t *st);
+
 ggrt_elem_t *ggrt_struct_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name);
 
 /* Make bitfield type. */

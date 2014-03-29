@@ -21,7 +21,7 @@ ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx)
 {
   assert(ctx);
 
-  ctx->default_module = ggrt_m_module(ctx, "%default");
+  ggrt_ctx_reset(ctx);
 
   // Define basic types.
 #define GG_TYPE(FFI,T,N)                                \
@@ -42,10 +42,20 @@ ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx)
   return ctx;
 }
 
+ggrt_ctx ggrt_ctx_reset(ggrt_ctx ctx)
+{
+  ctx->default_module = ggrt_m_module(ctx, "%default");
+  ctx->current_module = 0;
+  ctx->_next_id = 0;
+
+  return ctx;
+}
+
 ggrt_module_t *ggrt_m_module(ggrt_ctx ctx, const char *name)
 {
   ggrt_module_t *mod = ggrt_malloc(sizeof(*mod));
   mod->name = ggrt_strdup(name);
+  mod->_id = ++ ctx->_next_id;
 
   mod->st._type   = ggrt_m_symbol_table(ctx, "type");
   mod->st._struct = ggrt_m_symbol_table(ctx, "struct");
