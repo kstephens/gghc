@@ -8,6 +8,10 @@
 #include "ggrt/ctx.h"
 #include "ggrt/malloc_zone.h"
 #include "ggrt/mm_buf.h"
+
+struct gghc_ctx;
+typedef struct gghc_ctx *gghc_ctx;
+
 #include "gghc/decl.h"
 
 typedef enum gghc_mode {
@@ -16,11 +20,11 @@ typedef enum gghc_mode {
   gghc_mode_c = 2,
   gghc_mode_sexpr = 3
 } gghc_mode;
-#define mode_cxx   (ctx->output_mode == gghc_mode_cxx)
-#define mode_c     (ctx->output_mode <= gghc_mode_c)
-#define mode_sexpr (ctx->output_mode == gghc_mode_sexpr)
+#define mode_cxx(ctx)   ((ctx)->output_mode == gghc_mode_cxx)
+#define mode_c(ctx)     ((ctx)->output_mode <= gghc_mode_c)
+#define mode_sexpr(ctx) ((ctx)->output_mode == gghc_mode_sexpr)
 
-typedef struct gghc_ctx {
+struct gghc_ctx {
   malloc_zone *mz;
   void *user_data[4];
 
@@ -78,8 +82,11 @@ typedef struct gghc_ctx {
   int   filen;
   char *initfuncname;
 
-  ggrt_symbol_table *st_type, *st_struct, *st_union, *st_enum;
+  // Parser state.
+  gghc_declaration *current_declaration;
+  gghc_declarator  *current_declarator;
 
+  // Parser/Lexer control.
   void *scanner; /* cl.l flex yyscan_t */
   int _yydebug;
   char *_yytext;
@@ -88,8 +95,11 @@ typedef struct gghc_ctx {
 
   /* Output control. */
   int _emit;
-
-} *gghc_ctx;
+  int constant_id;
+  int unnamed_enum_id, unnamed_struct_id;
+  gghc_struct *current_struct;
+  gghc_enum *current_enum;
+};
 
 gghc_ctx gghc_m_ctx();
 void gghc_ctx_destroy(gghc_ctx ctx);

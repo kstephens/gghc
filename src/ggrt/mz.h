@@ -6,4 +6,6 @@
 #define ggrt_realloc(p,s) malloc_zone_realloc(ctx->mz,(p),(s))
 #define ggrt_free(p)      malloc_zone_free(ctx-mz,(p))
 #define ggrt_strdup(p)    malloc_zone_strdup(ctx->mz,(p))
+#define ssprintf(FMT,ARGS...) ggrt_ssprintf(ctx, FMT, ## ARGS)
+
 #endif

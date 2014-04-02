@@ -102,7 +102,7 @@ PRAGMA	(pragma)
 %%
 
 \#[ \t]*{PRAGMA}.*\n {
-  gghc_pragma(ctx, yytext);
+  ggrt_pragma(ctx->rt, yytext);
 }
 
 \#[ \t]*{LINE}?[ \t]*[0-9]+([ \t]*\".*\")?.*\n {
@@ -210,7 +210,7 @@ loop:
   int tok = IDENTIFIER;
   ggrt_symbol *sym;
   yylval.u.cp = strdup(yytext);
-  if ( (sym = ggrt_symbol_table_by_name(ctx->rt, ctx->st_type, yytext)) ) {
+  if ( ggrt_type(ctx->rt, yytext) ) {
     tok = TYPE_NAME;
   }
   _return(tok);

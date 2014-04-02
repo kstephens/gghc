@@ -9,6 +9,7 @@ enum ggrt_type_enum_t {
 #define GG_TYPE(FFI,T,N)   ggrt_te_##N,
 #define BOTH_TYPE(FFI,T,N) ggrt_te_##N,
 #include "ggrt/type.def"
+  ggrt_te_varargs, // ...
   ggrt_te_INTRINSICS_END,
   ggrt_te_GENERATED,
   ggrt_te_enum        = 0x010000,
@@ -46,7 +47,7 @@ struct ggrt_type_t {
   size_t nelems;
   struct ggrt_elem_t **elems;
   long last_value;
-  struct ggrt_type_t *struct_scope;
+  struct ggrt_type_t *struct_scope, *prev;
 
   ggrt_user_data cb_data; /* cb_data[0] is the callback return value. */
 
@@ -70,6 +71,7 @@ typedef struct ggrt_elem_t {
   const char *name;
   struct ggrt_type_t *type;
   long enum_val;
+  char *enum_val_c_expr;
   size_t offset;
   ggrt_type_t *parent;
   int parent_i;
@@ -83,6 +85,9 @@ ggrt_ctx ggrt_ctx_init_ffi(ggrt_ctx ctx);
 size_t ggrt_type_sizeof(ggrt_ctx ctx, ggrt_type_t *st);
 size_t ggrt_type_alignof(ggrt_ctx ctx, ggrt_type_t *st);
 
+ggrt_type_t *ggrt_placeholder(ggrt_ctx ctx, const char *name);
+ggrt_type_t *ggrt_replace(ggrt_ctx ctx, ggrt_type_t *old_val, ggrt_type_t *ph, ggrt_type_t *new_val);
+
 ggrt_constant_t *ggrt_constant(ggrt_ctx ctx, const char *name, const char *text);
 
 /* Make intrinsic type. */
@@ -93,31 +98,43 @@ ggrt_type_t *ggrt_pointer(ggrt_ctx ctx, ggrt_type_t *t);
 ggrt_type_t *ggrt_array(ggrt_ctx ctx, ggrt_type_t *t, size_t len);
 
 /* Make enum type. */
+ggrt_type_t *ggrt_enum_forward(ggrt_ctx ctx, const char *name);
 ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelem, const char **names, const long *elem_values);
 ggrt_elem_t *ggrt_enum_elem(ggrt_ctx ctx, ggrt_type_t *ct, const char *name, const long *valuep);
 ggrt_type_t *ggrt_enum_end(ggrt_ctx ctx, ggrt_type_t *ct, const char *name);
 
 ggrt_elem_t *ggrt_enum_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name);
 
-/* Make struct type. */
+/* Struct/Union. */
+ggrt_type_t *ggrt_struct_forward(ggrt_ctx ctx, const char *s_or_u, const char *name);
 ggrt_type_t *ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name);
 ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, ggrt_type_t *t);
 ggrt_type_t *ggrt_struct_end(ggrt_ctx ctx, ggrt_type_t *st);
 
 ggrt_elem_t *ggrt_struct_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name);
 
-/* Make bitfield type. */
+/* Bitfield. */
 ggrt_type_t *ggrt_bitfield(ggrt_ctx ctx, ggrt_type_t *t, int bits);
 
-/* Make function type. */
+/* Function. */
 ggrt_type_t *ggrt_func(ggrt_ctx ctx, void *rtn_type, int nelem, ggrt_type_t **elem_types);
+ggrt_type_t *ggrt_varargs(ggrt_ctx ctx);
+
+ggrt_parameter_t *ggrt_parameter(ggrt_ctx ctx, ggrt_type_t *type, const char *name);
+void ggrt_parameter_list(ggrt_ctx ctx, ggrt_parameter_t *params, int *nparamp, ggrt_type_t ***param_typesp);
+ggrt_type_t *ggrt_func_params(ggrt_ctx ctx, void *rtn_type, ggrt_parameter_t *params);
 
 /* Typedefs */
-ggrt_type_t *ggrt_type_by_name(ggrt_ctx ctx, const char *name);
 ggrt_type_t *ggrt_typedef(ggrt_ctx ctx, const char *name, ggrt_type_t *type);
+
+/* Type by name. */
+ggrt_type_t *ggrt_type(ggrt_ctx ctx, const char *name);
 
 /* Globals */
 ggrt_symbol *ggrt_global_get(ggrt_ctx ctx, const char *name, void *addr);
+
+/* Returns an printf template for an identifier. */
+const char *ggrt_c_declarator(ggrt_ctx ctx, ggrt_type_t *t);
 
 /* Func call. */
 void ggrt_ffi_call(ggrt_ctx ctx, ggrt_type_t *ft, void *rtn_boxp, void *cfunc, int argc, const void *argv);

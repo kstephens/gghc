@@ -6,51 +6,21 @@
 
 #include "gghc.h"
 #include "gghc/decl.h"
+#include "ggrt/ggrt.h"
 
-/*
-** output functions for gghc
-*/
+void ghhc_init_callbacks(gghc_ctx ctx);
 
 void gghc_emit_control(gghc_ctx ctx, int i); /* -1 to pause, 1 to resume */
 
-void	gghc_pragma(gghc_ctx ctx, const char *text);
-
-/* typedef */
-void	gghc_typedef(gghc_ctx ctx, const char *name, const char *type);
-/* type reference */
-char*	gghc_type(gghc_ctx ctx, const char *typename);
-
-/* enum */
-char   *gghc_enum_type_forward(gghc_ctx ctx, const char *name);
-char*	gghc_enum_type(gghc_ctx ctx, const char *name);
-void	gghc_enum_type_element(gghc_ctx ctx, const char *name);
-char*	gghc_enum_type_end(gghc_ctx ctx);
-
-/* pointer */
-char*	gghc_pointer_type(gghc_ctx ctx, const char *type);
-
-/* array */
-char*	gghc_array_type(gghc_ctx ctx, const char *type, const char *length);
-
-/* struct/union */
-char   *gghc_struct_type_forward(gghc_ctx ctx, const char *s_or_u, const char *name);
-char*	gghc_struct_type(gghc_ctx ctx, const char *struct_or_union, const char *name);
-void	gghc_struct_type_element(gghc_ctx ctx, gghc_decl_spec *spec, gghc_decl *decl, const char *text);
-char*	gghc_struct_type_end(gghc_ctx ctx);
-
-/* function */
-char*	gghc_function_type(gghc_ctx ctx, const char *type, const char *length);
-char*	gghc_block_type(gghc_ctx ctx, const char *type, const char *length);
-
-/* top-level declaration */
-void	gghc_declaration(gghc_ctx ctx, gghc_decl_spec *spec, gghc_decl *decl);
-
-/* global */
-void	gghc_global(gghc_ctx ctx, const char *name, const char *type);
-
-/* CCP defines */
-void    gghc_define(gghc_ctx ctx, const char *name, const char *str);
-
 void gghc_reset_state(gghc_ctx ctx);
+
+char *gghc_constant(gghc_ctx ctx, const char *c_expr);
+
+ggrt_type_t *gghc_bitfield(gghc_ctx hcctx, struct ggrt_type_t *t, const char *length);
+ggrt_type_t *gghc_array(gghc_ctx hcctx, struct ggrt_type_t *t, const char *length);
+
+
+void gghc_emit_declarator(gghc_ctx ctx, gghc_declarator *decl);
+void gghc_emit_declaration(gghc_ctx ctx, gghc_declaration *decl);
 
 #endif

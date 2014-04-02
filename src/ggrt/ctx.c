@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <stdarg.h>
+#include <stdio.h> /* vasprintf() */
 #include <string.h> /* memset, memcpy */
 #include <assert.h>
 
@@ -13,6 +15,33 @@ ggrt_ctx ggrt_m_ctx()
   ctx->mz = malloc_zone_new();
 
   return ctx;
+}
+
+#if 0
+char *ssprintf(const char* format, ...)
+{
+  char *buf = 0;
+  va_list vap;
+  va_start(vap, format);
+  vasprintf(&buf, format, vap);
+  va_end(vap);
+  return buf;
+}
+#endif
+
+char *ggrt_ssprintf(ggrt_ctx ctx, const char* format, ...)
+{
+  char *buf = 0, *result = 0;
+  va_list vap;
+  va_start(vap, format);
+  vasprintf(&buf, format, vap);
+  va_end(vap);
+
+  // Copy to zone.
+  result = malloc_zone_strdup(ctx->mz, buf);
+  free(buf);
+
+  return result;
 }
 
 #include "mz.h"
@@ -38,6 +67,9 @@ ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx)
   /* Declarators */
 #define GG_TYPE(FFI,T,N) ctx->type_##N->c_declarator = #T " %s";
 #include "type.def"
+
+  ctx->type_varargs = ggrt_intrinsic(ctx, "...", 0);
+  ctx->type_varargs->te = ggrt_te_varargs;
 
   return ctx;
 }
@@ -87,5 +119,20 @@ ggrt_symbol *ggrt_global_get(ggrt_ctx ctx, const char *name, void *addr)
   proto.name = name;
   proto.addr = addr;
   return ggrt_symbol_table_get(ctx, ggrt_current_module(ctx)->st._global, &proto);
+}
+
+char *ggrt_escape_string(ggrt_ctx ctx, const char *str)
+{
+    char *out = ggrt_malloc(strlen(str) * 2 + 1);
+    char *t = out;
+    const char *s = str;
+    while ( *s ) {
+        if ( *s == '\\' || *s == '"' )
+            *(t ++) = '\\';
+        *(t ++) = *(s ++);
+    }
+    *(t ++) = 0;
+
+    return out;
 }
 

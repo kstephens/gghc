@@ -5,6 +5,6 @@
 #define realloc(X,S) gghc_realloc(ctx, (X), (S))
 #define free(X)      gghc_free(ctx, (X))
 #define strdup(X) gghc_strdup(ctx, (X))
-#define ssprintf(FMT,ARGS...) gghc_ssprintf(ctx, FMT, ## ARGS)
+#define ssprintf(FMT,ARGS...) ggrt_ssprintf(ctx->rt, FMT, ## ARGS)
 
 #endif

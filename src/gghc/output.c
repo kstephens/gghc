@@ -13,14 +13,12 @@
 #include "mzone.h"
 
 /*
-** Input/output functions for gghc
+** callbacks for gghc
 */
 
 void gghc_debug_stop()
 {
 }
-
-/***************************************************************************************************/
 
 void gghc_emit_control(gghc_ctx ctx, int i)
 {
@@ -30,377 +28,391 @@ void gghc_emit_control(gghc_ctx ctx, int i)
 #define eprintf(FH,FMT,ARGS...) \
     do { if ( ctx->_emit ) fprintf(FH,FMT, ## ARGS); } while(0)
 
-void gghc_pragma(gghc_ctx ctx, const char *c_expr)
-{
-    /* NOTHING */
-}
-
-char *  gghc_constant(gghc_ctx ctx, const char *c_expr)
+char *gghc_constant(gghc_ctx ctx, const char *c_expr)
 {
   const char *prefix = "";
   char *expr = 0;
   int id = ++ ctx->constant_id;
+  char *name;
 
-  if ( mode_sexpr ) {
+  if ( mode_sexpr(ctx) ) {
     prefix = "gghc:";
-    expr = ssprintf("%sconstant_%d #| %s |# ", prefix, id, c_expr);
   }
-  if ( mode_c ) {
-    expr = ssprintf("%sconstant_%d /* %s */ ", prefix, id, c_expr);
+
+  name = ssprintf("%sconstant_%d", prefix, id);
+
+  if ( mode_sexpr(ctx) ) {
+    expr = ssprintf("%s #| %s |# ", name, c_expr);
+  }
+  if ( mode_c(ctx) ) {
+    expr = ssprintf("%s /* %s */ ", name, id, c_expr);
   }
   eprintf(ctx->constants_c, "  _gghc_constant(%d,%s);\n", id, c_expr);
+
+  ggrt_constant(ctx->rt, name, c_expr);
+
   return expr;
 }
 
-void gghc_typedef(gghc_ctx ctx, const char *name, const char *type)
+#define ctx ((gghc_ctx) rtctx->cb.user_data[0])
+
+void _gghc_module_begin(ggrt_ctx rtctx, struct ggrt_module_t *mod)
 {
-  ggrt_symbol *sym;
+    /* NOTHING */
+}
 
-  if ( (sym = ggrt_symbol_table_by_name(ctx->rt, ctx->st_type, name)) ) {
-    gghc_yyerror(ctx, ssprintf("'%s' is already a typedef", name));
-    return;
+void _gghc_module_end(ggrt_ctx rtctx, struct ggrt_module_t *mod)
+{
+    /* NOTHING */
+}
+
+void _gghc_pragma(ggrt_ctx rtctx, struct ggrt_pragma_t *obj)
+{
+    /* NOTHING */
+}
+
+void _gghc_macro(ggrt_ctx rtctx, ggrt_macro_t *m)
+{
+  char *out = ggrt_escape_string(ctx->rt, m->text);
+  char *rep;
+  if ( mode_sexpr(ctx) ) {
+    rep = ssprintf("(gghc:macro \"%s\" \"%s\")\n", m->name, out);
+    eprintf(ctx->defines_out, "  %s", rep);
   }
-
-  // fprintf(stderr, "  @@@ gghc_typedef %s ==> %s\n", name, type);
-
-  sym = ggrt_symbol_table_add_(ctx->rt, ctx->st_type, name, 0, 0);
-  sym->value = strdup(type);
-
-  if ( mode_sexpr ) {
-  eprintf(ctx->body_out,"\
-  ;; typedef %s \n\
-  (gghc:typedef \"%s\" %s)\n", name, name, type);
+  if ( mode_c(ctx) ) {
+    abort();
   }
-  if ( mode_c ) {
-  eprintf(ctx->body_out,"\
-  /* typedef %s */\n\
-  gghc_typedef(\"%s\", %s);\n", name, name, type);
-  if ( ctx->debug )
-    printf("/* typedef %s */\n", name);
+  free(out);
+  m->cb_data[2] = rep;
+}
+
+void _gghc_typedef(ggrt_ctx rtctx, ggrt_typedef_t *td)
+{
+  const char *name = td->name;
+  const char *type = td->cb_data[0];
+
+  if ( mode_sexpr(ctx) ) {
+    eprintf(ctx->body_out,"  (gghc:typedef \"%s\" %s)\n", name, type);
+  }
+  if ( mode_c(ctx) ) {
+    eprintf(ctx->body_out,"  gghc_typedef(\"%s\", %s);\n", name, type);
+  }
+  if ( ctx->debug ) {
+    fprintf(stderr, "/* typedef %s */\n", name);
   }
 }
 
-char*	gghc_type(gghc_ctx ctx, const char *name)
+void _gghc_intrinsic(ggrt_ctx rtctx, struct ggrt_type_t *t)
 {
-  ggrt_symbol *sym;
+  char *result;
 
-  if ( (sym = ggrt_symbol_table_by_name(ctx->rt, ctx->st_type, name)) ) {
-    return sym->value;
+  if ( mode_sexpr(ctx) ) {
+    result = ssprintf("(gghc:type \"%s\")", t->name);
   }
-
-  if ( mode_sexpr ) {
-  return ssprintf("(gghc:type \"%s\")", name);
+  if ( mode_c(ctx) ) {
+    result = ssprintf("gghc_type(\"%s\")", t->name);
   }
-  if ( mode_c ) {
-  return ssprintf("gghc_type(\"%s\")", name);
-  }
-  return 0;
+  t->cb_data[0] = result;
 }
 
 /* enum */
-gghc_enum *_gghc_enum_type(gghc_ctx ctx, const char *name)
+gghc_enum *__gghc_enum(ggrt_ctx rtctx, struct ggrt_type_t *et)
 {
   gghc_enum *s;
-  int named = name && *name;
+  char *name = 0;
 
-  if ( named ) {
-    ggrt_symbol *sym;
-    if ( (sym = ggrt_symbol_table_by_name(ctx->rt, ctx->st_enum, name)) ) {
-      // fprintf(stderr, "  @@@ gghc_enum_type enum %s ==> %s\n", name, sym->value);
-      s = sym->addr;
-      return s;
-    }
-  }
+  if ( et->cb_data[1] )
+    return et->cb_data[1];
 
   s = malloc(sizeof(*s));
   memset(s, 0, sizeof(*s));
+  s->type = et;
 
-  s->named = named;
-  if ( ! s->named ) {
+  if ( (et->name && *et->name) ) {
+    name = (char*) et->name;
+  } else {
     name = ssprintf("_gghc_unamed_%d", ++ ctx->unnamed_enum_id);
   }
   s->name = (char*) name;
   
   /* Create a enum type variable declaration */
-  s->type = ssprintf("_gghc_type_enum_%s", s->name);
+  s->expr = ssprintf("_gghc_type_enum_%s", s->name);
 
-  if ( s->named ) {
-    ggrt_symbol *sym = ggrt_symbol_table_add_(ctx->rt, ctx->st_enum, name, 0, 0);
-    sym->value = strdup(s->type);
-    sym->addr  = s;
-  }
+  et->cb_data[0] = s->expr;
+  et->cb_data[1] = s;
 
   return s;
 }
 
-char   *gghc_enum_type_forward(gghc_ctx ctx, const char *name)
+void _gghc_enum(ggrt_ctx rtctx, struct ggrt_type_t *et)
 {
-  gghc_enum *s = _gghc_enum_type(ctx, name);
-
+  gghc_enum *s = __gghc_enum(rtctx, et);
+  
   if ( ! s->emitted ) {
     s->emitted = 1;
-    if ( mode_sexpr ) {
+    if ( mode_sexpr(ctx) ) {
       eprintf(ctx->body_out,
-              "  (gghc:enum %s \"%s\") ;; forward\n", s->type, (s->named ? name : ""));
+              "  (gghc:enum %s \"%s\") ;; forward\n", s->expr, (s->name ? s->name : ""));
     }
-    if ( mode_c ) {
+    if ( mode_c(ctx) ) {
       abort();
     }
   }
-
-  return s->type;
 }
 
-char*	gghc_enum_type(gghc_ctx ctx, const char *name)
+char *__gghc_enum_begin(ggrt_ctx rtctx, struct ggrt_type_t *et)
 {
-    gghc_enum *s = _gghc_enum_type(ctx, name);
-
-  if ( mode_sexpr ) {
-    eprintf(ctx->body_out, "  (gghc:enum %s \"%s\"\n",
-            name, s->type);
+  gghc_enum *s = __gghc_enum(rtctx, et);
+  const char * name = et->name && *et->name ? et->name : "";
+  if ( mode_sexpr(ctx) ) {
+    eprintf(ctx->body_out, "  (gghc:enum %s \"%s\"\n", s->expr, name);
   }
-  if ( mode_c ) {
-  eprintf(ctx->decl_out, "  GGHCT %s;\n", s->type);
+  if ( mode_c(ctx) ) {
+  eprintf(ctx->decl_out, "  GGHCT %s;\n", s->expr);
   
   /* Create the enum declaration initializer */
-  eprintf(ctx->body_out, "  %s = gghc_enum_type(\"%s\"); /* %s */\n", name, s->type, (s->named ? name : ""));
+  eprintf(ctx->body_out, "  %s = gghc_enum_type(\"%s\");\n", s->expr, name);
   }
 
-  s->prev = ctx->current_enum;
-  ctx->current_enum = s;
-
-  return s->type;
+  return s->expr;
 }
 
-void	gghc_enum_type_element(gghc_ctx ctx, const char *name)
+void _gghc_enum_elem(ggrt_ctx rtctx, struct ggrt_type_t *et, struct ggrt_elem_t *elem)
 {
-  gghc_enum *s = ctx->current_enum;
-  assert(s);
+  gghc_enum *s = __gghc_enum(rtctx, et);
 
-  s->nelem ++;
-  if ( mode_sexpr ) {
+  if ( s->emitted < 2 ) {
+    s->emitted = 2;
+    __gghc_enum_begin(rtctx, et);
+  }
+
+  if ( mode_sexpr(ctx) ) {
     eprintf(ctx->body_out, "    (gghc:enum-element \"%s\" %s)\n",
-            name,
-            gghc_constant(ctx, name));
+            elem->name,
+            gghc_constant(ctx, elem->name));
   }
-  if ( mode_c ) {
+  if ( mode_c(ctx) ) {
   eprintf(ctx->body_out, "    gghc_enum_type_element(%s, \"%s\", (int) /* enum %s */ %s);\n",
-          s->type,
-          name,
+          s->expr,
+          elem->name,
           s->name,
-          gghc_constant(ctx, name));
+          gghc_constant(ctx, elem->name));
   }
-  // if ( gghc_debug ) fprintf(stderr, "  /* enum %s:%s */\n", current_enum->name, name);
 }
 
-char *gghc_enum_type_end(gghc_ctx ctx) // FIXME
+void _gghc_enum_end(ggrt_ctx rtctx, struct ggrt_type_t *et)
 {
-  gghc_enum *s = ctx->current_enum, *prev = s->prev;
-  char *result = s->type;
+  gghc_enum *s = __gghc_enum(rtctx, et);
 
-  if ( mode_sexpr ) {
-    eprintf(ctx->body_out, "  ) ;; enum %s\n\n", s->type);
+  if ( mode_sexpr(ctx) ) {
+    eprintf(ctx->body_out, "  ) ;; enum %s\n\n", s->expr);
   }
-  if ( mode_c ) {
-    eprintf(ctx->body_out, "  gghc_enum_type_end(%s);\n\n", s->type);
+  if ( mode_c(ctx) ) {
+    eprintf(ctx->body_out, "  gghc_enum_type_end(%s);\n\n", s->expr);
+  }
+}
+
+void _gghc_pointer(ggrt_ctx rtctx, struct ggrt_type_t *t)
+{
+  char *expr;
+
+  if ( mode_sexpr(ctx) ) {
+    expr = ssprintf("(gghc:pointer %s)", t->rtn_type->cb_data[0]);
+  }
+  if ( mode_c(ctx) ) {
+    expr = ssprintf("gghc_pointer_type(%s)", t->rtn_type->cb_data[0]);
+  }
+  t->cb_data[0] = expr;
+}
+
+void _gghc_array(ggrt_ctx rtctx, struct ggrt_type_t *at)
+{
+}
+
+ggrt_type_t *gghc_array(gghc_ctx hcctx, struct ggrt_type_t *t, const char *length)
+{
+  ggrt_ctx rtctx = hcctx->rt;
+  ggrt_type_t *at = ggrt_array(hcctx->rt, t, (size_t) -1);
+  char *expr;
+
+  if ( ! (length && *length) )
+    length = 0;
+
+  if ( mode_sexpr(ctx) ) {
+    expr = ssprintf("(gghc:array %s %s)", t->cb_data[0], length ? gghc_constant(hcctx, length) : "-1");
+  }
+  if ( mode_c(ctx) ) {
+    expr = ssprintf("gghc_array_type(%s, %s)", t->cb_data[0], length ? length : "-1");
   }
 
-  if ( s->nelem ) {
-    // free(s->name);
-    // free(s->type);
-    // free(s);
+  at->cb_data[0] = expr;
+  return at;
+}
+
+ggrt_type_t *gghc_bitfield(gghc_ctx hcctx, struct ggrt_type_t *t, const char *length)
+{
+  ggrt_ctx rtctx = hcctx->rt;
+  ggrt_type_t *bt = ggrt_bitfield(hcctx->rt, t, -1);
+  char *expr;
+
+  if ( ! (length && *length) )
+    length = 0;
+
+  if ( mode_sexpr(ctx) ) {
+    expr = ssprintf("(gghc:bitfield %s %s)", t->cb_data[0], length ? gghc_constant(hcctx, length) : "-1");
+  }
+  if ( mode_c(ctx) ) {
+    expr = ssprintf("gghc_bitfield_type(%s, %s)", t->cb_data[0], length ? length : "-1");
   }
 
-  ctx->current_enum = prev;
-  return result;
+  bt->cb_data[0] = expr;
+  return bt;
 }
 
 
-/*
-** pointer
-*/
-char*	gghc_pointer_type(gghc_ctx ctx, const char *type)
+gghc_struct *__gghc_struct(ggrt_ctx rtctx, struct ggrt_type_t *st)
 {
-  assert(type && type[0]);
-  assert(! (type[0] == 'c' && type[1] == 'o' && type[2] == 'n' && type[3] == 's' && type[4] == 't' && type[5] == ' '));
+  gghc_struct *s;
 
-  if ( mode_sexpr ) {
-  return ssprintf("(gghc:pointer %s)", type);
-  }
-  if ( mode_c ) {
-  return ssprintf("gghc_pointer_type(%s)", type);
-  }
-  return 0;
-}
-
-/*
-** array
-*/
-char*	gghc_array_type(gghc_ctx ctx, const char *type, const char *length)
-{
-  if ( mode_sexpr ) {
-      return ssprintf("(gghc:array %s %s)", type, (length && length[0] ? gghc_constant(ctx, length) : "-1"));
-  }
-  if ( mode_c ) {
-  return ssprintf("gghc_array_type(%s, %s)", type, (length && length[0] ? length : "-1"));
-  }
-  return 0;
-}
-
-
-/*
-** struct/union context
-*/
-gghc_struct *_gghc_struct_type(gghc_ctx ctx, const char *s_or_u, const char *name)
-{
-  gghc_struct* s;
-  int named = name && *name;
-  ggrt_symbol_table *st = s_or_u[0] == 's' ? ctx->st_struct : ctx->st_union;
-
-  if ( named ) {
-    ggrt_symbol *sym;
-    if ( (sym = ggrt_symbol_table_by_name(ctx->rt, st, name))  ) {
-      // fprintf(stderr, "  @@@ gghc_struct_type %s ==> %s\n", typename, sym->value);
-      return sym->addr;
-    }
-  }
+  if ( st->cb_data[1] )
+    return st->cb_data[1];
 
   s = malloc(sizeof(*s));
   memset(s, 0, sizeof(*s));
-
-  s->struct_or_union = (char*) s_or_u;
-  s->named = named;
-  s->name = (char*) (s->named ? name : ssprintf("_gghc_unamed_%s_%d", s_or_u, ++ ctx->unnamed_struct_id));
+  s->named = st->name && *st->name;
+  s->name = (char*) (s->named ? st->name : ssprintf("_gghc_unamed_%s_%d", st->type, ++ ctx->unnamed_struct_id));
   s->slots = strdup("");
   s->slots_text = strdup("");
-  s->type = ssprintf("_gghc_type_%s_%s", s->struct_or_union, s->name);
+  s->expr = ssprintf("_gghc_type_%s_%s", st->type, s->name);
 
-  if ( s->named ) {
-    ggrt_symbol *sym = sym = ggrt_symbol_table_add_(ctx->rt, st, name, 0, 0);
-    sym->value = strdup(s->type);
-    sym->addr  = s;
-  }
+  s->type = st;
+  st->cb_data[0] = s->expr;
+  st->cb_data[1] = s;
+
   return s;
 }
 
-char *gghc_struct_type_forward(gghc_ctx ctx, const char *s_or_u, const char *name)
+ggrt_type_t *gghc_struct_forward(gghc_ctx hcctx, const char *s_or_u, const char *name)
 {
-  gghc_struct *s = _gghc_struct_type(ctx, s_or_u, name);
+  ggrt_ctx rtctx = hcctx->rt;
+  ggrt_type_t *st = ggrt_struct(rtctx, s_or_u, name);
+  gghc_struct *s = __gghc_struct(rtctx, st);
 
   if ( ! s->emitted ) {
     s->emitted = 1;
-    if ( mode_sexpr ) {
+    if ( mode_sexpr(ctx) ) {
         eprintf(ctx->body_out, "  (gghc:struct %s \"%s\" \"%s\") ;; forward\n",
-              s->type,
-              s->struct_or_union,
-              s->named ? s->name : "");
+              s->expr,
+              st->type,
+              st->name && *st->name ? s->name : "");
     }
-    if ( mode_c ) {
+    if ( mode_c(ctx) ) {
       abort();
     }
   }
 
-  return s->type;
+  return st;
 }
 
-char *gghc_struct_type(gghc_ctx ctx, const char *s_or_u, const char *name)
+void _gghc_struct(ggrt_ctx rtctx, ggrt_type_t *st)
 {
-  gghc_struct *s = _gghc_struct_type(ctx, s_or_u, name);
+  gghc_struct *s = __gghc_struct(rtctx, st);
 
   s->emitted = 1;
-  if ( mode_sexpr ) {
+  if ( mode_sexpr(ctx) ) {
     eprintf(ctx->body_out, "  (gghc:struct %s \"%s\" \"%s\"\n",
-            s->type,
-            s->struct_or_union,
+            s->expr,
+            st->type,
             s->named ? s->name : "");
   }
 
-  if ( mode_c ) {
-  eprintf(ctx->body_out, "/* %s %s */\n", s->struct_or_union, s->name);
+  if ( mode_c(ctx) ) {
+    eprintf(ctx->body_out, "/* %s %s */\n", st->type, s->name);
   
-  /* Create a struct type variable declaration */
-  eprintf(ctx->decl_out, "  GGHCT %s;\n", s->type);
+    /* Create a struct type variable declaration */
+    eprintf(ctx->decl_out, "  GGHCT %s;\n", s->expr);
   
-  /* Create a struct type */
-  eprintf(ctx->body_out, "  %s = gghc_struct_type(\"%s\", \"%s\", sizeof(%s %s));\n", s->type, s->struct_or_union, (s->named ? s->name : ""), s->struct_or_union, s->name);
+    /* Create a struct type */
+    eprintf(ctx->body_out, "  %s = gghc_struct_type(\"%s\", \"%s\", sizeof(%s %s));\n", s->expr, st->type, (s->named ? s->name : ""), st->type, s->name);
   }
+}
 
-  s->prev = ctx->current_struct;
-  ctx->current_struct = s;
-
-  return s->type;
+void _gghc_struct_elem(ggrt_ctx rtctx, struct ggrt_type_t *st, ggrt_elem_t *elem)
+{
 }
 
 /* struct/union element */
-void	gghc_struct_type_element(gghc_ctx ctx, gghc_decl_spec *spec, gghc_decl *decl, const char *text)
+void gghc_struct_elem(gghc_ctx hcctx, gghc_declarator *decl)
 {
+  ggrt_ctx rtctx = hcctx->rt;
   gghc_struct *s = ctx->current_struct;
-    char*	stype = 0; 
-    char*	sprefix = 0;
-    char*	ctype = 0;
-    char*	estype = 0;
-      char *offset_expr = 0;
+  ggrt_type_t *st = s->type;
+  char *text = ""; // ???
+  char *stype = 0; 
+  char *sprefix = 0;
+  char *ctype = 0;
+  char *estype = decl->type->cb_data[0];
+  char *offset_expr = 0;
   char *sizeof_expr = 0;
+  ggrt_elem_t *elem = 0; // FIXME
 
-  if ( decl->next ) {
-      gghc_struct_type_element(ctx, spec, decl->next, text);
-  } else {
-    /* Add a Text slot */
-    if ( ! ctx->current_struct->named ) {
-      char *prev = s->slots_text;
-      s->slots_text = ssprintf("%s%s\n", s->slots_text, text);
-      free(prev);
-    }
+  /* Add a Text slot */
+  if ( ! s->named ) {
+    char *prev = s->slots_text;
+    s->slots_text = ssprintf("%s%s\n", s->slots_text, text);
+    free(prev);
   }
   
   if ( s->nelem == 0 ) {
     if ( s->named ) {
-        sizeof_expr = gghc_constant(ctx, ssprintf("sizeof(%s %s)", s->struct_or_union, s->name));
+      sizeof_expr = gghc_constant(ctx,
+                                  ssprintf("sizeof(%s %s)",
+                                           st->type, st->name));
     }
-    eprintf(ctx->body_out, "      (gghc:sizeof %s)\n",
-          sizeof_expr ? sizeof_expr : "-1");
+    eprintf(ctx->body_out,
+            "      (gghc:sizeof %s)\n",
+            sizeof_expr ? sizeof_expr : "-1");
   }
 
   s->nelem ++;
-  if ( s->named && ! decl->is_bit_field ) {
-      offset_expr = gghc_constant(ctx, ssprintf("_gghc_offsetof(%s %s, %s)",
-                                    s->struct_or_union, s->name,
-                                    decl->identifier));
+  if ( s->named && ! decl->bit_field_size ) {
+    offset_expr = gghc_constant(ctx,
+                                ssprintf("_gghc_offsetof(%s %s, %s)",
+                                         st->type, s->name,
+                                         decl->identifier));
   }
 
-  if ( mode_sexpr ) {
-    assert(decl->declarator[0]);
-    assert(spec->type[0]);
-    estype = ssprintf(decl->declarator, spec->type);
-    if ( decl->is_bit_field ) {
-        estype = ssprintf("(gghc:bitfield %s %s)", estype, gghc_constant(ctx, decl->bit_field_size));
+  if ( mode_sexpr(ctx) ) {
+    if ( decl->bit_field_size ) {
+      estype = ssprintf("(gghc:bitfield %s %s)", estype, gghc_constant(ctx, decl->bit_field_size));
     }
-    eprintf(ctx->body_out, "    (gghc:element \"%s\" %s\n      (ggch:offsetof %s))\n",
+    eprintf(ctx->body_out,
+            "    (gghc:element \"%s\" %s\n      (ggch:offsetof %s))\n",
             decl->identifier,
             estype,
             offset_expr ? offset_expr : "-1"
             );
   }
 
-  if ( mode_c ) {
+  if ( mode_c(ctx) ) {
     /* Create a C pointer type for the getter/setter functions */
-    stype = ssprintf("((%s %s*)_s_)->%s", s->struct_or_union, s->name, decl->identifier);
+    stype = ssprintf("((%s %s*)_s_)->%s", st->type, s->name, decl->identifier);
   
     /* Create a common function prefix for the struct's slot */
-    sprefix = ssprintf("_%s_%s_%s", s->struct_or_union, s->name, decl->identifier);
+    sprefix = ssprintf("_%s_%s_%s", st->type, s->name, decl->identifier);
   
     /* Create getter/setter functions */
-    if ( decl->is_bit_field ) {
+    if ( decl->bit_field_size ) {
       /* Create a C pointer type for the slot. */
-      ctype = ssprintf(decl->declarator_text, "*");
-      ctype = ssprintf("*((%s %s)_v_)", spec->type_text, ctype);
+      ctype = ssprintf(ggrt_c_declarator(rtctx, ggrt_pointer(rtctx, decl->type)), "*");
+      ctype = ssprintf("*((%s %s)_v_)", "~~FIXME~~", ctype);
   
       eprintf(ctx->decl_out, "\
 static void _gghc%s_get (void *_s_, void *_v_){%s = %s;}\n\
 static void _gghc%s_set (void *_s_, void *_v_){%s = %s;}\n",
 	      sprefix, ctype, stype,
 	      sprefix, stype, ctype
-      );
+              );
     } else {
       ctype = ssprintf("_v_");
       eprintf(ctx->decl_out,"\
@@ -408,40 +420,40 @@ static void _gghc%s_get (void *_s_, void *_v_){memcpy(%s, &(%s), sizeof(%s));}\n
 static void _gghc%s_set (void *_s_, void *_v_){memcpy(&(%s), %s, sizeof(%s));}\n",
 	      sprefix, ctype, stype, stype,
 	      sprefix, stype, ctype, stype
-      );
+              );
     }
   
     /* Gencode for the element. */
-    estype = ssprintf(decl->declarator, spec->type);
-    eprintf(ctx->body_out, "    gghc_struct_type_element(%s, %s, \"%s\", (gghc_funcp) &_gghc%s_get, (gghc_funcp) &_gghc%s_set);\n", s->type, estype, decl->identifier, sprefix, sprefix);
+    estype = "~~FIXME~~";
+    eprintf(ctx->body_out, "    gghc_struct_elem(%s, %s, \"%s\", (gghc_funcp) &_gghc%s_get, (gghc_funcp) &_gghc%s_set);\n", s->expr, estype, decl->identifier, sprefix, sprefix);
   }
 
   free(offset_expr);
-    free(stype);
-    free(sprefix);
-    free(ctype);
-    free(estype);
-  free(sizeof_expr); 
+  free(stype);
+  free(sprefix);
+  free(ctype);
+  free(sizeof_expr);
 }
 
-char *gghc_struct_type_end(gghc_ctx ctx)
+void _gghc_struct_end(ggrt_ctx rtctx, ggrt_type_t *st)
 {
-  gghc_struct *s = ctx->current_struct, *prev = s->prev;
-  char *type = s->type;
-  
-  if ( mode_sexpr ) {
-      eprintf(ctx->body_out, "  )         ;; %s \"%s\" \"%s\"\n", s->type, s->struct_or_union, (s->named ? s->name : ""));
-  }
-  if ( mode_c ) {
-  eprintf(ctx->body_out, "  gghc_struct_type_end(%s);\n", s->type);
-  eprintf(ctx->body_out, "  /* %s %s */\n\n", s->struct_or_union, s->name);
+  gghc_struct *s = st->cb_data[1];
 
-  if ( ! s->named ) {
-    eprintf(ctx->decl_out, "%s %s {\n%s\n};\n\n", 
-	    s->struct_or_union, s->name,
-	    s->slots_text);
+  assert(s == ctx->current_struct);
 
+  if ( mode_sexpr(ctx) ) {
+    eprintf(ctx->body_out, "  )         ;; %s \"%s\" \"%s\"\n", s->expr, st->type, (s->named ? s->name : ""));
   }
+  if ( mode_c(ctx) ) {
+    eprintf(ctx->body_out, "  gghc_struct_type_end(%s);\n", s->expr);
+    eprintf(ctx->body_out, "  /* %s %s */\n\n", st->type, s->name);
+
+    if ( ! s->named ) {
+      eprintf(ctx->decl_out, "%s %s {\n%s\n};\n\n", 
+              st->type, s->name,
+              s->slots_text);
+
+    }
   }
 
   if ( s->nelem ) {
@@ -450,127 +462,100 @@ char *gghc_struct_type_end(gghc_ctx ctx)
     // free(s->type);
     // free(s);
   }
-  ctx->current_struct = prev;
-  
-  return type;
+  ctx->current_struct = s->prev;
 }
 
-
-/*
-** function;
-*/
-char *gghc_function_type(gghc_ctx ctx, const char *rtntype, const char *argtypes)
+void _gghc_func(ggrt_ctx rtctx, ggrt_type_t *ft)
 {
-  if ( mode_sexpr ) {
+  char *result;
+  char *rtntype = ft->rtn_type->cb_data[0];
+  char *argtypes = "FIXME: _gghc_function_type";
+
+  if ( mode_sexpr(ctx) ) {
     if ( strcmp(argtypes, "(gghc:type \"void\")") == 0 ) {
       argtypes = "";
     }
-    return ssprintf("(gghc:function %s %s)", rtntype, argtypes);
+    result = ssprintf("(gghc:function %s %s)", rtntype, argtypes);
   }
-  if ( mode_c ) {
-  if ( strcmp(argtypes, "gghc_type(\"void\")") == 0 ) {
-    argtypes = "GGHCT_NULL";
-  } else {
-    argtypes = ssprintf("%s, GGHCT_NULL", argtypes);
-  }
-  return ssprintf("gghc_function_type(%s, %s)", rtntype, argtypes);
-  }
-  return 0;
-}
-
-char *gghc_block_type(gghc_ctx ctx, const char *rtntype, const char *argtypes)
-{
-  if ( mode_sexpr ) {
-    if ( strcmp(argtypes, "(gghc:type \"void\")") == 0 ) {
-      argtypes = "";
-    }
-    return ssprintf("(gghc:block %s %s)", rtntype, argtypes);
-  }
-  if ( mode_c ) {
-  if ( strcmp(argtypes, "gghc_type(\"void\")") == 0 ) {
-    argtypes = "GGHCT_NULL";
-  } else {
-    argtypes = ssprintf("%s, GGHCT_NULL", argtypes);
-  }
-  return ssprintf("gghc_block_type(%s, %s)", rtntype, argtypes);
-  }
-  return 0;
-}
-
-/*
-** Top-level declaration;
-*/
-void gghc_declaration(gghc_ctx ctx, gghc_decl_spec *spec, gghc_decl *decl)
-{
-  while ( decl ) {
-    gghc_decl *next = decl->next;
-    char *type = ssprintf(decl->declarator, spec->type);
-    // fprintf(stderr, "  gghc_declaration: type=%s ident=%s\n", type, decl->identifier);
-    if ( ! (spec->type && spec->type[0]) ) {
-        gghc_yyerror(ctx, ssprintf("no type for identifier '%s'", decl->identifier));
-    } else
-    if ( ! (decl->identifier && decl->identifier[0]) ) {
-        gghc_yyerror(ctx, ssprintf("no identifier for type '%s'", type));
+  if ( mode_c(ctx) ) {
+    if ( strcmp(argtypes, "gghc_type(\"void\")") == 0 ) {
+      argtypes = "GGHCT_NULL";
     } else {
-      /* The declaration is a typedef */
-      if ( spec->storage == TYPEDEF ) {
-          gghc_typedef(ctx, decl->identifier, type);
-      } else
-      /* The declaration is a global. */
-      if ( 1 ) {
-          gghc_global(ctx, decl->identifier, type);
-      } else {
-      /* The declaration is something else */
-        gghc_yywarning(ctx, ssprintf("ignoring declaration of '%s'", decl->identifier));
-      }
+      argtypes = ssprintf("%s, GGHCT_NULL", argtypes);
     }
+    result = ssprintf("gghc_function_type(%s, %s)", rtntype, argtypes);
+  }
+  ft->cb_data[0] = result;
+}
 
-    free(type);
-    free(decl);
-    decl = next;
+void _gghc_global(ggrt_ctx rtctx, ggrt_global_t *g)
+{
+  const char *name = g->name;
+  const char *type = g->type->cb_data[0];
+  char *expr;
+  if ( mode_sexpr(ctx) ) {
+    expr = ssprintf("(gghc:global \"%s\" %s)\n", name, type);
+  }
+  if ( mode_c(ctx) ) {
+    expr = ssprintf("  gghc_global(\"%s\", %s, (void*) &%s);\n", name, type, name);
+  }
+  eprintf(ctx->body_out, "  %s\n", expr);
+  g->cb_data[0] = expr;
+}
+
+#undef ctx
+
+void ghhc_init_callbacks(gghc_ctx ctx)
+{
+#define CB(N) ctx->rt->cb.N = _gghc##N
+  CB(_module_begin);
+  CB(_module_end);
+  // CB(_pragma);
+  CB(_macro);
+  // CB(_constant);
+  CB(_intrinsic);
+  CB(_typedef);
+  CB(_pointer);
+  CB(_array);
+  CB(_enum);
+  CB(_enum_elem);
+  CB(_enum_end);
+  CB(_struct);
+  CB(_struct_elem);
+  CB(_struct_end);
+  CB(_func);
+  CB(_global);
+#undef CB
+}
+
+void gghc_emit_declarator(gghc_ctx ctx, gghc_declarator *decl)
+{
+  ggrt_type_t *t = decl->type;
+  if ( ! t ) {
+    gghc_yyerror(ctx, ssprintf("no type for identifier '%s'", decl->identifier));
+  } else if ( ! (decl->identifier && decl->identifier[0]) ) {
+    gghc_yyerror(ctx, ssprintf("no identifier for type '%s'", t->name));
+  } else {
+    if ( decl->declaration->storage == TYPEDEF ) {
+      /* The declaration is a typedef */
+      ggrt_typedef(ctx->rt, decl->identifier, t);
+    } else if ( 1 ) {
+      /* The declaration is a global. */
+      ggrt_global(ctx->rt, decl->identifier, t, 0);
+    } else {
+      /* The declaration is something else */
+      gghc_yywarning(ctx, ssprintf("ignoring declaration of '%s'", decl->identifier));
+    }
   }
   eprintf(ctx->body_out, "\n");
 }
 
-
-/* global */
-void	gghc_global(gghc_ctx ctx, const char *name, const char *type)
+void gghc_emit_declaration(gghc_ctx ctx, gghc_declaration *decl)
 {
-  if ( mode_sexpr ) {
-    eprintf(ctx->body_out, "  (gghc:global \"%s\" %s)\n", name, type);
-  }
-  if ( mode_c ) {
-  eprintf(ctx->body_out, "  gghc_global(\"%s\", %s, (void*) &%s);\n", name, type, name);
+  gghc_declarator *d = decl->declarators;
+  while ( d ) {
+    gghc_emit_declarator(ctx, d);
+    d = d->prev;
   }
 }
-
-char *gghc_escape_string(gghc_ctx ctx, const char *str)
-{
-    char *out = malloc(strlen(str) * 2 + 1);
-    char *t = out;
-    const char *s = str;
-    while ( *s ) {
-        if ( *s == '\\' || *s == '"' )
-            *(t ++) = '\\';
-        *(t ++) = *(s ++);
-    }
-    *(t ++) = 0;
-
-    return out;
-}
-
-void    gghc_define(gghc_ctx ctx, const char *name, const char *str)
-{
-  char *out = gghc_escape_string(ctx, str);
-  if ( mode_sexpr ) {
-    eprintf(ctx->defines_out, "  (gghc:define \"%s\" \"%s\")\n", name, out);
-  }
-  if ( mode_c ) {
-    abort();
-  }
-  free(out);
-}
-
-
-
 

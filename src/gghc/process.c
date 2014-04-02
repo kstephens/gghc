@@ -30,7 +30,7 @@ int parse_C_defines(gghc_ctx ctx, FILE *fp)
             *(s ++) = 0;
             while ( *s && isspace(*s) ) s ++;
             value = s;
-            gghc_define(ctx, name, value);
+            ggrt_macro(ctx->rt, name, value);
             ++ count;
         }
     }
@@ -45,7 +45,7 @@ void gghc_process_files(gghc_ctx ctx)
   int i;
 
   /* Initialize function name */
-  if ( mode_c ) {
+  if ( mode_c(ctx) ) {
     char *o, *t;
   
     o = (ctx->output_pathname == 0 || strcmp(ctx->output_pathname, "-") == 0) ?
@@ -103,7 +103,7 @@ void gghc_process_files(gghc_ctx ctx)
   fprintf(ctx->constants_c, "#define main __gghc_main\n\n");
 
   /* Include the specified header files */
-  if ( mode_cxx ) {
+  if ( mode_cxx(ctx) ) {
     fprintf(ctx->constants_c, "#define cplusplus__ 1\n");
     fprintf(ctx->constants_c, "extern \"C\" {\n\n");
   }
@@ -115,16 +115,16 @@ void gghc_process_files(gghc_ctx ctx)
   }
   fprintf(ctx->constants_c, "\n\n");
 
-  if ( mode_cxx )
+  if ( mode_cxx(ctx) )
     fprintf(ctx->constants_c, "\n}\n\n");
 
   /* _gghc_constant constant definition. */
   {
     char *fmt;
-    if ( mode_sexpr) {
+    if ( mode_sexpr(ctx) ) {
       fmt = "  (gghc:constant gghc:constant_%d %ld \\\"%s\\\")";
     }
-    if ( mode_c ) {
+    if ( mode_c(ctx) ) {
       fmt = "static long _gghc_constant_%d = (long) (%ld); /* %%s */";
     }
     fprintf(ctx->constants_c, "#define _gghc_constant(ID,EXPR) printf(\"%s\\n\", ID, (long) (EXPR), #EXPR)\n", fmt);
@@ -138,7 +138,7 @@ void gghc_process_files(gghc_ctx ctx)
   /**************************************/
   /* output header */
 
-  if ( mode_sexpr ) {
+  if ( mode_sexpr(ctx) ) {
     fprintf(ctx->header_out, ";; Created by gghc 0.1, built %s %s */\n", __DATE__, __TIME__);
 
     fprintf(ctx->header_out,    "\n(gghc:module \"%s\"\n\n", ctx->files);
@@ -148,20 +148,22 @@ void gghc_process_files(gghc_ctx ctx)
     fprintf(ctx->header_out,    "  (gghc:info 'cpp   \"%s\")\n\n", ctx->cmd_cpp);
   }
 
-  if ( mode_c ) {
+  if ( mode_c(ctx) ) {
     fprintf(ctx->header_out, "/* Created by gghc 0.1, built %s %s */\n", __DATE__, __TIME__);
     fprintf(ctx->header_out, "/* input: %s\n */\n", ctx->files);
     fprintf(ctx->header_out, "/* cpp:   %s\n */\n\n", ctx->cmd_cpp);
     fprintf(ctx->header_out, "#include \"gghc_i.h\"\n\n");
   }
 
-  if ( mode_c ) {
-    fprintf(ctx->header_out, "\n\n%svoid %s(void) {\n", (mode_cxx ? "static " : ""), ctx->initfuncname);
+  if ( mode_c(ctx) ) {
+    fprintf(ctx->header_out, "\n\n%svoid %s(void) {\n", (mode_cxx(ctx) ? "static " : ""), ctx->initfuncname);
     fprintf(ctx->header_out, "\n  gghc_begin_module(\"%s\");\n\n", ctx->files);
   }
 
   /**************************************/
   /* Parse the preprocessed input file */
+
+  ggrt_module_begin(ctx->rt, ctx->files);
 
   mm_buf_open(ctx->mb, ctx->cpp_out_filename);
   gghc_yyparse(ctx, ctx->mb);
@@ -173,6 +175,8 @@ void gghc_process_files(gghc_ctx ctx)
   parse_C_defines(ctx, ctx->defines_in);
   fclose(ctx->defines_in); ctx->defines_in = 0;
 
+  ggrt_module_end(ctx->rt, 0);
+
   /**************************************/
   /* Terminate C constant input */
 
@@ -180,16 +184,16 @@ void gghc_process_files(gghc_ctx ctx)
   fprintf(ctx->constants_c, "\n  return 0;\n}\n");
 
   /* End module. */
-  if ( mode_sexpr ) {
+  if ( mode_sexpr(ctx) ) {
     fprintf(ctx->footer_out, "\n) ;; module %s\n\n", ctx->files);
   }
-  if ( mode_c ) {
+  if ( mode_c(ctx) ) {
     /* Terminate the initializer function */
     fprintf(ctx->footer_out, "  gghc_end_module(\"%s\");\n", ctx->files);
     fprintf(ctx->footer_out, "\n}\n\n");
   }
   /* Create an initializer object */
-  if ( mode_cxx ) {
+  if ( mode_cxx(ctx) ) {
     fprintf(ctx->footer_out, "static _gghcInitializer _gghc_initializer(%s);\n\n", ctx->initfuncname);
   }
 

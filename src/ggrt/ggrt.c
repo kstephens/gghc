@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h> /* asprintf() */
 #include <string.h> /* memset, memcpy */
 #include <alloca.h>
 #include <assert.h>
@@ -12,6 +13,10 @@ ggrt_module_t *ggrt_module_begin(ggrt_ctx ctx, const char *name)
   ggrt_module_t *mod = ggrt_m_module(ctx, name);
   mod->prev = ctx->current_module;
   ctx->current_module = mod;
+
+  if ( ctx->cb._module_begin )
+    ctx->cb._module_begin(ctx, mod);
+
   return mod;
 }
 
@@ -20,6 +25,10 @@ ggrt_module_t *ggrt_module_end(ggrt_ctx ctx, ggrt_module_t *mod)
   if ( ! mod ) {
     mod = ctx->current_module;
   }
+
+  if ( ctx->cb._module_end )
+    ctx->cb._module_end(ctx, mod);
+
   ctx->current_module = mod->prev;
   return mod;
 }
@@ -138,16 +147,32 @@ ggrt_type_t *ggrt_intrinsic(ggrt_ctx ctx, const char *name, size_t c_size)
     return sym->addr;
 
   t = ggrt_m_type(ctx, name, c_size);
-  t->type = "intrinsic";
+  if ( strcmp(name, "...") == 0 ) {
+    t->type = "varargs";
+  } else {
+    t->type = "intrinsic";
+  }
 
   ggrt_symbol_table_add_(ctx, mod->st._intrinsic, name, 0, t);
 
   if ( ctx->cb._intrinsic )
     ctx->cb._intrinsic(ctx, t);
 
-  ggrt_typedef(ctx, name, t);
+  ggrt_symbol_table_add_(ctx, mod->st._type, name, 0, t);
 
   return t;
+}
+
+ggrt_type_t *ggrt_type(ggrt_ctx ctx, const char *name)
+{
+  ggrt_module_t *mod = ggrt_current_module(ctx);
+  ggrt_symbol *sym;
+
+  if ( (sym = ggrt_symbol_table_by_name(ctx, mod->st._intrinsic, name)) )
+  assert(name && *name);
+    return sym->addr;
+
+  return 0;
 }
 
 ggrt_typedef_t *ggrt_m_typedef(ggrt_ctx ctx, const char *name, ggrt_type_t *t)
@@ -200,7 +225,8 @@ ggrt_type_t *ggrt_pointer(ggrt_ctx ctx, ggrt_type_t *t)
   pt->c_alignof = ctx->type_voidP->c_alignof;
   pt->c_vararg_size = sizeof(void*);
 
-  t->pointer_to = pt;
+  if ( t->type[1] != 'l' ) // placeholder
+    t->pointer_to = pt;
 
   if ( ctx->cb._pointer )
     ctx->cb._pointer(ctx, t);
@@ -221,8 +247,9 @@ ggrt_type_t *ggrt_array(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
   pt->te += ggrt_te_array;
   pt->rtn_type = t;
   pt->nelems = len;
-  if ( (len == 0 || len == (size_t) -1) )
-    t->array0_of = pt;
+  if ( t->type[1] != 'l' ) // placeholder
+    if ( (len == 0 || len == (size_t) -1) )
+      t->array0_of = pt;
   // int a[10];
   // typeof(&a) == typeof(&a[0]);
   pt->pointer_to = ggrt_pointer(ctx, t);
@@ -246,11 +273,12 @@ enum ggrt_enum {
   x, y, z
 };
 
-ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelems, const char **names, const long *values)
+ggrt_type_t *_ggrt_enum(ggrt_ctx ctx, const char *name)
 {
   ggrt_module_t *mod = ggrt_current_module(ctx);
   ggrt_type_t *ct;
   ggrt_symbol *sym;
+
   if ( name && *name && (sym = ggrt_symbol_table_by_name(ctx, mod->st._enum, name)) ) {
     return sym->addr;
   }
@@ -263,6 +291,27 @@ ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelems, const char **
 
   if ( name && *name )
     ggrt_symbol_table_add_(ctx, mod->st._enum, name, 0, ct);
+
+  return ct;
+}
+
+ggrt_type_t *ggrt_enum_forward(ggrt_ctx ctx, const char *name)
+{
+  ggrt_module_t *mod = ggrt_current_module(ctx);
+  ggrt_type_t *et;
+
+  assert(name && *name);
+  return et = _ggrt_enum(ctx, name);
+}
+
+ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelems, const char **names, const long *values)
+{
+  ggrt_module_t *mod = ggrt_current_module(ctx);
+  ggrt_type_t *ct = _ggrt_enum(ctx, name);
+
+  ct->prev = mod->current_enum;
+  ct->struct_scope = mod->current_struct;
+  mod->current_enum = ct;
 
   if ( nelems && names ) {
     int i;
@@ -280,6 +329,7 @@ ggrt_type_t *ggrt_enum(ggrt_ctx ctx, const char *name, int nelems, const char **
 
 ggrt_elem_t *ggrt_enum_elem(ggrt_ctx ctx, ggrt_type_t *ct, const char *name, const long *valuep)
 {
+  ggrt_module_t *mod = ggrt_current_module(ctx);
   ggrt_elem_t *e;
   int i;
   assert(ct);
@@ -300,6 +350,8 @@ ggrt_elem_t *ggrt_enum_elem(ggrt_ctx ctx, ggrt_type_t *ct, const char *name, con
 
 ggrt_type_t *ggrt_enum_end(ggrt_ctx ctx, ggrt_type_t *ct, const char *name)
 {
+  ggrt_module_t *mod = ggrt_current_module(ctx);
+
   if ( ! ct ) {
     assert(name && *name);
     ct = ggrt_enum(ctx, name, 0, 0, 0);
@@ -307,6 +359,8 @@ ggrt_type_t *ggrt_enum_end(ggrt_ctx ctx, ggrt_type_t *ct, const char *name)
 
   if ( ctx->cb._enum_end )
     ctx->cb._enum_end(ctx, ct);
+
+  mod->current_enum = ct->prev;
 
   return ct;
 }
@@ -316,7 +370,7 @@ ggrt_elem_t *ggrt_enum_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name)
   return ggrt_struct_get_elem(ctx, st, name);
 }
 
-ggrt_type_t *ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
+ggrt_type_t *_ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
 {
   ggrt_module_t *mod = ggrt_current_module(ctx);
   ggrt_type_t *st;
@@ -329,20 +383,44 @@ ggrt_type_t *ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
   st = ggrt_m_type(ctx, name, 0);
   st->type = s_or_u;
   st->te += s_or_u[0] == 's' ? ggrt_te_struct : ggrt_te_union;
-  st->struct_scope = mod->current_struct;
 
   st->elems = ggrt_malloc(sizeof(st->elems[0]) * st->nelems);
 
-  mod->current_struct = st;
-
   if ( name && *name )
     ggrt_symbol_table_add_(ctx, mod->st._enum, name, 0, st);
+
+  return st;
+}
+
+ggrt_type_t *ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
+{
+  ggrt_module_t *mod = ggrt_current_module(ctx);
+  ggrt_type_t *st = _ggrt_struct(ctx, s_or_u, name);
+
+  st->struct_scope = mod->current_struct;
+  st->prev = mod->current_struct;
+  mod->current_struct = st;
 
   if ( ctx->cb._struct )
     ctx->cb._struct(ctx, st);
 
   return st;
 }
+
+ggrt_type_t *ggrt_struct_forward(ggrt_ctx ctx, const char *s_or_u, const char *name)
+{
+  ggrt_module_t *mod = ggrt_current_module(ctx);
+  ggrt_type_t *st;
+
+  assert(name && *name);
+  st = _ggrt_struct(ctx, s_or_u, name);
+  
+  if ( ctx->cb._struct_forward )
+    ctx->cb._struct_forward(ctx, st);
+
+  return st;
+}
+
 
 ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, ggrt_type_t *t)
 {
@@ -389,7 +467,7 @@ ggrt_type_t *ggrt_struct_end(ggrt_ctx ctx, ggrt_type_t *st)
   if ( ctx->cb._struct_end )
     ctx->cb._struct_end(ctx, st);
 
-  mod->current_struct = st->struct_scope;
+  mod->current_struct = st->prev;
 
   return st;
 }
@@ -500,4 +578,137 @@ ggrt_type_t *ggrt_func(ggrt_ctx ctx, void *rtn_type, int nelems, ggrt_type_t **p
   return ct;
 }
 
+ggrt_type_t *ggrt_varargs(ggrt_ctx ctx)
+{
+  return ctx->type_varargs;
+}
+
+ggrt_parameter_t *ggrt_parameter(ggrt_ctx ctx, ggrt_type_t *type, const char *name)
+{
+  ggrt_parameter_t *p = ggrt_malloc(sizeof(*p));
+  p->type = type;
+  p->name = ggrt_strdup(name);
+  return p;
+}
+
+void ggrt_parameter_list(ggrt_ctx ctx, ggrt_parameter_t *params, int *nparamp, ggrt_type_t ***param_typesp)
+{
+  int nparam = 0, i;
+  ggrt_type_t **param_types = 0;
+  ggrt_parameter_t *head = 0, *next;
+
+  // Reverse and conunt linked list.
+  while ( params ) {
+    next = params->prev;
+    nparam ++;
+    params->prev = head;
+    head = params;
+    params = next;
+  }
+  params = head;
+
+  param_types = ggrt_malloc(sizeof(param_types[0]) * nparam);
+  for ( i = 0; i < nparam; ++ i ) {
+    param_types[i] = params->type;
+    params = params->prev;
+  }
+  assert(params == 0);
+}
+
+ggrt_type_t *ggrt_func_params(ggrt_ctx ctx, void *rtn_type, ggrt_parameter_t *params)
+{
+  int nparam = 0;
+  ggrt_type_t **param_types = 0;
+
+  ggrt_parameter_list(ctx, params, &nparam, &param_types);
+  return ggrt_func(ctx, rtn_type, nparam, param_types);
+}
+
+
+const char *ggrt_c_declarator(ggrt_ctx ctx, ggrt_type_t *t)
+{
+  char *d = 0;
+  int i;
+
+  if ( t->c_declarator )
+    return t->c_declarator;
+
+  switch ( t->type[0] ) {
+  case 'p':
+    asprintf(&d, ggrt_c_declarator(ctx, t->rtn_type), "*%s");
+    break;
+  case 'a':
+    if ( t->nelems != (size_t) -1 ) {
+      asprintf(&d, ggrt_c_declarator(ctx, t->rtn_type), "%s[%llu]", (unsigned long long) t->nelems);
+    } else {
+      asprintf(&d, ggrt_c_declarator(ctx, t->rtn_type), "%s[]");
+    }
+    break;
+  case 'f':
+    asprintf(&d, ggrt_c_declarator(ctx, t->rtn_type), "%s(");
+    for ( i = 0; i < t->nelems;  ) {
+      asprintf(&d, ggrt_c_declarator(ctx, t->elems[i]->type), "");
+      if ( ++ i < t->nelems )
+        asprintf(&d, ", ");
+    }
+    asprintf(&d, ")");
+    break;
+  case 's': case 'u':
+    if ( t->name && *t->name ) {
+      asprintf(&d, "%s %s %s", t->type, t->name, "%s");
+    } else {
+      abort();
+    }
+    break;
+  case 'e': // enum
+    if ( t->name && *t->name ) {
+      asprintf(&d, "enum %s %s", t->name, "%s");
+    } else {
+      abort();
+    }
+    break;
+
+  default:
+    abort();
+  }
+  t->c_declarator = ggrt_strdup(d);
+  free(d);
+  return t->c_declarator;
+}
+
+ggrt_type_t *ggrt_placeholder(ggrt_ctx ctx, const char *name)
+{
+  ggrt_type_t *t = ggrt_m_type(ctx, name, 0);
+  t->type = "placeholder";
+  t->c_declarator = "%s";
+  return t;
+}
+
+ggrt_type_t *ggrt_replace(ggrt_ctx ctx, ggrt_type_t *t, ggrt_type_t *ph, ggrt_type_t *new_val)
+{
+  int i;
+
+  if ( t == ph )
+    return new_val;
+
+  switch ( t->type[0] ) {
+  case 'p': case 'a':
+    t->rtn_type = ggrt_replace(ctx, t->rtn_type, ph, new_val);
+    break;
+  case 'f':
+    t->rtn_type = ggrt_replace(ctx, t->rtn_type, ph, new_val);
+    /* FALL THROUGH */
+  case 's': case 'u':
+    for ( i = 0; i < t->nelems; ++ i ) {
+      t->elems[i]->type = ggrt_replace(ctx, t->elems[i]->type, ph, new_val);
+    }
+    break;
+  case 'e': // enum
+    break;
+
+  default:
+    abort();
+  }
+  return t;
+}
 

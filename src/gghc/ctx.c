@@ -18,11 +18,6 @@ gghc_ctx gghc_m_ctx()
   ctx->rt = ggrt_m_ctx();
   ggrt_ctx_init(ctx->rt);
 
-  ctx->st_type   = ggrt_m_symbol_table(ctx->rt, "type");
-  ctx->st_struct = ggrt_m_symbol_table(ctx->rt, "struct");
-  ctx->st_union  = ggrt_m_symbol_table(ctx->rt, "union");
-  ctx->st_enum   = ggrt_m_symbol_table(ctx->rt, "enums");
-
   ctx->mb = &ctx->_mb;
   ctx->mb_token = &ctx->_mb_token;
   ctx->last_token = &ctx->_last_token;
@@ -70,31 +65,6 @@ char *gghc_strdup(gghc_ctx ctx, const char* s)
   return malloc_zone_strdup(ctx->mz, s);
 }
 
-char *ssprintf(const char* format, ...)
-{
-  char *buf = 0;
-  va_list vap;
-  va_start(vap, format);
-  vasprintf(&buf, format, vap);
-  va_end(vap);
-  return buf;
-}
-
-char *gghc_ssprintf(gghc_ctx ctx, const char* format, ...)
-{
-  char *buf = 0, *result = 0;
-  va_list vap;
-  va_start(vap, format);
-  vasprintf(&buf, format, vap);
-  va_end(vap);
-
-  // Copy to zone.
-  result = malloc_zone_strdup(ctx->mz, buf);
-  free(buf);
-
-  return result;
-}
-
 #include "mzone.h"
 
 int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv)
@@ -119,8 +89,9 @@ int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv)
     if ( strcmp(arg, "--typedef") == 0 ) {
       ggrt_symbol* s;
       const char *name = argv[++ i];
-      s = ggrt_symbol_table_add_(ctx->rt, ctx->st_type, name, 0, 0);
-      s->value = strdup(name);
+      assert(! "--typedef supported");
+      // s = ggrt_symbol_table_add_(ctx->rt, ctx->st_type, name, 0, 0);
+      // s->value = strdup(name);
     } else
     if ( strcmp(arg, "-dump") == 0 ) {
       ctx->dump ++;
@@ -167,10 +138,7 @@ void gghc_reset_state(gghc_ctx ctx)
 {
   ctx->_emit = 1;
   ctx->constant_id = 0;
-  ctx->current_enum = 0;
-  ctx->unnamed_enum_id = 0;
-  ctx->current_struct = 0;
-  ctx->unnamed_struct_id = 0;
+  ggrt_ctx_reset(ctx->rt);
 }
 
 void gghc_reset(gghc_ctx ctx, const char *filename)
@@ -181,7 +149,6 @@ void gghc_reset(gghc_ctx ctx, const char *filename)
   ctx->parse_lineno = 1;
   gghc_reset_state(ctx);
 }
-
 
 int gghc_system(gghc_ctx ctx, const char* cmd)
 {

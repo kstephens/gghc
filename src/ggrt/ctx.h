@@ -20,13 +20,14 @@ struct ggrt_s_ctx {
 #define GG_TYPE(FFI,T,N)  struct ggrt_type_t *type_##N;
 #define BOTH_TYPE(FFI,T,N)  struct ggrt_type_t *type_##N;
 #include "ggrt/type.def"
+  struct ggrt_type_t *type_varargs;
 
   /* Collected C runtime data. */
   struct ggrt_module_t *current_module, *default_module;
 
   /* Callbacks */
   struct ggrt_cb {
-    ggrt_user_data data; /* opaque callback data hook. */
+    ggrt_user_data user_data; /* opaque callback data hook. */
     void (*_module_begin)(ggrt_ctx ctx, struct ggrt_module_t *mod);
     void (*_module_end)(ggrt_ctx ctx, struct ggrt_module_t *mod);
     void (*_pragma)(ggrt_ctx ctx, struct ggrt_pragma_t *obj);
@@ -36,9 +37,11 @@ struct ggrt_s_ctx {
     void (*_typedef)(ggrt_ctx ctx, struct ggrt_typedef_t *obj);
     void (*_pointer)(ggrt_ctx ctx, struct ggrt_type_t *t);
     void (*_array)(ggrt_ctx ctx, struct ggrt_type_t *at);
+    void (*_enum_forward)(ggrt_ctx ctx, struct ggrt_type_t *et);
     void (*_enum)(ggrt_ctx ctx, struct ggrt_type_t *et);
     void (*_enum_elem)(ggrt_ctx ctx, struct ggrt_type_t *et, struct ggrt_elem_t *elem);
     void (*_enum_end)(ggrt_ctx ctx, struct ggrt_type_t *et);
+    void (*_struct_forward)(ggrt_ctx ctx, struct ggrt_type_t *st);
     void (*_struct)(ggrt_ctx ctx, struct ggrt_type_t *st);
     void (*_struct_elem)(ggrt_ctx ctx, struct ggrt_type_t *st, struct ggrt_elem_t *elem);
     void (*_struct_end)(ggrt_ctx ctx, struct ggrt_type_t *st);
@@ -48,12 +51,12 @@ struct ggrt_s_ctx {
 
   /* ffi support. */
   // libffi type names.
-#define FFI_TYPE(FFI,T)     void *_ffi_type_##FFI;
+#define FFI_TYPE(FFI,T)    void *_ffi_type_##FFI;
 #define BOTH_TYPE(FFI,T,N) void *_ffi_type_##N;
 #include "ggrt/type.def"
 
   /* Users must define these functions. */
-   size_t (*_ffi_unbox)(ggrt_ctx ctx, ggrt_type_t *ct, const void *boxp, void *dst);
+  size_t (*_ffi_unbox)(ggrt_ctx ctx, ggrt_type_t *ct, const void *boxp, void *dst);
   size_t (*_ffi_unbox_arg)(ggrt_ctx ctx, ggrt_type_t *ct, const void *boxp, void *dst);
   void   (*_ffi_box)(ggrt_ctx ctx, ggrt_type_t *ct, const void *src, void *boxp);
 };
@@ -108,6 +111,13 @@ typedef struct ggrt_global_t {
   ggrt_symbol *sym;
 } ggrt_global_t;
 
+typedef struct ggrt_parameter_t {
+  ggrt_HEADER(ggrt_parameter_t);
+  ggrt_type_t *type;
+  const char *name;
+  int varargs;
+} ggrt_parameter_t;
+
 ggrt_ctx ggrt_m_ctx();
 
 /* Must call before use. */
@@ -131,5 +141,8 @@ ggrt_macro_t *ggrt_macro(ggrt_ctx ctx, const char *name, const char *text);
 /* Global */
 ggrt_global_t *ggrt_m_global(ggrt_ctx ctx, const char *name, ggrt_type_t *t, void *addr);
 ggrt_global_t *ggrt_global(ggrt_ctx ctx, const char *name, ggrt_type_t *t, void *addr);
+
+/* Memory/String. */
+char *ggrt_escape_string(ggrt_ctx ctx, const char *str);
 
 #endif
