@@ -89,7 +89,7 @@ void _gghc_macro(ggrt_ctx rtctx, ggrt_macro_t *m)
 void _gghc_typedef(ggrt_ctx rtctx, ggrt_typedef_t *td)
 {
   const char *name = td->name;
-  const char *type = td->cb_data[0];
+  const char *type = td->type->cb_data[0];
 
   if ( mode_sexpr(ctx) ) {
     eprintf(ctx->body_out,"  (gghc:typedef \"%s\" %s)\n", name, type);
@@ -98,7 +98,7 @@ void _gghc_typedef(ggrt_ctx rtctx, ggrt_typedef_t *td)
     eprintf(ctx->body_out,"  gghc_typedef(\"%s\", %s);\n", name, type);
   }
   if ( ctx->debug ) {
-    fprintf(stderr, "/* typedef %s */\n", name);
+    fprintf(stderr, "/* typedef %s => %s */\n", name, type);
   }
 }
 
@@ -317,6 +317,9 @@ ggrt_type_t *gghc_struct_forward(gghc_ctx hcctx, const char *s_or_u, const char 
 void _gghc_struct(ggrt_ctx rtctx, ggrt_type_t *st)
 {
   gghc_struct *s = __gghc_struct(rtctx, st);
+
+  s->prev = ctx->current_struct;
+  ctx->current_struct = s;
 
   s->emitted = 1;
   if ( mode_sexpr(ctx) ) {

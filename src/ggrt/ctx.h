@@ -8,7 +8,7 @@
 
 struct ggrt_sts {
   ggrt_symbol_table *_type, *_intrinsic, *_struct, *_union, *_enum, *_global, *_macro;
-} st;
+};
 
 struct ggrt_s_ctx {
   ggrt_HEADER(ggrt_s_ctx);

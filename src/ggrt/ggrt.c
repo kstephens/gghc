@@ -233,7 +233,7 @@ ggrt_type_t *ggrt_pointer(ggrt_ctx ctx, ggrt_type_t *t)
     t->pointer_to = pt;
 
   if ( ctx->cb._pointer )
-    ctx->cb._pointer(ctx, t);
+    ctx->cb._pointer(ctx, pt);
 
   return pt;
 }
@@ -462,7 +462,7 @@ ggrt_type_t *ggrt_t_bitfield(ggrt_ctx ctx, ggrt_type_t *t, int bits)
 {
   ggrt_type_t *bt;
 
-  assert(bits >= -1 && bits <= sizeof(long long) * 8);
+  assert(-1 <= bits && bits <= (int) (sizeof(long long) * 8));
 
   bt = ggrt_m_type(ctx, 0, sizeof(void*));
   // bt->_ffi_type = bt->_ffi_arg_type = ctx->_ffi_type_pointer;

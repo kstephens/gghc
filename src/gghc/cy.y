@@ -509,10 +509,10 @@ struct_declarator
   ;
 
 struct_declarator_CTX
-	: declarator
+	: declarator_CTX
 	| ':' constant_expression
           { c_declarator->bit_field_size = EXPR($<u>2); }
-	| declarator ':' constant_expression
+	| declarator_CTX ':' constant_expression
           { c_declarator->bit_field_size = EXPR($<u>3); }
 	;
 

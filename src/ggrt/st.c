@@ -77,13 +77,17 @@ ggrt_symbol *ggrt_symbol_table_add_(ggrt_ctx ctx, ggrt_symbol_table *st, const c
 
 ggrt_symbol *ggrt_symbol_table_by_name(ggrt_ctx ctx, ggrt_symbol_table *st, const char *name)
 {
-  ggrt_symbol sym; sym.name = name;
+  ggrt_symbol sym;
+  memset(&sym, 0, sizeof(sym));
+  sym.name = name;
   return ggrt_symbol_table_get(ctx, st, &sym);
 }
 
 ggrt_symbol *ggrt_symbol_table_by_add(ggrt_ctx ctx, ggrt_symbol_table *st, void *addr)
 {
-  ggrt_symbol sym; sym.addr = addr;
+  ggrt_symbol sym;
+  memset(&sym, 0, sizeof(sym));
+  sym.addr = addr;
   return ggrt_symbol_table_get(ctx, st, &sym);
 }
 

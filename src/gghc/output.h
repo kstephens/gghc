@@ -8,7 +8,7 @@
 #include "gghc/decl.h"
 #include "ggrt/ggrt.h"
 
-void ghhc_init_callbacks(gghc_ctx ctx);
+void gghc_init_callbacks(gghc_ctx ctx);
 
 void gghc_emit_control(gghc_ctx ctx, int i); /* -1 to pause, 1 to resume */
 
