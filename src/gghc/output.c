@@ -82,7 +82,7 @@ void _gghc_macro(ggrt_ctx rtctx, ggrt_macro_t *m)
   if ( mode_c(ctx) ) {
     abort();
   }
-  free(out);
+  malloc_zone_free(ctx->rt->mz, out);
   m->cb_data[2] = rep;
 }
 
