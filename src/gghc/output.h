@@ -20,7 +20,7 @@ ggrt_type_t *gghc_bitfield(gghc_ctx hcctx, struct ggrt_type_t *t, const char *le
 ggrt_type_t *gghc_array(gghc_ctx hcctx, struct ggrt_type_t *t, const char *length);
 
 
-void gghc_emit_declarator(gghc_ctx ctx, gghc_declarator *decl);
-void gghc_emit_declaration(gghc_ctx ctx, gghc_declaration *decl);
+void gghc_emit_declarator(gghc_ctx ctx, struct gghc_declarator *decl);
+void gghc_emit_declaration(gghc_ctx ctx, struct gghc_declaration *decl);
 
 #endif

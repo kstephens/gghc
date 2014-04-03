@@ -19,8 +19,8 @@ ggrt_symbol *ggrt_m_symbol(ggrt_ctx ctx, const char *name, void *addr, ggrt_type
   ggrt_symbol *sym = ggrt_malloc(sizeof(*sym));
   memset(sym, 0, sizeof(*sym));
   sym->name = name ? ggrt_strdup(name) : name;
-  sym->type = type;
   sym->addr = addr;
+  sym->type = type;
   return sym;
 }
 

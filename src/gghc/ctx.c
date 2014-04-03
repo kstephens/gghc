@@ -26,6 +26,8 @@ gghc_ctx gghc_m_ctx()
   ctx->_stdout = stdout;
   ctx->_stderr = stderr;
 
+#define ssprintf(FMT,ARGS...) ggrt_ssprintf(ctx->rt,FMT,##ARGS)
+
   ctx->cpp_in_filename       = ssprintf("/tmp/gghc-%d-01-cpp_in.c", pid);
   ctx->cpp_out_filename      = ssprintf("/tmp/gghc-%d-02-cpp_out.i", pid);
   ctx->constants_c_filename  = ssprintf("/tmp/gghc-%d-03-constants.c", pid);
@@ -40,6 +42,7 @@ gghc_ctx gghc_m_ctx()
   ctx->result_out_filename   = ssprintf("/tmp/gghc-%d-99-result.out", pid);
   ctx->output_mode = gghc_mode_sexpr;
 
+#undef ssprintf
   return ctx;
 }
 

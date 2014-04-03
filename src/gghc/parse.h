@@ -12,6 +12,7 @@
 #include "gghc/decl.h"
 #include "gghc/output.h"
 
+#define YYSTYPE gghc_YYSTYPE
 #define YYERROR_VERBOSE 1
 #define YYDEBUG 1
 #define YYPARSE_PARAM _ctx

@@ -17,18 +17,6 @@ ggrt_ctx ggrt_m_ctx()
   return ctx;
 }
 
-#if 0
-char *ssprintf(const char* format, ...)
-{
-  char *buf = 0;
-  va_list vap;
-  va_start(vap, format);
-  vasprintf(&buf, format, vap);
-  va_end(vap);
-  return buf;
-}
-#endif
-
 char *ggrt_ssprintf(ggrt_ctx ctx, const char* format, ...)
 {
   char *buf = 0, *result = 0;

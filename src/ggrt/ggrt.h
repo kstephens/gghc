@@ -155,4 +155,8 @@ void   ggrt_ffi_box(ggrt_ctx ctx, ggrt_type_t *t, const void *src, void *boxp);
 /* Internal */
 ggrt_type_t *ggrt_ffi_prepare(ggrt_ctx ctx, ggrt_type_t *ft);
 
+/* Helpers */
+char *ggrt_escape_string(ggrt_ctx ctx, const char *str);
+char *ggrt_ssprintf(ggrt_ctx ctx, const char* format, ...);
+
 #endif
