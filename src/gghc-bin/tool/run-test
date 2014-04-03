@@ -1,0 +1,31 @@
+#!/bin/sh
+pass=0; fail=0
+base_cmd="$1"; shift
+for i in "$@"
+do
+   cmd="$base_cmd $i > $i.run.out 2> $i.run.err"
+   echo "  Testing: $cmd"
+   eval $cmd; rtn=$?
+   echo "$rtn" > "$i.run.rtn"
+   if [ "$rtn" -ge 100 ]
+   then
+     cat $i.run.out $i.run.err
+     lldb $base_cmd -- $i
+   fi
+   if test -f "$i.exp.out"
+   then
+     if ! diff "$i.exp.out" "$i.run.out"
+     then
+       fail=`expr $fail + 1`
+     fi
+   fi
+   if test -f "$i.exp.rtn"
+   then
+     if ! diff "$i.exp.rtn" "$i.run.rtn"
+     then
+       fail=`expr $fail + 1`
+     fi
+   fi
+done
+
+exit $fail
