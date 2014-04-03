@@ -336,6 +336,10 @@ ggrt_elem_t *ggrt_enum_elem(ggrt_ctx ctx, ggrt_type_t *ct, const char *name, con
   ggrt_module_t *mod = ggrt_current_module(ctx);
   ggrt_elem_t *e;
   int i;
+
+  if ( ! ct )
+    ct = mod->current_enum;
+
   assert(ct);
   assert(name && *name);
 
@@ -355,6 +359,9 @@ ggrt_elem_t *ggrt_enum_elem(ggrt_ctx ctx, ggrt_type_t *ct, const char *name, con
 ggrt_type_t *ggrt_enum_end(ggrt_ctx ctx, ggrt_type_t *ct, const char *name)
 {
   ggrt_module_t *mod = ggrt_current_module(ctx);
+
+  if ( ! ct && ! (name && *name) )
+    ct = mod->current_enum;
 
   if ( ! ct ) {
     assert(name && *name);
