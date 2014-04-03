@@ -106,12 +106,16 @@ void _gghc_intrinsic(ggrt_ctx rtctx, struct ggrt_type_t *t)
 {
   char *result;
 
+  if ( t->cb_data[0] )
+    return;
+
   if ( mode_sexpr(ctx) ) {
     result = ssprintf("(gghc:type \"%s\")", t->name);
   }
   if ( mode_c(ctx) ) {
     result = ssprintf("gghc_type(\"%s\")", t->name);
   }
+
   t->cb_data[0] = result;
 }
 
@@ -508,8 +512,10 @@ void _gghc_global(ggrt_ctx rtctx, ggrt_global_t *g)
 
 #undef ctx
 
-void ghhc_init_callbacks(gghc_ctx ctx)
+void gghc_init_callbacks(gghc_ctx ctx)
 {
+  ctx->rt->cb.user_data[0] = ctx;
+
 #define CB(N) ctx->rt->cb.N = _gghc##N
   CB(_module_begin);
   CB(_module_end);
@@ -520,9 +526,11 @@ void ghhc_init_callbacks(gghc_ctx ctx)
   CB(_typedef);
   CB(_pointer);
   CB(_array);
+  // CB(_enum_forward);
   CB(_enum);
   CB(_enum_elem);
   CB(_enum_end);
+  // CB(_struct_forward);
   CB(_struct);
   CB(_struct_elem);
   CB(_struct_end);

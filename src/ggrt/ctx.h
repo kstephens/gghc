@@ -125,6 +125,8 @@ ggrt_ctx ggrt_m_ctx();
 ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx);
 ggrt_ctx ggrt_ctx_reset(ggrt_ctx ctx);
 
+void ggrt_emit_types(ggrt_ctx ctx);
+
 /* Module. */
 ggrt_module_t *ggrt_m_module(ggrt_ctx ctx, const char *name);
 ggrt_module_t *ggrt_module_begin(ggrt_ctx ctx, const char *name);

@@ -205,6 +205,9 @@ char *ssprintf(const char* format, ...); // uses malloc() */
 
 int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv);
 
+void gghc_module_begin(gghc_ctx ctx, const char *modname);
+void gghc_module_end(gghc_ctx ctx, const char *modname);
+
 void gghc_reset(gghc_ctx ctx, const char *filename);
 void gghc_close_files(gghc_ctx ctx);
 void gghc_cleanup(gghc_ctx ctx);

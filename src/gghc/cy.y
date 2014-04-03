@@ -861,10 +861,6 @@ direct_declarator_EXT
 #undef ctx
 int gghc_yyparse_y(gghc_ctx ctx, mm_buf *mb)
 {
-  /* EXT: NATIVE TYPES */
-  // gghc_typedef("__uint16_t", gghc_type("unsigned short"));
-  ggrt_typedef(ctx->rt, "_Bool", ggrt_type(ctx->rt, "int"));
-
   return yyparse(ctx);
 }
 

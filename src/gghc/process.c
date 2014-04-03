@@ -163,7 +163,7 @@ void gghc_process_files(gghc_ctx ctx)
   /**************************************/
   /* Parse the preprocessed input file */
 
-  ggrt_module_begin(ctx->rt, ctx->files);
+  gghc_module_begin(ctx, ctx->files);
 
   mm_buf_open(ctx->mb, ctx->cpp_out_filename);
   gghc_yyparse(ctx, ctx->mb);
@@ -175,7 +175,7 @@ void gghc_process_files(gghc_ctx ctx)
   parse_C_defines(ctx, ctx->defines_in);
   fclose(ctx->defines_in); ctx->defines_in = 0;
 
-  ggrt_module_end(ctx->rt, 0);
+  gghc_module_end(ctx, 0);
 
   /**************************************/
   /* Terminate C constant input */

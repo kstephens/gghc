@@ -62,6 +62,27 @@ ggrt_ctx ggrt_ctx_init(ggrt_ctx ctx)
   return ctx;
 }
 
+void ggrt_emit_types_from_st(ggrt_ctx ctx, ggrt_symbol_table *st)
+{
+  int i;
+
+  for ( i = 0; i < st->nsymbs; i ++ ) {
+    ggrt_symbol *sym = st->by_name[i];
+    ggrt_type_t *t = sym->addr;
+    assert(t);
+    if ( ctx->cb._intrinsic )
+      ctx->cb._intrinsic(ctx, t);
+  }
+}
+
+void ggrt_emit_types(ggrt_ctx ctx)
+{
+  ggrt_module_t *mod = ggrt_current_module(ctx);
+  
+  ggrt_emit_types_from_st(ctx, mod->st._intrinsic);
+  ggrt_emit_types_from_st(ctx, mod->st._type);
+}
+
 ggrt_ctx ggrt_ctx_reset(ggrt_ctx ctx)
 {
   ctx->default_module = ggrt_m_module(ctx, "%default");

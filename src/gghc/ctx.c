@@ -18,6 +18,8 @@ gghc_ctx gghc_m_ctx()
   ctx->rt = ggrt_m_ctx();
   ggrt_ctx_init(ctx->rt);
 
+  gghc_init_callbacks(ctx);
+
   ctx->mb = &ctx->_mb;
   ctx->mb_token = &ctx->_mb_token;
   ctx->last_token = &ctx->_last_token;
@@ -151,6 +153,22 @@ void gghc_reset(gghc_ctx ctx, const char *filename)
   ctx->parse_top_level_filename = filename;
   ctx->parse_lineno = 1;
   gghc_reset_state(ctx);
+}
+
+void gghc_module_begin(gghc_ctx ctx, const char *modname)
+{
+  ggrt_module_begin(ctx->rt, modname);
+
+  ggrt_emit_types(ctx->rt);
+
+  /* EXT: NATIVE TYPES */
+  // gghc_typedef("__uint16_t", gghc_type("unsigned short"));
+  ggrt_typedef(ctx->rt, "_Bool", ggrt_type(ctx->rt, "int"));
+}
+
+void gghc_module_end(gghc_ctx ctx, const char *modname)
+{
+  ggrt_module_end(ctx->rt, modname);
 }
 
 int gghc_system(gghc_ctx ctx, const char* cmd)

@@ -439,6 +439,8 @@ ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, g
   int i;
   ggrt_elem_t *e;
 
+  assert(name && *name);
+
   if ( ! st )
     st = mod->current_struct;
 
