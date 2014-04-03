@@ -252,7 +252,7 @@ ggrt_type_t *gghc_array(gghc_ctx hcctx, struct ggrt_type_t *t, const char *lengt
 ggrt_type_t *gghc_bitfield(gghc_ctx hcctx, struct ggrt_type_t *t, const char *length)
 {
   ggrt_ctx rtctx = hcctx->rt;
-  ggrt_type_t *bt = ggrt_bitfield(hcctx->rt, t, -1);
+  ggrt_type_t *bt = ggrt_t_bitfield(hcctx->rt, t, -1);
   char *expr;
 
   if ( ! (length && *length) )

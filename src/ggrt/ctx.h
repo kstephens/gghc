@@ -45,6 +45,7 @@ struct ggrt_s_ctx {
     void (*_struct)(ggrt_ctx ctx, struct ggrt_type_t *st);
     void (*_struct_elem)(ggrt_ctx ctx, struct ggrt_type_t *st, struct ggrt_elem_t *elem);
     void (*_struct_end)(ggrt_ctx ctx, struct ggrt_type_t *st);
+    void (*_t_bitfield)(ggrt_ctx ctx, struct ggrt_type_t *bt);
     void (*_func)(ggrt_ctx ctx, struct ggrt_type_t *ft);
     void (*_global)(ggrt_ctx ctx, struct ggrt_global_t *g);
   } cb;

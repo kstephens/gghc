@@ -448,6 +448,28 @@ ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, g
   return e;
 }
 
+
+ggrt_type_t *ggrt_t_bitfield(ggrt_ctx ctx, ggrt_type_t *t, int bits)
+{
+  ggrt_type_t *bt;
+
+  assert(bits >= -1 && bits <= sizeof(long long) * 8);
+
+  bt = ggrt_m_type(ctx, 0, sizeof(void*));
+  // bt->_ffi_type = bt->_ffi_arg_type = ctx->_ffi_type_pointer;
+  bt->type = "bitfield";
+  bt->te += ggrt_te_bitfield + bits;
+  bt->rtn_type = t;
+  bt->c_sizeof = -1;
+  bt->c_alignof = -1;
+  bt->c_vararg_size = -1;
+
+ if ( ctx->cb._t_bitfield )
+    ctx->cb._t_bitfield(ctx, t);
+
+  return bt;
+}
+
 ggrt_elem_t *ggrt_struct_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name)
 {
   int i;

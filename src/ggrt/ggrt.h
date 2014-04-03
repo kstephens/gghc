@@ -11,6 +11,12 @@ enum ggrt_type_enum_t {
 #include "ggrt/type.def"
   ggrt_te_varargs, // ...
   ggrt_te_INTRINSICS_END,
+  ggrt_te_bitfield_unsized = 0x100,
+  ggrt_te_bitfield,
+  ggrt_te_bitfield_END = ggrt_te_bitfield + 128,
+  ggrt_te_unsigned_bitfield_unsized = 0x200,
+  ggrt_te_unsigned_bitfield,
+  ggrt_te_unsigned_bitfield_END = ggrt_te_unsigned_bitfield + 128,
   ggrt_te_GENERATED,
   ggrt_te_enum        = 0x010000,
   ggrt_te_enum_END    = 0x020000,
@@ -114,7 +120,7 @@ ggrt_type_t *ggrt_struct_end(ggrt_ctx ctx, ggrt_type_t *st);
 ggrt_elem_t *ggrt_struct_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name);
 
 /* Bitfield. */
-ggrt_type_t *ggrt_bitfield(ggrt_ctx ctx, ggrt_type_t *t, int bits);
+ggrt_type_t *ggrt_t_bitfield(ggrt_ctx ctx, ggrt_type_t *t, int bits);
 
 /* Function. */
 ggrt_type_t *ggrt_func(ggrt_ctx ctx, void *rtn_type, int nelem, ggrt_type_t **elem_types);
