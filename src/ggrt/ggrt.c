@@ -435,6 +435,8 @@ ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, g
   if ( ! st )
     st = mod->current_struct;
 
+  st->c_sizeof = st->c_alignof = 0;
+
   i = st->nelems ++;
   st->elems = ggrt_realloc(st->elems, sizeof(st->elems[0]) * st->nelems);
 
