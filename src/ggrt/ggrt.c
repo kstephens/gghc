@@ -153,12 +153,12 @@ ggrt_type_t *ggrt_intrinsic(ggrt_ctx ctx, const char *name, size_t c_size)
     t->type = "intrinsic";
   }
 
-  ggrt_symbol_table_add_(ctx, mod->st._intrinsic, name, 0, t);
+  ggrt_symbol_table_add_(ctx, mod->st._intrinsic, name, t, 0);
 
   if ( ctx->cb._intrinsic )
     ctx->cb._intrinsic(ctx, t);
 
-  ggrt_symbol_table_add_(ctx, mod->st._type, name, 0, t);
+  ggrt_symbol_table_add_(ctx, mod->st._type, name, t, 0);
 
   return t;
 }
@@ -168,8 +168,12 @@ ggrt_type_t *ggrt_type(ggrt_ctx ctx, const char *name)
   ggrt_module_t *mod = ggrt_current_module(ctx);
   ggrt_symbol *sym;
 
-  if ( (sym = ggrt_symbol_table_by_name(ctx, mod->st._intrinsic, name)) )
   assert(name && *name);
+
+  if ( (sym = ggrt_symbol_table_by_name(ctx, mod->st._intrinsic, name)) )
+    return sym->addr;
+
+  if ( (sym = ggrt_symbol_table_by_name(ctx, mod->st._type, name)) )
     return sym->addr;
 
   return 0;
