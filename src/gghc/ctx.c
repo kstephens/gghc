@@ -248,7 +248,7 @@ void gghc_module_begin(gghc_ctx ctx, const char *modname)
 
 void gghc_module_end(gghc_ctx ctx, const char *modname)
 {
-  ggrt_module_end(ctx->rt, modname);
+  ggrt_module_end(ctx->rt, 0); // modname);
 }
 
 int gghc_system(gghc_ctx ctx, const char* cmd)
