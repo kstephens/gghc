@@ -628,12 +628,12 @@ parameter_list
 parameter_declaration
   :   { gghc_declaration_begin(ctx); }
     parameter_declaration_CTX
-      { gghc_declaration_end(ctx); }
+      { $$ = gghc_declaration_end(ctx); }
   ;
 
 parameter_declaration_CTX
-	: declaration_specifiers declarator
-	| declaration_specifiers abstract_declarator
+	: declaration_specifiers declarator_CTX
+	| declaration_specifiers abstract_declarator_CTX
 	| declaration_specifiers
 	;
 
