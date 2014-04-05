@@ -157,18 +157,19 @@ struct gghc_ctx {
   int error_code;
 
   /* Options */
+  char *args_str;
   gghc_mode output_mode;
   int verbose;
   int debug;
   int dump;
   int _malloc_debug;
-  char *options;
   char *output_pathname;
 
   /* Processing */
   char *cmd;
   char *cmd_cpp;
   char *cc_prog;
+  char *cc_options;
   char *files;
   char *filev[100];
   int   filen;
@@ -181,6 +182,7 @@ struct gghc_ctx {
   // Parser/Lexer control.
   void *scanner; /* cl.l flex yyscan_t */
   int _yydebug;
+  int _lexdebug;
   char *_yytext;
   int _yyleng;
   gghc_YYSTYPE *_yylvalp; /* &yylval */

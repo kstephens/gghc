@@ -72,69 +72,149 @@ char *gghc_strdup(gghc_ctx ctx, const char* s)
 
 #include "mzone.h"
 
+static void usage(gghc_ctx ctx, FILE *out)
+{
+  if ( ! out ) out = ctx->_stderr;
+  fprintf(out,
+"gghc: USAGE: \n"
+"  gghc OPTIONS -- CC CC-OPTIONS ... -- INPUT-FILES ... \n"
+"OPTIONS: \n"
+"  -h, --help \n"
+"  -v, --verbose \n"
+"  --dump \n"
+"  --debug \n"
+"  --yydebug \n"
+"  --lexdebug \n"
+"  --mallocdebug \n"
+"  --sexpr \n"
+"  --C \n"
+"  --C++ \n"
+          );
+}
+
+static void add_input_file(gghc_ctx ctx, char *arg)
+{
+  // fprintf(stderr, "  add_input_file `%s'\n", arg);
+  ctx->files = ssprintf((ctx->files[0] ? "%s %s" : "%s%s"), ctx->files, arg);
+  ctx->filev[ctx->filen ++] = arg;
+  if ( ctx->filen > 100 ) {
+    fprintf(ctx->_stderr, "gghc: too many files: '%s'\n", arg);
+    ctx->fatals ++;
+  }
+}
+
 int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv)
 {
-  int	i;
+  int argi;
+  int dash_dash_count = 0;
+  char *arg = 0;
 
   ctx->filen = 0;
   ctx->files = "";
-  ctx->options = "-I.";
-  for ( i = 1; i < argc; i ++ ) {
-    char *arg = strdup(argv[i]);
+  ctx->cc_options = "-I.";
+  ctx->args_str = strdup(argv[0]);
+
+  for ( argi = 1; argi < argc && (arg = strdup(argv[argi])); argi ++ ) {
     int incr =
         arg[0] == '-' && arg[1] == '-' && arg[2] ? 1 :
         arg[0] == '+' && arg[1] == '+' && arg[2] ? -1 : 0;
+    char *opt = incr == 1 ? arg : arg[0] == '-' && arg[1] && arg[1] != '-' ? arg : "";
+    char *val = 0;
+    int val_argd = 0;
+    char *t = 0;
 
-    if ( strcmp(arg, "-v") == 0 ) {
-      ctx->verbose ++;
-    } else
-    if ( strcmp(arg, "-o") == 0 ) {
-      ctx->output_pathname = argv[++ i];
-    } else
-    if ( strcmp(arg, "--typedef") == 0 ) {
-      ggrt_symbol* s;
-      const char *name = argv[++ i];
-      assert(! "--typedef supported");
-      // s = ggrt_symbol_table_add_(ctx->rt, ctx->st_type, name, 0, 0);
-      // s->value = strdup(name);
-    } else
-    if ( strcmp(arg, "-dump") == 0 ) {
-      ctx->dump ++;
-    } else
-    if ( strcmp(arg, "-debug") == 0 ) {
-      ctx->debug ++;
-    } else
-    if ( strcmp(arg, "-yydebug") == 0 ) {
-      ctx->_yydebug ++;
-    } else
-    if ( strcmp(arg, "-mallocdebug") == 0 ) {
-      ctx->_malloc_debug ++;
-    } else
-    if ( strcmp(arg, "-sexpr") == 0 ) {
-      ctx->output_mode = gghc_mode_sexpr;
-    } else
-    if ( strcmp(arg, "-C") == 0 ) {
-      ctx->output_mode = gghc_mode_c;
-    } else
-    if ( strcmp(arg, "-C++") == 0 ) {
-      ctx->output_mode = gghc_mode_cxx;
-    } else
-    if ( arg[0] == '-' ) {
-      ctx->options = ssprintf("%s %s", ctx->options, arg);
-    } else {
-      if ( ctx->cc_prog ) {
-        ctx->files = ssprintf((ctx->files[0] ? "%s %s" : "%s%s"), ctx->files, arg);
-        ctx->filev[ctx->filen ++] = arg;
-        if ( ctx->filen > 100 ) {
-          fprintf(stderr, "gghc: too many files\n");
-          exit(1);
-        }
+    ctx->args_str = ssprintf("%s %s", ctx->args_str, arg);
+
+#if 0
+#define PS(x) fprintf(stderr, "    arg `%s': %s=`%s'\n", arg, #x, x)
+#else
+#define PS(x) (void) x;
+#endif
+
+    PS(arg);
+
+    if ( strcmp(arg, "--") == 0 ) {
+      ++ dash_dash_count;
+      continue;
+    }
+
+    if ( incr ) {
+      if ( (t = strchr(arg, '=')) ) {
+        opt = strdup(opt);
+        *(strchr(opt, '=') + 1) = 0;
+        val = strdup(t + 1);
       } else {
-        ctx->cc_prog = arg;
+        val = strdup(argv[argi + 1]);
+        val_argd = 1;
       }
+    } else if ( opt[0] ) {
+      val = strdup(argv[argi + 1]);
+      val_argd = 1;
+    }
+
+    PS(opt);
+    PS(val);
+
+#define OPT(X) strcmp(opt, X) == 0
+
+    if ( dash_dash_count == 0 ) {
+      if ( OPT("-h") || OPT("--help") ) {
+        usage(ctx, ctx->_stdout);
+      } else if ( OPT("-v") || OPT("--verbose") ) {
+        ctx->verbose ++;
+      } else if ( OPT("-o") || OPT("--output") ) {
+        ctx->output_pathname = val;
+        argi += val_argd;
+      } else if ( OPT("--typedef") ) {
+        const char *name = val;
+        argi += val_argd;
+        assert(! "--typedef supported");
+        // s = ggrt_symbol_table_add_(ctx->rt, ctx->st_type, name, 0, 0);
+        // s->value = strdup(name);
+      } else if ( OPT("--dump") ) {
+        ctx->dump ++;
+      } else if ( OPT("--debug") ) {
+        ctx->debug += incr;
+      } else if ( OPT("--yydebug") ) {
+        ctx->_yydebug += incr;
+      } else if ( OPT("--mallocdebug") ) {
+        ctx->_malloc_debug += incr;
+      } else if ( OPT("--sexpr") ) {
+        ctx->output_mode = gghc_mode_sexpr;
+      } else if ( OPT("--C") ) {
+        ctx->output_mode = gghc_mode_c;
+      } else if ( OPT("--C++") ) {
+        ctx->output_mode = gghc_mode_cxx;
+      } else if ( opt[0] ) {
+        fprintf(ctx->_stderr, "gghc: unknown option '%s'\n", arg);
+        ctx->fatals ++;
+      } else {
+        add_input_file(ctx, arg);
+      }
+    } else if ( dash_dash_count == 1 ) {
+      if ( ! ctx->cc_prog ) {
+        ctx->cc_prog = arg;
+      } else {
+        ctx->cc_options = ssprintf("%s %s", ctx->cc_options, arg);
+      }
+    } else if ( dash_dash_count == 2 ) {
+      add_input_file(ctx, arg);
+    } else {
+      fprintf(ctx->_stderr, "gghc: unknown option '%s'\n", arg);
+      ctx->fatals ++;
     }
   }
   if ( ! (ctx->cc_prog && ctx->cc_prog[0]) ) ctx->cc_prog = "cc";
+
+  PS(ctx->cc_prog);
+  PS(ctx->cc_options);
+  PS(ctx->files);
+#undef PS
+
+  if ( ctx->fatals )
+    exit(1);
+
+#undef OPT
 
   return 0;
 }
