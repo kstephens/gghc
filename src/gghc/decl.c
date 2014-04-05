@@ -23,12 +23,14 @@ gghc_declarator *gghc_declarator_begin(gghc_ctx ctx)
 {
   gghc_declarator *obj = gghc_malloc(ctx, sizeof(*obj));
 
+  fprintf(stderr, "  gghc_declarator_begin(): %p\n", obj);
+
   obj->prev_decl = ctx->current_declarator;
   ctx->current_declarator = obj;
 
   assert(ctx->current_declaration);
   obj->declaration = ctx->current_declaration;
-  obj->type = obj->declaration->type;
+  obj->type = obj->prev_decl ? obj->prev_decl->type : obj->declaration->type;
 
   // List of declarations.
   obj->prev = ctx->current_declaration->declarators;
@@ -47,6 +49,8 @@ gghc_declarator *gghc_declarator_end(gghc_ctx ctx)
   // assert(ctx->current_declaration->declarators == obj);
   ctx->current_declarator = obj->prev_decl;
 
+  fprintf(stderr, "  gghc_declarator_end(): %p\n", obj);
+
   return obj;
 }
 
@@ -63,13 +67,25 @@ void gghc_struct_elem_decl(gghc_ctx ctx)
 
 void gghc_array_decl(gghc_ctx ctx, const char *size)
 {
+  ggrt_ctx rtctx = ctx->rt;
   gghc_declarator *decl = ctx->current_declarator;
   ggrt_type_t *type = gghc_array(ctx, decl->type, size);
+
+  fprintf(stderr, "    gghc_array_decl(%p, %s)\n", ctx, size);
+  fprintf(stderr, "      ->decl = %p\n", decl);
+  fprintf(stderr, "        ->type = %p\n", decl->type);
+  fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, decl->type));
+
+  fprintf(stderr, "  ==>   ->type = %p\n", type);
+  fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, type));
+
   if ( decl->is_parenthised ) {
     decl->type = type;
   } else {
     decl->type = type;
   }
+  fprintf(stderr, "  ==>   ->type = %p\n", decl->type);
+  fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, decl->type));
   decl->syntax = "array";
 }
 

@@ -236,7 +236,7 @@ void _gghc_array(ggrt_ctx rtctx, struct ggrt_type_t *at)
 ggrt_type_t *gghc_array(gghc_ctx hcctx, struct ggrt_type_t *t, const char *length)
 {
   ggrt_ctx rtctx = hcctx->rt;
-  ggrt_type_t *at = ggrt_array(hcctx->rt, t, (size_t) -1);
+  ggrt_type_t *at = ggrt_array(rtctx, t, (size_t) -1);
   char *expr;
 
   if ( ! (length && *length) )
@@ -246,17 +246,20 @@ ggrt_type_t *gghc_array(gghc_ctx hcctx, struct ggrt_type_t *t, const char *lengt
     expr = ssprintf("(gghc:array %s %s)", t->cb_data[0], length ? gghc_constant(hcctx, length) : "-1");
   }
   if ( mode_c(ctx) ) {
-    expr = ssprintf("gghc_array_type(%s, %s)", t->cb_data[0], length ? length : "-1");
+    expr = ssprintf("gghc_array_type(%s, (size_t) (%s))", t->cb_data[0], length ? length : "-1");
   }
 
   at->cb_data[0] = expr;
+
+  fprintf(stderr, "    gghc_array(%p, %s) => %p\n", t, length, at);
+
   return at;
 }
 
 ggrt_type_t *gghc_bitfield(gghc_ctx hcctx, struct ggrt_type_t *t, const char *length)
 {
   ggrt_ctx rtctx = hcctx->rt;
-  ggrt_type_t *bt = ggrt_t_bitfield(hcctx->rt, t, -1);
+  ggrt_type_t *bt = ggrt_t_bitfield(rtctx, t, -1);
   char *expr;
 
   if ( ! (length && *length) )

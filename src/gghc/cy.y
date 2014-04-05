@@ -82,8 +82,10 @@ static void token_merge(gghc_ctx ctx, int yyn, int yylen, YYSTYPE *yyvalp, YYSTY
   int verbose = ctx->_yydebug;
 
   mm_buf_region_init(&t);
-  if ( verbose >= 2 ) {
+  if ( verbose >= 4 ) {
     fprintf(ctx->_stderr, "  yyn=%d yylen=%d yyvalp=%p yyvsp=%p\n", yyn, yylen, yyvalp, yyvsp);
+  }
+  if ( verbose >= 2 ) {
     fprintf(ctx->_stderr, "    tokens: ");
   }
   for ( i = 1 - yylen; i <= 0; ++ i ) {
@@ -96,6 +98,18 @@ static void token_merge(gghc_ctx ctx, int yyn, int yylen, YYSTYPE *yyvalp, YYSTY
     fprintf(ctx->_stderr, "    = '%s'\n", mm_buf_region_cstr(&t));
   }
   *dst = t;
+
+  if ( 0 && verbose ) {
+    fprintf(stderr, "  ctx->current_declarator = %p\n", ctx->current_declarator);
+    if ( ctx->current_declarator ) {
+      fprintf(stderr, "    ->type = %p\n", ctx->current_declarator->type);
+      if ( ctx->current_declarator->type ) {
+        fprintf(stderr, "      ->type = %s\n", ctx->current_declarator->type->type);
+        fprintf(stderr, "      ->name = %s\n", ctx->current_declarator->type->name);
+      }
+    }
+  }
+
 }
 
 #define yylex(arg) gghc_yylex(_ctx, (arg))
@@ -567,7 +581,7 @@ direct_declarator
 
 direct_declarator_ANSI
 	: IDENTIFIER
-            { c_declarator->identifier = EXPR($<u>1); }
+            { c_declarator->identifier = EXPR($<u>1); gghc_debug_stop_here(); }
 	| '(' declarator_CTX ')'
             { c_declarator->is_parenthised ++; }
 	| direct_declarator_ANSI '[' constant_expression ']'

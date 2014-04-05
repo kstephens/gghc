@@ -9,14 +9,15 @@ do
    echo "$rtn" > "$i.run.rtn"
    if [ "$rtn" -ge 100 ]
    then
-     cat $i.run.out $i.run.err
-     lldb $base_cmd -- $i
+     cat "$i.run.out" "$i.run.err"
+     exec lldb $base_cmd -- $i
    fi
+   cat "$i.run.err"
    if test -f "$i.exp.out"
    then
      while read expect
      do
-       echo "    Expect '$expect'"
+       echo "    Expecting '$expect'"
        if ! fgrep -F -e "$expect" "$i.run.out" >/dev/null
        then
          echo "    FAIL: Expected '$expect' in $i.run.out" 1>&2

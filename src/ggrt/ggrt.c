@@ -240,28 +240,30 @@ ggrt_type_t *ggrt_pointer(ggrt_ctx ctx, ggrt_type_t *t)
 
 ggrt_type_t *ggrt_array(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
 {
-  ggrt_type_t *pt;
+  ggrt_type_t *at;
 
   if ( (len == 0 || len == (size_t) -1) && t->array0_of )
     return t->array0_of;
 
-  pt = ggrt_m_type(ctx, 0, 0);
-  pt->_ffi_type = pt->_ffi_arg_type = ctx->_ffi_type_pointer;
-  pt->type = "array";
-  pt->te += ggrt_te_array;
-  pt->rtn_type = t;
-  pt->nelems = len;
+  at = ggrt_m_type(ctx, 0, 0);
+  at->_ffi_type = at->_ffi_arg_type = ctx->_ffi_type_pointer;
+  at->type = "array";
+  at->te += ggrt_te_array;
+  at->rtn_type = t;
+  at->nelems = len;
   if ( t->type[1] != 'l' ) // placeholder
     if ( (len == 0 || len == (size_t) -1) )
-      t->array0_of = pt;
+      t->array0_of = at;
   // int a[10];
   // typeof(&a) == typeof(&a[0]);
-  pt->pointer_to = ggrt_pointer(ctx, t);
+  at->pointer_to = ggrt_pointer(ctx, t);
 
   if ( ctx->cb._array )
-    ctx->cb._array(ctx, t);
+    ctx->cb._array(ctx, at);
 
-  return pt;
+  fprintf(stderr, "    ggrt_array(%p, %d) => %p\n", t, (int) len, at);
+
+  return at;
 }
 
 ggrt_elem_t *ggrt_m_elem(ggrt_ctx ctx, const char *name, ggrt_type_t *t)

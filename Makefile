@@ -28,5 +28,5 @@ test-deep : all test
 	done
 
 debug : all
-	lldb -f $(PROG) -- $(CC) -v -g t/test.c
+	lldb -f $(PROG) -- --yydebug --yydebug -- $(CC) -v -g -- t/test.c
 
