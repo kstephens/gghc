@@ -280,9 +280,9 @@ L?\"(\\.|[^\\"])*\"	{ _return(STRING_LITERAL); }
 %%
 // "' emacs
 
-static int yywrap()
+static int gghc_yywrap(yyscan_t yyscanner)
 {
-	return(1);
+  return 1;
 }
 
 int gghc_yylex(gghc_ctx ctx, YYSTYPE *lvalp)
