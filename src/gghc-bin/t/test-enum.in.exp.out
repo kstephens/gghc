@@ -1,0 +1,13 @@
+(gghc:constant gghc:constant_1 0 "te_0")
+(gghc:constant gghc:constant_2 1 "te_1")
+(gghc:constant gghc:constant_3 2 "te_2")
+(gghc:constant gghc:constant_4 10 "te_10")
+(gghc:enum _gghc_type_enum_test_enum "test_enum")
+(gghc:enum _gghc_type_enum_test_enum "test_enum"
+(gghc:enum-element "te_0" gghc:constant_1 #| te_0 |# )
+(gghc:enum-element "te_1" gghc:constant_2 #| te_1 |# )
+(gghc:enum-element "te_2" gghc:constant_3 #| te_2 |# )
+(gghc:enum-element "te_10" gghc:constant_4 #| te_10 |# )
+) ;; enum _gghc_type_enum_test_enum
+(gghc:global "e_ptr" (gghc:pointer _gghc_type_enum_test_enum))
+(gghc:global "e" _gghc_type_enum_test_enum)

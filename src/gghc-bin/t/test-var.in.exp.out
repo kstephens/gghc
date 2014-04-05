@@ -1,0 +1,1 @@
+(gghc:global "var_i" (gghc:type "int"))

@@ -1,0 +1,7 @@
+enum test_enum {
+   te_0 = 0,
+   te_1,
+   te_2,
+   te_10 = 10
+} e, *e_ptr;
+

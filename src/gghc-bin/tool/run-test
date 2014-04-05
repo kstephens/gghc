@@ -14,10 +14,15 @@ do
    fi
    if test -f "$i.exp.out"
    then
-     if ! diff "$i.exp.out" "$i.run.out"
-     then
-       fail=`expr $fail + 1`
-     fi
+     while read expect
+     do
+       echo "    Expect '$expect'"
+       if ! fgrep -F -e "$expect" "$i.run.out" >/dev/null
+       then
+         echo "    FAIL: Expected '$expect' in $i.run.out" 1>&2
+         fail=`expr $fail + 1`
+       fi
+     done < "$i.exp.out"
    fi
    if test -f "$i.exp.rtn"
    then
