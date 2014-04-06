@@ -77,7 +77,7 @@ void _gghc_macro(ggrt_ctx rtctx, ggrt_macro_t *m)
   char *rep;
   if ( mode_sexpr(ctx) ) {
     rep = ssprintf("(gghc:macro \"%s\" \"%s\")\n", m->name, out);
-    eprintf(ctx->defines_out, "  %s", rep);
+    if ( ctx->_emit_macros ) eprintf(ctx->defines_out, "  %s", rep);
   }
   if ( mode_c(ctx) ) {
     abort();

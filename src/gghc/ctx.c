@@ -45,6 +45,10 @@ gghc_ctx gghc_m_ctx()
   ctx->output_mode = gghc_mode_sexpr;
 
 #undef ssprintf
+
+  ctx->_emit_macros = 0;
+  ctx->_emit_globals = 1;
+
   return ctx;
 }
 
@@ -81,6 +85,7 @@ static void usage(gghc_ctx ctx, FILE *out)
 "OPTIONS: \n"
 "  -h, --help \n"
 "  -v, --verbose \n"
+"  -dM, --macros \n"
 "  --dump \n"
 "  --debug \n"
 "  --yydebug \n"
@@ -165,6 +170,8 @@ int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv)
       } else if ( OPT("-o") || OPT("--output") ) {
         ctx->output_pathname = val;
         argi += val_argd;
+      } else if ( OPT("-dM") || OPT("--macros") ) {
+        ctx->_emit_macros += 1;
       } else if ( OPT("--typedef") ) {
         const char *name = val;
         argi += val_argd;

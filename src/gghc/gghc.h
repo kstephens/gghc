@@ -164,6 +164,8 @@ struct gghc_ctx {
   int dump;
   int _malloc_debug;
   char *output_pathname;
+  int _emit_macros;
+  int _emit_globals;
 
   /* Processing */
   char *cmd;
