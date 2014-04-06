@@ -1,5 +1,6 @@
 #include "gghc/gghc.h"
 #include "ggrt/ggrt.h"
+#include "gghc/output.h"
 #include <assert.h>
 
 gghc_declaration *gghc_declaration_begin(gghc_ctx ctx)
@@ -54,15 +55,14 @@ gghc_declarator *gghc_declarator_end(gghc_ctx ctx)
   return obj;
 }
 
-void gghc_struct_elem_decl(gghc_ctx ctx)
+void gghc_struct_elem_decl(gghc_ctx ctx, gghc_declarator *decl)
 {
-  gghc_declarator *decl = ctx->current_declarator;
-  ggrt_type_t *type = decl->type;
-  char *name = decl->identifier;
+  if ( ! decl->type )
+    decl->type = ggrt_type(ctx->rt, "int");
   if ( decl->bit_field_size ) {
-    type = gghc_bitfield(ctx, type, decl->bit_field_size);
+    decl->type = gghc_bitfield(ctx, decl->type, decl->bit_field_size);
   }
-  ggrt_struct_elem(ctx->rt, 0, name, type);
+  gghc_struct_elem(ctx, decl);
 }
 
 void gghc_array_decl(gghc_ctx ctx, const char *size)
@@ -79,11 +79,15 @@ void gghc_array_decl(gghc_ctx ctx, const char *size)
   fprintf(stderr, "  ==>   ->type = %p\n", type);
   fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, type));
 
+#if 1
+  decl->type = type;
+#else
   if ( decl->is_parenthised ) {
     decl->type = type;
   } else {
     decl->type = type;
   }
+#endif
   fprintf(stderr, "  ==>   ->type = %p\n", decl->type);
   fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, decl->type));
   decl->syntax = "array";

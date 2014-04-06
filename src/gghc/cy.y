@@ -517,8 +517,7 @@ struct_declarator
   :   { gghc_declarator_begin(ctx); }
     struct_declarator_CTX
     {
-      gghc_struct_elem_decl(ctx);
-      gghc_declarator_end(ctx);
+      gghc_struct_elem_decl(ctx, gghc_declarator_end(ctx));
     }
   ;
 

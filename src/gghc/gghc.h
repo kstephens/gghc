@@ -98,7 +98,7 @@ gghc_declaration *gghc_declaration_end(gghc_ctx ctx);
 gghc_declarator *gghc_declarator_begin(gghc_ctx ctx);
 gghc_declarator *gghc_declarator_end(gghc_ctx ctx);
 
-void gghc_struct_elem_decl(gghc_ctx ctx);
+void gghc_struct_elem_decl(gghc_ctx ctx, gghc_declarator *decl);
 
 void gghc_array_decl(gghc_ctx ctx, const char *size);
 void gghc_function_decl(gghc_ctx ctx, ggrt_parameter_t *_params);

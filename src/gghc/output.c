@@ -233,25 +233,53 @@ void _gghc_array(ggrt_ctx rtctx, struct ggrt_type_t *at)
 {
 }
 
+static
+int str_to_size_t(const char *str, size_t *sizep)
+{
+  char *str_end = 0;
+  long long x = strtoll(str, &str_end, 0);
+  if ( str_end == strchr(str, 0) ) {
+    *sizep = (size_t) x;
+    return 1;
+  }
+  return 0;
+}
+
+static
+const char *str_to_size_t_or_constant(gghc_ctx hcctx, const char *str, size_t *sizep)
+{
+  ggrt_ctx rtctx = hcctx->rt;
+  *sizep = (size_t) -1L;
+  if ( str_to_size_t(str, sizep) ) {
+    str = ssprintf("%lld", (long long) *sizep);
+  } else {
+    str = gghc_constant(hcctx, str);
+  }
+
+  return str;
+}
+
 ggrt_type_t *gghc_array(gghc_ctx hcctx, struct ggrt_type_t *t, const char *length)
 {
   ggrt_ctx rtctx = hcctx->rt;
-  ggrt_type_t *at = ggrt_array(rtctx, t, (size_t) -1);
+  ggrt_type_t *at;
   char *expr;
+  const char *length_expr = length;
+  size_t len_val = (size_t) -1;
 
-  if ( ! (length && *length) )
-    length = 0;
+  length_expr = str_to_size_t_or_constant(hcctx, length, &len_val);
+  at = ggrt_array(rtctx, t, len_val);
 
   if ( mode_sexpr(ctx) ) {
-    expr = ssprintf("(gghc:array %s %s)", t->cb_data[0], length ? gghc_constant(hcctx, length) : "-1");
+    expr = ssprintf("(gghc:array %s %s)", t->cb_data[0], length_expr);
   }
   if ( mode_c(ctx) ) {
-    expr = ssprintf("gghc_array_type(%s, (size_t) (%s))", t->cb_data[0], length ? length : "-1");
+    expr = ssprintf("gghc_array_type(%s, (size_t) (%s))", t->cb_data[0], length_expr);
   }
 
   at->cb_data[0] = expr;
 
-  fprintf(stderr, "    gghc_array(%p, %s) => %p\n", t, length, at);
+  fprintf(stderr, "    gghc_array(%p, \"%s\") => %p %s\n", t, length, at, expr);
 
   return at;
 }
@@ -357,6 +385,7 @@ void gghc_struct_elem(gghc_ctx hcctx, gghc_declarator *decl)
   ggrt_ctx rtctx = hcctx->rt;
   gghc_struct *s = ctx->current_struct;
   ggrt_type_t *st = s->type;
+  char *name = decl->identifier;
   char *text = ""; // ???
   char *stype = 0; 
   char *sprefix = 0;
@@ -365,6 +394,8 @@ void gghc_struct_elem(gghc_ctx hcctx, gghc_declarator *decl)
   char *offset_expr = 0;
   char *sizeof_expr = 0;
   ggrt_elem_t *elem = 0; // FIXME
+
+  elem = ggrt_struct_elem(rtctx, st, name, decl->type);
 
   /* Add a Text slot */
   if ( ! s->named ) {
