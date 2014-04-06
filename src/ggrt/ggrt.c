@@ -261,7 +261,7 @@ ggrt_type_t *ggrt_array(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
   if ( ctx->cb._array )
     ctx->cb._array(ctx, at);
 
-  fprintf(stderr, "    ggrt_array(%p, %d) => %p\n", t, (int) len, at);
+  // fprintf(stderr, "    ggrt_array(%p, %d) => %p\n", t, (int) len, at);
 
   return at;
 }
@@ -434,7 +434,6 @@ ggrt_type_t *ggrt_struct_forward(ggrt_ctx ctx, const char *s_or_u, const char *n
   return st;
 }
 
-
 ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, ggrt_type_t *t)
 {
   ggrt_module_t *mod = ggrt_current_module(ctx);
@@ -460,7 +459,6 @@ ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, g
 
   return e;
 }
-
 
 ggrt_type_t *ggrt_t_bitfield(ggrt_ctx ctx, ggrt_type_t *t, int bits)
 {

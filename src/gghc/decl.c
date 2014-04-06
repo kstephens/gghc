@@ -24,7 +24,7 @@ gghc_declarator *gghc_declarator_begin(gghc_ctx ctx)
 {
   gghc_declarator *obj = gghc_malloc(ctx, sizeof(*obj));
 
-  fprintf(stderr, "  gghc_declarator_begin(): %p\n", obj);
+  // fprintf(stderr, "  gghc_declarator_begin(): %p\n", obj);
 
   obj->prev_decl = ctx->current_declarator;
   ctx->current_declarator = obj;
@@ -50,7 +50,7 @@ gghc_declarator *gghc_declarator_end(gghc_ctx ctx)
   // assert(ctx->current_declaration->declarators == obj);
   ctx->current_declarator = obj->prev_decl;
 
-  fprintf(stderr, "  gghc_declarator_end(): %p\n", obj);
+  // fprintf(stderr, "  gghc_declarator_end(): %p\n", obj);
 
   return obj;
 }
@@ -71,13 +71,15 @@ void gghc_array_decl(gghc_ctx ctx, const char *size)
   gghc_declarator *decl = ctx->current_declarator;
   ggrt_type_t *type = gghc_array(ctx, decl->type, size);
 
-  fprintf(stderr, "    gghc_array_decl(%p, %s)\n", ctx, size);
-  fprintf(stderr, "      ->decl = %p\n", decl);
-  fprintf(stderr, "        ->type = %p\n", decl->type);
-  fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, decl->type));
+  if ( 0 ) {
+    fprintf(stderr, "    gghc_array_decl(%p, %s)\n", ctx, size);
+    fprintf(stderr, "      ->decl = %p\n", decl);
+    fprintf(stderr, "        ->type = %p\n", decl->type);
+    fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, decl->type));
 
-  fprintf(stderr, "  ==>   ->type = %p\n", type);
-  fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, type));
+    fprintf(stderr, "  ==>   ->type = %p\n", type);
+    fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, type));
+  }
 
 #if 1
   decl->type = type;
@@ -88,8 +90,12 @@ void gghc_array_decl(gghc_ctx ctx, const char *size)
     decl->type = type;
   }
 #endif
-  fprintf(stderr, "  ==>   ->type = %p\n", decl->type);
-  fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, decl->type));
+
+  if ( 0 ) {
+    fprintf(stderr, "  ==>   ->type = %p\n", decl->type);
+    fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, decl->type));
+  }
+
   decl->syntax = "array";
 }
 

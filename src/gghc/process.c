@@ -141,7 +141,7 @@ void gghc_process_files(gghc_ctx ctx)
   if ( mode_sexpr(ctx) ) {
     fprintf(ctx->header_out, ";; Created by gghc 0.1, built %s %s */\n", __DATE__, __TIME__);
 
-    fprintf(ctx->header_out,    "\n(gghc:module \"%s\"\n\n", ctx->files);
+    fprintf(ctx->header_out,    "\n(gghc:module \"%s\"\n", ctx->files);
     for ( i = 0; i < ctx->filen; i ++ ) {
       fprintf(ctx->header_out,  "  (gghc:info 'input  %2d \"%s\")\n", i, ctx->filev[i]);
     }
