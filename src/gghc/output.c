@@ -97,9 +97,6 @@ void _gghc_typedef(ggrt_ctx rtctx, ggrt_typedef_t *td)
   if ( mode_c(ctx) ) {
     eprintf(ctx->body_out,"  gghc_typedef(\"%s\", %s);\n", name, type);
   }
-  if ( ctx->debug ) {
-    fprintf(stderr, "/* typedef %s => %s */\n", name, type);
-  }
 }
 
 void _gghc_intrinsic(ggrt_ctx rtctx, struct ggrt_type_t *t)
@@ -209,10 +206,10 @@ void _gghc_enum_end(ggrt_ctx rtctx, struct ggrt_type_t *et)
   gghc_enum *s = __gghc_enum(rtctx, et);
 
   if ( mode_sexpr(ctx) ) {
-    eprintf(ctx->body_out, "  ) ;; enum %s\n\n", s->expr);
+    eprintf(ctx->body_out, "  ) ;; enum %s\n", s->expr);
   }
   if ( mode_c(ctx) ) {
-    eprintf(ctx->body_out, "  gghc_enum_type_end(%s);\n\n", s->expr);
+    eprintf(ctx->body_out, "  gghc_enum_type_end(%s);\n", s->expr);
   }
 }
 
@@ -279,7 +276,7 @@ ggrt_type_t *gghc_array(gghc_ctx hcctx, struct ggrt_type_t *t, const char *lengt
 
   at->cb_data[0] = expr;
 
-  fprintf(stderr, "    gghc_array(%p, \"%s\") => %p %s\n", t, length, at, expr);
+  // fprintf(stderr, "    gghc_array(%p, \"%s\") => %p %s\n", t, length, at, expr);
 
   return at;
 }
@@ -535,10 +532,10 @@ void _gghc_global(ggrt_ctx rtctx, ggrt_global_t *g)
   const char *type = g->type->cb_data[0];
   char *expr;
   if ( mode_sexpr(ctx) ) {
-    expr = ssprintf("(gghc:global \"%s\" %s)\n", name, type);
+    expr = ssprintf("(gghc:global \"%s\" %s)", name, type);
   }
   if ( mode_c(ctx) ) {
-    expr = ssprintf("  gghc_global(\"%s\", %s, (void*) &%s);\n", name, type, name);
+    expr = ssprintf("  gghc_global(\"%s\", %s, (void*) &%s);", name, type, name);
   }
   eprintf(ctx->body_out, "  %s\n", expr);
   g->cb_data[0] = expr;
@@ -592,7 +589,6 @@ void gghc_emit_declarator(gghc_ctx ctx, gghc_declarator *decl)
       gghc_yywarning(ctx, ssprintf("ignoring declaration of '%s'", decl->identifier));
     }
   }
-  eprintf(ctx->body_out, "\n");
 }
 
 void gghc_emit_declaration(gghc_ctx ctx, gghc_declaration *decl)
