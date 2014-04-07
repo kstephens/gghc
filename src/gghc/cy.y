@@ -173,6 +173,10 @@ static void token_merge(gghc_ctx ctx, int yyn, int yylen, YYSTYPE *yyvalp, YYSTY
 
 %type <decl>
   array_declarators array_declarator
+  declarator
+  init_declarator init_declarator_CTX
+  abstract_declarator
+  parameter_declaration_CTX
 
 %%
 
@@ -350,13 +354,19 @@ declaration_specifiers
 	;
 
 init_declarator_list
-	: init_declarator
- 	| init_declarator_list ',' init_declarator
- 	;
+        : init_declarator
+        | init_declarator_list ',' init_declarator
+        ;
 
 init_declarator
+  : init_declarator_CTX
+      { gghc_add_declarator(ctx, $1); }
+  ;
+
+init_declarator_CTX
 	: declarator
 	| declarator '=' initializer
+            { $$ = $1; }
 	;
 
 storage_class_specifier
@@ -568,7 +578,7 @@ type_qualifier
 declarator 
   :   { gghc_declarator_begin(ctx); }
     declarator_CTX
-      { gghc_declarator_end(ctx); }
+      { $$ = gghc_declarator_end(ctx); }
   ;
 
 declarator_CTX
@@ -611,14 +621,15 @@ array_declarator
   ;
 
 pointer
+  : pointer_CTX
+      { c_declarator->type = ggrt_pointer(ctx->rt, c_declarator->type); }
+  ;
+
+pointer_CTX
 	: '*'
-          { c_declarator->type = ggrt_pointer(ctx->rt, c_declarator->type); }
 	| '*' type_qualifier_list
-          { c_declarator->type = ggrt_pointer(ctx->rt, c_declarator->type); }
 	| '*' pointer
-          { c_declarator->type = ggrt_pointer(ctx->rt, c_declarator->type); }
 	| '*' type_qualifier_list pointer
-          { c_declarator->type = ggrt_pointer(ctx->rt, c_declarator->type); }
 	;
 
 type_qualifier_list
@@ -629,26 +640,32 @@ type_qualifier_list
 parameter_type_list
 	: parameter_list
 	| parameter_list ',' ELLIPSIS
-        { $$ = ggrt_parameter(ctx->rt, 0, "..."); $$->prev = $1; }
+            { $$ = ggrt_parameter(ctx->rt, 0, "..."); $$->prev = $1; }
 	;
 
 parameter_list
 	: parameter_declaration
-        { $$ = $1; }
+            { $$ = $1; $$->prev = 0; }
 	| parameter_list ',' parameter_declaration
-        { $$ = $3; $3->prev = $1; }
+            { $$ = $3; $$->prev = $1; }
 	;
 
 parameter_declaration
   :   { gghc_declaration_begin(ctx); }
     parameter_declaration_CTX
-      { $$ = gghc_declaration_end(ctx); }
+      {
+        gghc_declarator *decl = $<decl>1;
+        $$ = ggrt_parameter(ctx->rt,
+                            decl ? decl->identifier : 0,
+                            decl ? decl->type       : ggrt_type(ctx->rt, "int"));
+        gghc_declaration_end(ctx);
+      }
   ;
 
 parameter_declaration_CTX
-	: declaration_specifiers declarator_CTX
-	| declaration_specifiers abstract_declarator_CTX
-	| declaration_specifiers
+        : declaration_specifiers declarator          { $$ = $2; }
+	| declaration_specifiers abstract_declarator { $$ = $2; }
+        | declaration_specifiers                     { $$ = 0; }
 	;
 
 identifier_list
@@ -668,16 +685,14 @@ type_name_ANSI
 
 abstract_declarator
   :   { gghc_declarator_begin(ctx); }
-   abstract_declarator_CTX
-      { gghc_declarator_end(ctx); }
+    abstract_declarator_CTX
+      { $$ = gghc_declarator_end(ctx); }
   ;
 
 abstract_declarator_CTX
 	: pointer
-          { c_declarator->type = ggrt_pointer(ctx->rt, c_declarator->type); }
 	| direct_abstract_declarator
 	| pointer direct_abstract_declarator
-          { c_declarator->type = ggrt_pointer(ctx->rt, c_declarator->type); }
 	;
 
 direct_abstract_declarator
@@ -700,7 +715,7 @@ direct_abstract_declarator
 
 direct_abstract_declarator_EXT
         : '(' '^' ')' '(' parameter_type_list ')'
-        { gghc_block_decl(ctx, $5); }
+            { gghc_block_decl(ctx, $5); }
         ;
 
 initializer

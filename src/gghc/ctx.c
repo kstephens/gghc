@@ -244,6 +244,12 @@ void gghc_reset(gghc_ctx ctx, const char *filename)
 
 void gghc_module_begin(gghc_ctx ctx, const char *modname)
 {
+  ctx->declaration_stack = 0;
+  ctx->current_declaration = 0;
+
+  ctx->declarator_stack = 0;
+  ctx->current_declarator = 0;
+
   ggrt_module_begin(ctx->rt, modname);
 
   ggrt_emit_types(ctx->rt);

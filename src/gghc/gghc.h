@@ -12,6 +12,11 @@
 struct gghc_ctx;
 typedef struct gghc_ctx *gghc_ctx;
 
+typedef struct gghc_obj_stack {
+  void *obj;
+  struct gghc_obj_stack *prev;
+} gghc_obj_stack;
+
 typedef struct gghc_declaration {
   ggrt_type_t *type; /* void, int, float, double, etc */
   int   storage;
@@ -41,7 +46,7 @@ typedef struct gghc_declarator {
   const char *array_size;
   const char *bit_field_size;
   struct gghc_declarator* prev; /* declaration.declarations */
-  struct gghc_declarator* prev_decl; /* _begin(), _end() */
+  struct gghc_declarator* prev_decl; /* list of declarators in a declaration. */
 } gghc_declarator;
 
 typedef struct gghc_enum {
@@ -100,6 +105,8 @@ gghc_declaration *gghc_declaration_end(gghc_ctx ctx);
 gghc_declarator *gghc_declarator_begin(gghc_ctx ctx);
 gghc_declarator *gghc_declarator_end(gghc_ctx ctx);
 
+gghc_declarator *gghc_add_declarator(gghc_ctx ctx, gghc_declarator *obj);
+
 void gghc_struct_elem_decl(gghc_ctx ctx, gghc_declarator *decl);
 
 gghc_declarator *gghc_m_array_decl(gghc_ctx ctx, const char *size);
@@ -155,7 +162,7 @@ struct gghc_ctx {
 
   int	parse_lineno;
   const char *parse_filename;
-  const char * parse_top_level_filename;
+  const char *parse_top_level_filename;
 
   int errors, fatals;
   int error_code;
@@ -183,7 +190,9 @@ struct gghc_ctx {
 
   // Parser state.
   struct gghc_declaration *current_declaration;
+  gghc_obj_stack *declaration_stack;
   struct gghc_declarator  *current_declarator;
+  gghc_obj_stack *declarator_stack;
 
   // Parser/Lexer control.
   void *scanner; /* cl.l flex yyscan_t */

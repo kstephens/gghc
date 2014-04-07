@@ -520,13 +520,17 @@ void _gghc_func(ggrt_ctx rtctx, ggrt_type_t *ft)
 {
   char *result;
   char *rtntype = ft->rtn_type->cb_data[0];
-  char *argtypes = "FIXME: _gghc_function_type";
+  char *argtypes = "";
+  int argi;
 
   if ( mode_sexpr(ctx) ) {
+    for ( argi = 0; argi < ft->nelems; argi ++ ) {
+      argtypes = ssprintf("%s %s", argtypes, ft->elems[argi]->cb_data[0]);
+    }
     if ( strcmp(argtypes, "(gghc:type \"void\")") == 0 ) {
       argtypes = "";
     }
-    result = ssprintf("(gghc:function %s %s)", rtntype, argtypes);
+    result = ssprintf("(gghc:function %s%s)", rtntype, argtypes);
   }
   if ( mode_c(ctx) ) {
     if ( strcmp(argtypes, "gghc_type(\"void\")") == 0 ) {
@@ -609,7 +613,7 @@ void gghc_emit_declaration(gghc_ctx ctx, gghc_declaration *decl)
   gghc_declarator *d = decl->declarators;
   while ( d ) {
     gghc_emit_declarator(ctx, d);
-    d = d->prev;
+    d = d->prev_decl;
   }
 }
 

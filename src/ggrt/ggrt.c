@@ -625,6 +625,7 @@ ggrt_parameter_t *ggrt_parameter(ggrt_ctx ctx, ggrt_type_t *type, const char *na
   ggrt_parameter_t *p = ggrt_malloc(sizeof(*p));
   p->type = type;
   p->name = ggrt_strdup(name);
+  fprintf(stderr, "  ggrt_parameter(%p, %p, %s) => %p\n", ctx, type, name);
   return p;
 }
 
@@ -634,7 +635,7 @@ void ggrt_parameter_list(ggrt_ctx ctx, ggrt_parameter_t *params, int *nparamp, g
   ggrt_type_t **param_types = 0;
   ggrt_parameter_t *head = 0, *next;
 
-  // Reverse and conunt linked list.
+  // Reverse and count linked list.
   while ( params ) {
     next = params->prev;
     nparam ++;
@@ -649,7 +650,6 @@ void ggrt_parameter_list(ggrt_ctx ctx, ggrt_parameter_t *params, int *nparamp, g
     param_types[i] = params->type;
     params = params->prev;
   }
-  assert(params == 0);
 }
 
 ggrt_type_t *ggrt_func_params(ggrt_ctx ctx, void *rtn_type, ggrt_parameter_t *params)
