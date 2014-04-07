@@ -145,7 +145,7 @@ void gghc_process_files(gghc_ctx ctx)
     for ( i = 0; i < ctx->filen; i ++ ) {
       fprintf(ctx->header_out,  "  (gghc:info 'input  %2d \"%s\")\n", i, ctx->filev[i]);
     }
-    fprintf(ctx->header_out,    "  (gghc:info 'cpp   \"%s\")\n\n", ctx->cmd_cpp);
+    fprintf(ctx->header_out,    "  (gghc:info 'cpp   \"%s\")\n", ctx->cmd_cpp);
   }
 
   if ( mode_c(ctx) ) {
@@ -185,7 +185,7 @@ void gghc_process_files(gghc_ctx ctx)
 
   /* End module. */
   if ( mode_sexpr(ctx) ) {
-    fprintf(ctx->footer_out, "\n) ;; module %s\n\n", ctx->files);
+    fprintf(ctx->footer_out, ") ;; module %s\n\n", ctx->files);
   }
   if ( mode_c(ctx) ) {
     /* Terminate the initializer function */
