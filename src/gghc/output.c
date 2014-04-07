@@ -275,6 +275,7 @@ ggrt_type_t *gghc_array(gghc_ctx hcctx, struct ggrt_type_t *t, const char *lengt
   }
 
   at->cb_data[0] = expr;
+  at->cb_data[5] = (void*) length;
 
   // fprintf(stderr, "    gghc_array(%p, \"%s\") => %p %s\n", t, length, at, expr);
 
@@ -298,6 +299,8 @@ ggrt_type_t *gghc_bitfield(gghc_ctx hcctx, struct ggrt_type_t *t, const char *le
   }
 
   bt->cb_data[0] = expr;
+  bt->cb_data[5] = (void*) length;
+
   return bt;
 }
 

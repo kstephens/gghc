@@ -15,7 +15,7 @@ struct ggrt_constant_t;
 struct ggrt_typedef_t;
 struct ggrt_global_t;
 
-typedef void *ggrt_user_data[4];
+typedef void *ggrt_user_data[8];
 
 #define ggrt_HEADER(T) \
   ggrt_user_data user_data; \
