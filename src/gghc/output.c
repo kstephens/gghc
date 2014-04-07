@@ -235,7 +235,7 @@ int str_to_size_t(const char *str, size_t *sizep)
 {
   char *str_end = 0;
   long long x = strtoll(str, &str_end, 0);
-  if ( str_end == strchr(str, 0) ) {
+  if ( *str && str_end == strchr(str, 0) ) {
     *sizep = (size_t) x;
     return 1;
   }
@@ -248,7 +248,15 @@ const char *str_to_size_t_or_constant(gghc_ctx hcctx, const char *str, size_t *s
   ggrt_ctx rtctx = hcctx->rt;
   *sizep = (size_t) -1L;
   if ( str_to_size_t(str, sizep) ) {
-    str = ssprintf("%lld", (long long) *sizep);
+    if ( sizeof(size_t) == sizeof(int) ) {
+      str = ssprintf("%d", (int) *sizep);
+    } else if ( sizeof(size_t) == sizeof(long) ) {
+      str = ssprintf("%ld", (long) *sizep);
+    } else if ( sizeof(size_t) == sizeof(long long) ) {
+      str = ssprintf("%lld", (long long) *sizep);
+    } else {
+      abort();
+    }
   } else {
     str = gghc_constant(hcctx, str);
   }
@@ -285,17 +293,19 @@ ggrt_type_t *gghc_array(gghc_ctx hcctx, struct ggrt_type_t *t, const char *lengt
 ggrt_type_t *gghc_bitfield(gghc_ctx hcctx, struct ggrt_type_t *t, const char *length)
 {
   ggrt_ctx rtctx = hcctx->rt;
-  ggrt_type_t *bt = ggrt_t_bitfield(rtctx, t, -1);
+  ggrt_type_t *bt;
   char *expr;
+  const char *length_expr = length;
+  size_t len_val = (size_t) -1;
 
-  if ( ! (length && *length) )
-    length = 0;
+  length_expr = str_to_size_t_or_constant(hcctx, length, &len_val);
+  bt = ggrt_t_bitfield(rtctx, t, len_val);
 
   if ( mode_sexpr(ctx) ) {
-    expr = ssprintf("(gghc:bitfield %s %s)", t->cb_data[0], length ? gghc_constant(hcctx, length) : "-1");
+    expr = ssprintf("(gghc:bitfield %s %s)", t->cb_data[0], length_expr);
   }
   if ( mode_c(ctx) ) {
-    expr = ssprintf("gghc_bitfield_type(%s, %s)", t->cb_data[0], length ? length : "-1");
+    expr = ssprintf("gghc_bitfield_type(%s, %s)", t->cb_data[0], length_expr);
   }
 
   bt->cb_data[0] = expr;

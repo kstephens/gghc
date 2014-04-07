@@ -171,6 +171,9 @@ static void token_merge(gghc_ctx ctx, int yyn, int yylen, YYSTYPE *yyvalp, YYSTY
   parameter_type_list parameter_list
   parameter_declaration
 
+%type <decl>
+  array_declarators array_declarator
+
 %%
 
 primary_expression
@@ -580,13 +583,11 @@ direct_declarator
 
 direct_declarator_ANSI
 	: IDENTIFIER
-            { c_declarator->identifier = EXPR($<u>1); gghc_debug_stop_here(); }
+            { c_declarator->identifier = EXPR($<u>1); }
 	| '(' declarator_CTX ')'
             { c_declarator->is_parenthised ++; }
-	| direct_declarator_ANSI '[' constant_expression ']'
-            { gghc_array_decl(ctx, EXPR($<u>3)); }
-	| direct_declarator_ANSI '[' ']'
-            { gghc_array_decl(ctx, ""); }
+	| direct_declarator_ANSI array_declarators
+            { gghc_array_decl(ctx, $2); }
 	| direct_declarator_ANSI '(' parameter_type_list ')'
             { gghc_function_decl(ctx, $3); }
 	| direct_declarator_ANSI '(' identifier_list ')'
@@ -594,6 +595,20 @@ direct_declarator_ANSI
 	| direct_declarator_ANSI '(' ')'
             { gghc_function_decl(ctx, 0); }
 	;
+
+array_declarators
+  :
+    array_declarator
+  | array_declarators array_declarator
+      { $$ = $2; $2->prev = $1; }
+  ;
+
+array_declarator
+  : '[' constant_expression ']'
+      { $$ = gghc_m_array_decl(ctx, EXPR($<u>2)); }
+  | '[' ']'
+      { $$ = gghc_m_array_decl(ctx, ""); }
+  ;
 
 pointer
 	: '*'
@@ -668,14 +683,10 @@ abstract_declarator_CTX
 direct_abstract_declarator
 	: '(' abstract_declarator_CTX ')'
             { c_declarator->is_parenthised ++; }
-	| '[' ']'
-            { gghc_array_decl(ctx, ""); }
-	| '[' constant_expression ']'
+	| array_declarators
+            { gghc_array_decl(ctx, $1); }
+	| direct_abstract_declarator array_declarators
             { gghc_array_decl(ctx, EXPR($<u>2)); }
-	| direct_abstract_declarator '[' ']'
-            { gghc_array_decl(ctx, ""); }
-	| direct_abstract_declarator '[' constant_expression ']'
-            { gghc_array_decl(ctx, EXPR($<u>3)); }
 	| '(' ')'
             { gghc_function_decl(ctx, 0); }
 	| '(' parameter_type_list ')'

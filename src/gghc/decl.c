@@ -65,38 +65,23 @@ void gghc_struct_elem_decl(gghc_ctx ctx, gghc_declarator *decl)
   gghc_struct_elem(ctx, decl);
 }
 
-void gghc_array_decl(gghc_ctx ctx, const char *size)
+gghc_declarator *gghc_m_array_decl(gghc_ctx ctx, const char *size)
 {
-  ggrt_ctx rtctx = ctx->rt;
-  gghc_declarator *decl = ctx->current_declarator;
-  ggrt_type_t *type = gghc_array(ctx, decl->type, size);
-
-  if ( 0 ) {
-    fprintf(stderr, "    gghc_array_decl(%p, %s)\n", ctx, size);
-    fprintf(stderr, "      ->decl = %p\n", decl);
-    fprintf(stderr, "        ->type = %p\n", decl->type);
-    fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, decl->type));
-
-    fprintf(stderr, "  ==>   ->type = %p\n", type);
-    fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, type));
-  }
-
-#if 1
-  decl->type = type;
-#else
-  if ( decl->is_parenthised ) {
-    decl->type = type;
-  } else {
-    decl->type = type;
-  }
-#endif
-
-  if ( 0 ) {
-    fprintf(stderr, "  ==>   ->type = %p\n", decl->type);
-    fprintf(stderr, "          ->name = %s\n", ggrt_c_declarator(rtctx, decl->type));
-  }
+  gghc_declarator *decl = gghc_malloc(ctx, sizeof(*decl));
 
   decl->syntax = "array";
+  decl->array_size = size;
+
+  return decl;
+}
+
+void gghc_array_decl(gghc_ctx ctx, gghc_declarator *array_decl)
+{
+  gghc_declarator *decl = ctx->current_declarator;
+  while ( array_decl ) {
+    decl->type = gghc_array(ctx, decl->type, array_decl->array_size);
+    array_decl = array_decl->prev;
+  }
 }
 
 void gghc_function_decl(gghc_ctx ctx, ggrt_parameter_t *_params)

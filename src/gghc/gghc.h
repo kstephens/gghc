@@ -38,7 +38,8 @@ typedef struct gghc_declarator {
   ggrt_type_t *type; /* e.g.: void *, int [4], etc. */
   gghc_declaration *declaration;
   short	is_parenthised;
-  char *bit_field_size;
+  const char *array_size;
+  const char *bit_field_size;
   struct gghc_declarator* prev; /* declaration.declarations */
   struct gghc_declarator* prev_decl; /* _begin(), _end() */
 } gghc_declarator;
@@ -89,6 +90,7 @@ typedef struct gghc_YYSTYPE {
   char *text; // text representation
   ggrt_type_t *type;
   ggrt_parameter_t *param;
+  gghc_declarator *decl;
   char *expr;
 } gghc_YYSTYPE;
 
@@ -100,7 +102,9 @@ gghc_declarator *gghc_declarator_end(gghc_ctx ctx);
 
 void gghc_struct_elem_decl(gghc_ctx ctx, gghc_declarator *decl);
 
-void gghc_array_decl(gghc_ctx ctx, const char *size);
+gghc_declarator *gghc_m_array_decl(gghc_ctx ctx, const char *size);
+void gghc_array_decl(gghc_ctx ctx, gghc_declarator *array_decl);
+
 void gghc_function_decl(gghc_ctx ctx, ggrt_parameter_t *_params);
 
 /* extension: int (^) (int p1, int p2) */
