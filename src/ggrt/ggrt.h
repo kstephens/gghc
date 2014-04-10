@@ -123,7 +123,7 @@ ggrt_elem_t *ggrt_struct_get_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *nam
 ggrt_type_t *ggrt_t_bitfield(ggrt_ctx ctx, ggrt_type_t *t, int bits);
 
 /* Function. */
-ggrt_type_t *ggrt_func(ggrt_ctx ctx, void *rtn_type, int nelem, ggrt_type_t **elem_types);
+ggrt_type_t *ggrt_func(ggrt_ctx ctx, ggrt_type_t *rtn_type, int nelem, ggrt_type_t **elem_types);
 ggrt_type_t *ggrt_varargs(ggrt_ctx ctx);
 
 ggrt_parameter_t *ggrt_parameter(ggrt_ctx ctx, ggrt_type_t *type, const char *name);

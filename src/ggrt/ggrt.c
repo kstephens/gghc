@@ -590,17 +590,19 @@ size_t ggrt_type_alignof(ggrt_ctx ctx, ggrt_type_t *st)
   return st->c_alignof;
 }
 
-ggrt_type_t *ggrt_func(ggrt_ctx ctx, void *rtn_type, int nelems, ggrt_type_t **param_types)
+ggrt_type_t *ggrt_func(ggrt_ctx ctx, ggrt_type_t *rtn_type, int nelems, ggrt_type_t **param_types)
 {
   ggrt_type_t *ct = ggrt_m_type(ctx, 0, 0);
+  assert(rtn_type);
   ct->type = "function";
   ct->te += ggrt_te_func;
   ct->param_type = ctx->type_voidP;
   ct->rtn_type = rtn_type;
   ct->nelems = nelems;
   ct->elems = ggrt_malloc(sizeof(ct->elems[0]) * ct->nelems);
-  {
+  if ( nelems ) {
     int i;
+    assert(param_types);
     for ( i = 0; i < nelems; ++ i ) {
       ggrt_type_t *pt = param_types[i];
       ggrt_elem_t *e = ct->elems[i] = ggrt_m_elem(ctx, 0, pt);
