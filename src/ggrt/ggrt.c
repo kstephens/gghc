@@ -650,6 +650,9 @@ void ggrt_parameter_list(ggrt_ctx ctx, ggrt_parameter_t *params, int *nparamp, g
     param_types[i] = params->type;
     params = params->prev;
   }
+
+  *nparamp = nparam;
+  *param_typesp = param_types;
 }
 
 ggrt_type_t *ggrt_func_params(ggrt_ctx ctx, void *rtn_type, ggrt_parameter_t *params)
