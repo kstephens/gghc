@@ -104,8 +104,9 @@ void gghc_array_decl(gghc_ctx ctx, gghc_declarator *array_decl)
 void gghc_function_decl(gghc_ctx ctx, ggrt_parameter_t *params)
 {
   gghc_declarator *decl = ctx->current_declarator;
-  
-  decl->type = ggrt_func_params(ctx->rt, decl->type, params);
+  ggrt_type_t *rtn_type = decl->type ? decl->type : ctx->current_declaration->type;
+
+  decl->type = ggrt_func_params(ctx->rt, rtn_type, params);
 
   if ( decl->is_parenthised ) {
     // TYPE (*foo)(...)
