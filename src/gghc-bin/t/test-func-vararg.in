@@ -1,0 +1,2 @@
+#pragma gghc:yydebug 10
+double test_f6(const char *fmt, ...);

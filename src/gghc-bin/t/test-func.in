@@ -1,0 +1,5 @@
+void test_f1();
+short test_f2(void);
+long test_f3(int);
+unsigned test_f4(int a1);
+
