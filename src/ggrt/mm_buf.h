@@ -2,6 +2,7 @@
 #define MM_BUF_H
 
 #include <sys/types.h>
+#include "ggrt/malloc_zone.h"
 
 typedef struct mm_buf_source {
   const char *filename;
@@ -27,6 +28,8 @@ typedef struct mm_buf_region {
   mm_buf *mb;
   char *cstr;
 } mm_buf_region;
+
+extern malloc_zone *mm_buf_mz;
 
 int mm_buf_open(mm_buf *mb, const char *filename);
 int mm_buf_close(mm_buf *mb);

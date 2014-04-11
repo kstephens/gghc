@@ -15,6 +15,7 @@ gghc_ctx gghc_m_ctx()
   memset(ctx, 0, sizeof(*ctx));
 
   ctx->mz = malloc_zone_new();
+  mm_buf_mz = ctx->mz;
   ctx->rt = ggrt_m_ctx();
   ggrt_ctx_init(ctx->rt);
 

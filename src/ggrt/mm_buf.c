@@ -9,6 +9,9 @@
 #include <sys/errno.h> /* errno */
 #include <assert.h>
 
+
+malloc_zone *mm_buf_mz; // NOT-THREAD-SAFE
+
 int mm_buf_open(mm_buf *mb, const char *filename)
 {
   int result = 0;
@@ -16,7 +19,7 @@ int mm_buf_open(mm_buf *mb, const char *filename)
 
   memset(mb, 0, sizeof(*mb));
   mb->fd = -1;
-  mb->s.src.filename = strdup(filename);
+  mb->s.src.filename = malloc_zone_strdup(mm_buf_mz, filename);
   mb->_errfunc = "stat";
   if ( (result = stat(filename, &sb)) != 0 )
     goto rtn;
@@ -49,7 +52,7 @@ int mm_buf_close(mm_buf *mb)
   if ( mb->fd >= 0 ) {
     close(mb->fd);
   }
-  // free((void*) mb->s.filename); // shared
+  // malloc_zone_free((void*) mb->s.filename); // shared
   memset(mb, 0, sizeof(*mb));
   mb->fd = -1;
   return 0;
@@ -133,15 +136,22 @@ int mm_buf_region_end(mm_buf_region *t, mm_buf *mb, size_t size)
   return 0;
 }
 
+void mm_buf_region_destroy(mm_buf_region *mt)
+{
+  if ( mt->cstr ) {
+    // malloc_zone_free(mm_buf_mz, mt->cstr); SHARED
+    mt->cstr = 0;
+  }
+}
+
 mm_buf_region * mm_buf_region_union(mm_buf_region *mt, mm_buf_region *mt0, mm_buf_region *mt1)
 {
   if ( mt0->beg.pos > mt1->end.pos ) {
     void *tmp = mt0; mt1 = mt0; mt1 = tmp;
   }
-  if ( mt->cstr ) {
-    free(mt->cstr);
-    mt->cstr = 0;
-  }
+
+  mm_buf_region_destroy(mt);
+
   if ( mt0->beg.pos ) {
     *mt = *mt0;
     mt->end = mt1->end;
@@ -157,7 +167,7 @@ mm_buf_region * mm_buf_region_union(mm_buf_region *mt, mm_buf_region *mt0, mm_bu
 char *mm_buf_region_cstr(mm_buf_region *mt)
 {
   if ( ! mt->cstr ) {
-    mt->cstr = malloc(mt->beg.size + 1);
+    mt->cstr = malloc_zone_malloc(mm_buf_mz, mt->beg.size + 1);
     memcpy(mt->cstr, mt->beg.beg, mt->beg.size);
     mt->cstr[mt->beg.size] = 0;
   }
