@@ -1,0 +1,5 @@
+(gghc:global "before" (gghc:type "int"))
+(gghc:pragma "gghc:yydebug 10")
+(gghc:global "during" (gghc:type "int"))
+(gghc:pragma "gghc:yydebug 0")
+(gghc:global "after" (gghc:type "int"))

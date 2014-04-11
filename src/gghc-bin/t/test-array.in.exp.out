@@ -1,0 +1,2 @@
+(gghc:global "test_array" (gghc:array (gghc:array (gghc:array (gghc:type "int") 5) 3) 2))
+(gghc:global "test_array_2" (gghc:array (gghc:array (gghc:pointer (gghc:type "char")) 11) 7))

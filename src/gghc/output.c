@@ -68,7 +68,20 @@ void _gghc_module_end(ggrt_ctx rtctx, struct ggrt_module_t *mod)
 
 void _gghc_pragma(ggrt_ctx rtctx, struct ggrt_pragma_t *obj)
 {
-    /* NOTHING */
+  char *out = ggrt_escape_string(ctx->rt, obj->text);
+  char *rep;
+
+  if ( mode_sexpr(ctx) ) {
+    rep = ssprintf("(gghc:pragma \"%s\")\n", out);
+    eprintf(ctx->body_out, "  %s", rep);
+  }
+  if ( mode_c(ctx) ) {
+    abort();
+  }
+  if ( strncmp(obj->text, "gghc:yydebug", strlen("gghc:yydebug")) == 0 ) {
+    int v = atoi(obj->text + strlen("gghc:yydebug") + 1);
+    ctx->_yydebug = v;
+  }
 }
 
 void _gghc_macro(ggrt_ctx rtctx, ggrt_macro_t *m)
@@ -567,7 +580,7 @@ void gghc_init_callbacks(gghc_ctx ctx)
 #define CB(N) ctx->rt->cb.N = _gghc##N
   CB(_module_begin);
   CB(_module_end);
-  // CB(_pragma);
+  CB(_pragma);
   CB(_macro);
   // CB(_constant);
   CB(_intrinsic);

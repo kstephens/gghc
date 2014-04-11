@@ -1,10 +1,28 @@
 #!/bin/sh
+expect() {
+  _n="$1"
+  if test -f "$i.exp.$_n"
+  then
+    while read expect
+    do
+      echo "    Expecting '$expect' in $i.run.$_n"
+      if ! fgrep -F -e "$expect" "$i.run.$_n" >/dev/null
+      then
+        echo "    FAIL: Expected '$expect' in $i.run.$_n" 1>&2
+        fail=`expr $fail + 1`
+      fi
+    done < "$i.exp.$_n"
+  fi
+}
+
 pass=0; fail=0
 base_cmd="$1"; shift
 for i in "$@"
 do
+   [ "$i" = "t/test-func.in" ] && continue
    cmd="$base_cmd $i > $i.run.out 2> $i.run.err"
-   echo "  Testing: $cmd"
+   echo "  Test: $i"
+   echo "  Run: $cmd"
    eval $cmd; rtn=$?
    echo "$rtn" > "$i.run.rtn"
    if [ "$rtn" -ge 100 ]
@@ -13,25 +31,10 @@ do
      exec lldb $base_cmd -- $i
    fi
    cat "$i.run.err"
-   if test -f "$i.exp.out"
-   then
-     while read expect
-     do
-       echo "    Expecting '$expect'"
-       if ! fgrep -F -e "$expect" "$i.run.out" >/dev/null
-       then
-         echo "    FAIL: Expected '$expect' in $i.run.out" 1>&2
-         fail=`expr $fail + 1`
-       fi
-     done < "$i.exp.out"
-   fi
-   if test -f "$i.exp.rtn"
-   then
-     if ! diff "$i.exp.rtn" "$i.run.rtn"
-     then
-       fail=`expr $fail + 1`
-     fi
-   fi
+   
+   expect out
+   expect err
+   expect rtn
 done
 
 exit $fail

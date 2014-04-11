@@ -102,7 +102,13 @@ PRAGMA	(pragma)
 %%
 
 \#[ \t]*{PRAGMA}.*\n {
-  ggrt_pragma(ctx->rt, yytext);
+  char *s = yytext, *t;
+  while ( *s && *s == '#' ) s ++;
+  while ( *s && isspace(*s) )s ++;
+  while ( *s && ! isspace(*s) ) s ++;
+  while ( *s && isspace(*s) ) s ++;
+  if ( (t = strchr(s, '\n')) ) *t = 0;
+  ggrt_pragma(ctx->rt, s);
 }
 
 \#[ \t]*{LINE}?[ \t]*[0-9]+([ \t]*\".*\")?.*\n {

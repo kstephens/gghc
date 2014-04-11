@@ -36,9 +36,9 @@ ggrt_module_t *ggrt_module_end(ggrt_ctx ctx, ggrt_module_t *mod)
 ggrt_pragma_t *ggrt_m_pragma(ggrt_ctx ctx, const char *text)
 {
   ggrt_module_t *mod = ggrt_current_module(ctx);
-  ggrt_pragma_t *p = ggrt_malloc(sizeof(*p));
-  p->text = ggrt_strdup(text);
-  return p;
+  ggrt_pragma_t *obj = ggrt_malloc(sizeof(*obj));
+  obj->text = ggrt_strdup(text);
+  return obj;
 }
 
 ggrt_pragma_t *ggrt_pragma(ggrt_ctx ctx, const char *text)
@@ -46,10 +46,12 @@ ggrt_pragma_t *ggrt_pragma(ggrt_ctx ctx, const char *text)
   ggrt_module_t *mod = ggrt_current_module(ctx);
   ggrt_pragma_t *obj = ggrt_m_pragma(ctx, text);
   obj->_id = ++ mod->_next_id;
-  if ( ctx->cb._pragma )
-    ctx->cb._pragma(ctx, obj);
   obj->prev = mod->pragmas;
   mod->pragmas = obj;
+
+  if ( ctx->cb._pragma )
+    ctx->cb._pragma(ctx, obj);
+
   return obj;
 }
 

@@ -1,0 +1,5 @@
+int before;
+#pragma gghc:yydebug 10
+int during;
+#pragma gghc:yydebug 0
+int after;
