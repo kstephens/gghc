@@ -34,15 +34,16 @@ static int _input(char *buf, size_t max_size)
 
 static void _prepare_token(gghc_ctx ctx, YYSTYPE *lvalp, char *text, int leng)
 {
-   ctx->_yytext = text;
-   ctx->_yyleng = leng;
-
      mm_buf_region *token = ctx->last_token;
      if ( ctx->_lexdebug >= 2 ) fprintf(ctx->_stderr, "  gghc: lex: matched '%s'\n", text);
 
      mm_buf_region_begin(token, ctx->mb_token);
      mm_buf_read(ctx->mb_token, 0, leng);
      mm_buf_region_end(token, ctx->mb_token, leng);
+
+     memset(&yylval, 0, sizeof(yylval));
+     ctx->_yytext = text;
+     ctx->_yyleng = leng;
 
      yylval.t = *token;
      yylval.leng = leng;
