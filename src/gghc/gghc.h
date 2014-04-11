@@ -14,6 +14,7 @@ typedef struct gghc_ctx *gghc_ctx;
 
 typedef struct gghc_obj_stack {
   void *obj;
+  int depth;
   struct gghc_obj_stack *prev;
 } gghc_obj_stack;
 
@@ -111,6 +112,8 @@ void gghc_struct_elem_decl(gghc_ctx ctx, gghc_declarator *decl);
 
 gghc_declarator *gghc_m_array_decl(gghc_ctx ctx, const char *size);
 void gghc_array_decl(gghc_ctx ctx, gghc_declarator *array_decl);
+
+ggrt_parameter_t *gghc_parameter_decl(gghc_ctx ctx, gghc_declarator *decl);
 
 void gghc_function_decl(gghc_ctx ctx, ggrt_parameter_t *_params);
 

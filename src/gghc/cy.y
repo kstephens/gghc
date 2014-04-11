@@ -654,17 +654,14 @@ parameter_declaration
   :   { gghc_declaration_begin(ctx); }
     parameter_declaration_CTX
       {
-        gghc_declarator *decl = $<decl>1;
-        $$ = ggrt_parameter(ctx->rt,
-                            decl ? decl->identifier : 0,
-                            decl ? decl->type       : ggrt_type(ctx->rt, "int"));
+        $$ = gghc_parameter_decl(ctx, $<decl>1);
         gghc_declaration_end(ctx);
       }
   ;
 
 parameter_declaration_CTX
         : declaration_specifiers declarator          { $$ = $2; }
-	| declaration_specifiers abstract_declarator { $$ = $2; }
+        | declaration_specifiers abstract_declarator { $$ = $2; }
         | declaration_specifiers                     { $$ = 0; }
 	;
 

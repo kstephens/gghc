@@ -6,14 +6,18 @@
 gghc_declaration *gghc_declaration_begin(gghc_ctx ctx)
 {
   gghc_declaration *obj = gghc_malloc(ctx, sizeof(*obj));
-  gghc_obj_stack *obj_stack = gghc_malloc(ctx, sizeof(*ctx->declaration_stack));
+  gghc_obj_stack *obj_stack = gghc_malloc(ctx, sizeof(*obj_stack));
 
   obj_stack->obj = ctx->current_declaration;
   obj_stack->prev = ctx->declaration_stack;
+  obj_stack->depth = obj_stack->prev ? obj_stack->prev->depth + 1 : 0;
   ctx->declaration_stack = obj_stack;
 
   ctx->current_declaration = obj;
   obj->type = ggrt_type(ctx->rt, "int");
+
+  fprintf(stderr, "   %3d gghc_declaration_begin(%p) => %p\n", obj_stack->depth, ctx, obj);
+
   return obj;
 }
 
@@ -21,6 +25,8 @@ gghc_declaration *gghc_declaration_end(gghc_ctx ctx)
 {
   gghc_declaration *obj = ctx->current_declaration;
   gghc_obj_stack *obj_stack = ctx->declaration_stack;
+
+  fprintf(stderr, "   %3d gghc_declaration_end(%p) => %p\n", obj_stack->depth, ctx, obj);
 
   assert(obj_stack);
   ctx->current_declaration = obj_stack->obj;
@@ -33,10 +39,11 @@ gghc_declaration *gghc_declaration_end(gghc_ctx ctx)
 gghc_declarator *gghc_declarator_begin(gghc_ctx ctx)
 {
   gghc_declarator *obj = gghc_malloc(ctx, sizeof(*obj));
-  gghc_obj_stack *obj_stack = gghc_malloc(ctx, sizeof(*ctx->declaration_stack));
+  gghc_obj_stack *obj_stack = gghc_malloc(ctx, sizeof(*obj_stack));
 
   obj_stack->obj = ctx->current_declarator;
   obj_stack->prev = ctx->declarator_stack;
+  obj_stack->depth = obj_stack->prev ? obj_stack->prev->depth + 1 : 0;
   ctx->declarator_stack = obj_stack;
 
   // fprintf(stderr, "  gghc_declarator_begin(): %p\n", obj);
@@ -65,13 +72,19 @@ gghc_declarator *gghc_declarator_end(gghc_ctx ctx)
   if ( ! obj->type )
     obj->type = obj->declaration->type;
 
+  fprintf(stderr, "   %3d gghc_declarator_end(%p) => %p\n", obj_stack->depth, ctx, obj);
+
   return obj;
 }
 
 gghc_declarator *gghc_add_declarator(gghc_ctx ctx, gghc_declarator *obj)
 {
-  obj->prev_decl = ctx->current_declaration->declarators;
-  ctx->current_declaration->declarators = obj;
+  gghc_declaration *cd = ctx->current_declaration;
+  gghc_declarator *pd = cd->declarators;
+
+  fprintf(stderr, "   gghc_add_declarator(%p, %p)\n", ctx, obj);
+  obj->prev_decl = pd;
+  cd->declarators = obj;
 
   return obj;
 }
@@ -104,6 +117,34 @@ void gghc_array_decl(gghc_ctx ctx, gghc_declarator *array_decl)
     decl->type = gghc_array(ctx, decl->type, array_decl->array_size);
     array_decl = array_decl->prev;
   }
+}
+
+ggrt_parameter_t *gghc_parameter_decl(gghc_ctx ctx, gghc_declarator *decl)
+{
+  gghc_declaration *declaration;
+  ggrt_type_t *type;
+  const char *name = 0;
+  ggrt_parameter_t *param;
+
+  assert(ctx);
+  declaration = ctx->current_declaration;
+  assert(declaration);
+
+  if ( decl ) {
+    // assert(decl == declaration->declarators);
+    assert(decl->prev_decl == 0);
+    name = decl->identifier;
+    type = decl->type ? decl->type : declaration->type;
+  } else {
+    type = declaration->type;
+  }
+  if ( ! type ) type = ggrt_type(ctx->rt, "int");
+
+  param = ggrt_parameter(ctx->rt, type, name);
+
+  fprintf(stderr, "  gghc_parameter_decl(%p, %p) => (%s, %s) %p\n", ctx, decl, type->name, name, param);
+
+  return param;
 }
 
 void gghc_function_decl(gghc_ctx ctx, ggrt_parameter_t *params)

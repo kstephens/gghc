@@ -1,3 +1,4 @@
 #pragma gghc:yydebug 10
 float test_f5(int a1, double);
+#pragma gghc:yydebug 0
 int ok;

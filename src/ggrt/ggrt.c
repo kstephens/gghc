@@ -629,7 +629,7 @@ ggrt_parameter_t *ggrt_parameter(ggrt_ctx ctx, ggrt_type_t *type, const char *na
   ggrt_parameter_t *p = ggrt_malloc(sizeof(*p));
   p->type = type;
   p->name = ggrt_strdup(name);
-  fprintf(stderr, "  ggrt_parameter(%p, %p, %s) => %p\n", ctx, type, name);
+  fprintf(stderr, "  ggrt_parameter(%p, %p, %s) => %p\n", ctx, type, name, p);
   return p;
 }
 
