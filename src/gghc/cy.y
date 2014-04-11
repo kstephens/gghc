@@ -398,7 +398,13 @@ storage_class_specifier_TOKEN
 	;
 
 type_specifier
-  : type_specifier_CTX { c_declaration->type = $1; } ;
+  : type_specifier_CTX
+    {
+      c_declaration->type = $1;
+      if ( c_declarator ) c_declarator->type = $1;
+      // fprintf(stderr, "  declaration %p, declarator %p type => %p\n", c_declaration, c_declarator, $1);
+    }
+  ;
 
 type_specifier_CTX
 	: VOID
@@ -640,7 +646,7 @@ type_qualifier_list
 parameter_type_list
 	: parameter_list
 	| parameter_list ',' ELLIPSIS
-            { $$ = ggrt_parameter(ctx->rt, 0, "..."); $$->prev = $1; }
+            { $$ = ggrt_parameter(ctx->rt, ggrt_varargs(ctx->rt), "..."); $$->prev = $1; }
 	;
 
 parameter_list
@@ -651,18 +657,19 @@ parameter_list
 	;
 
 parameter_declaration
-  :   { gghc_declaration_begin(ctx); }
+:   { gghc_declaration_begin(ctx); gghc_declarator_begin(ctx); }
     parameter_declaration_CTX
       {
-        $$ = gghc_parameter_decl(ctx, $<decl>1);
+        $$ = gghc_parameter_decl(ctx, c_declarator);
+        gghc_declarator_end(ctx);
         gghc_declaration_end(ctx);
       }
   ;
 
 parameter_declaration_CTX
-        : declaration_specifiers declarator          { $$ = $2; }
-        | declaration_specifiers abstract_declarator { $$ = $2; }
-        | declaration_specifiers                     { $$ = 0; }
+        : declaration_specifiers declarator_CTX
+        | declaration_specifiers abstract_declarator_CTX
+        | declaration_specifiers
 	;
 
 identifier_list
@@ -698,7 +705,7 @@ direct_abstract_declarator
 	| array_declarators
             { gghc_array_decl(ctx, $1); }
 	| direct_abstract_declarator array_declarators
-            { gghc_array_decl(ctx, EXPR($<u>2)); }
+            { gghc_array_decl(ctx, $2); }
 	| '(' ')'
             { gghc_function_decl(ctx, 0); }
 	| '(' parameter_type_list ')'

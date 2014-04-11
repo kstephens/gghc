@@ -3,12 +3,13 @@ expect() {
   _n="$1"
   if test -f "$i.exp.$_n"
   then
+    echo "    Expectations in $i.run.$_n:"
     while read expect
     do
-      echo "    Expecting '$expect' in $i.run.$_n"
+      echo "      Expecting '$expect'"
       if ! fgrep -F -e "$expect" "$i.run.$_n" >/dev/null
       then
-        echo "    FAIL: Expected '$expect' in $i.run.$_n" 1>&2
+        echo "      FAIL: Expected '$expect'" 1>&2
         fail=`expr $fail + 1`
       fi
     done < "$i.exp.$_n"
@@ -29,7 +30,7 @@ do
      cat "$i.run.out" "$i.run.err"
      exec lldb $base_cmd -- $i
    fi
-   cat "$i.run.err"
+   [ -n "$RUN_TEST_VERBOSE" ] && cat "$i.run.err"
    
    expect out
    expect err

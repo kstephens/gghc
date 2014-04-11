@@ -1,0 +1,1 @@
+(gghc:global "test_f6" (gghc:function (gghc:type "double") (gghc:pointer (gghc:type "char")) (gghc:type "...")))

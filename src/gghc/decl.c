@@ -16,7 +16,7 @@ gghc_declaration *gghc_declaration_begin(gghc_ctx ctx)
   ctx->current_declaration = obj;
   obj->type = ggrt_type(ctx->rt, "int");
 
-  fprintf(stderr, "   %3d gghc_declaration_begin(%p) => %p\n", obj_stack->depth, ctx, obj);
+  // fprintf(stderr, "   %3d gghc_declaration_begin(%p) => %p\n", obj_stack->depth, ctx, obj);
 
   return obj;
 }
@@ -26,7 +26,7 @@ gghc_declaration *gghc_declaration_end(gghc_ctx ctx)
   gghc_declaration *obj = ctx->current_declaration;
   gghc_obj_stack *obj_stack = ctx->declaration_stack;
 
-  fprintf(stderr, "   %3d gghc_declaration_end(%p) => %p\n", obj_stack->depth, ctx, obj);
+  // fprintf(stderr, "   %3d gghc_declaration_end(%p) => %p\n", obj_stack->depth, ctx, obj);
 
   assert(obj_stack);
   ctx->current_declaration = obj_stack->obj;
@@ -54,7 +54,7 @@ gghc_declarator *gghc_declarator_begin(gghc_ctx ctx)
   obj->declaration = ctx->current_declaration;
   obj->type = obj->declaration->type;
 
-  fprintf(stderr, "   %3d gghc_declarator_begin(%p) => %p\n", obj_stack->depth, ctx, obj);
+  // fprintf(stderr, "   %3d gghc_declarator_begin(%p) => %p\n", obj_stack->depth, ctx, obj);
 
   return obj;
 }
@@ -72,7 +72,7 @@ gghc_declarator *gghc_declarator_end(gghc_ctx ctx)
   if ( ! obj->type )
     obj->type = obj->declaration->type;
 
-  fprintf(stderr, "   %3d gghc_declarator_end(%p) => %p\n", obj_stack->depth, ctx, obj);
+  // fprintf(stderr, "   %3d gghc_declarator_end(%p) => %p\n", obj_stack->depth, ctx, obj);
 
   return obj;
 }
@@ -82,7 +82,7 @@ gghc_declarator *gghc_add_declarator(gghc_ctx ctx, gghc_declarator *obj)
   gghc_declaration *cd = ctx->current_declaration;
   gghc_declarator *pd = cd->declarators;
 
-  fprintf(stderr, "   gghc_add_declarator(%p, %p)\n", ctx, obj);
+  // fprintf(stderr, "   gghc_add_declarator(%p, %p)\n", ctx, obj);
   obj->prev_decl = pd;
   cd->declarators = obj;
 
@@ -129,11 +129,15 @@ ggrt_parameter_t *gghc_parameter_decl(gghc_ctx ctx, gghc_declarator *decl)
   assert(ctx);
   declaration = ctx->current_declaration;
   assert(declaration);
+  assert(decl);
+  assert(decl->declaration == declaration);
 
   if ( decl ) {
     // assert(decl == declaration->declarators);
     assert(decl->prev_decl == 0);
     name = decl->identifier;
+    declaration = decl->declaration;
+    assert(declaration);
     type = decl->type ? decl->type : declaration->type;
   } else {
     type = declaration->type;
@@ -142,7 +146,7 @@ ggrt_parameter_t *gghc_parameter_decl(gghc_ctx ctx, gghc_declarator *decl)
 
   param = ggrt_parameter(ctx->rt, type, name);
 
-  fprintf(stderr, "  gghc_parameter_decl(%p, %p) => (%s, %s) %p\n", ctx, decl, type->name, name, param);
+  // fprintf(stderr, "  gghc_parameter_decl(%p, %p) => (%s, %s) %p\n", ctx, decl, type->name, name, param);
 
   return param;
 }
