@@ -60,6 +60,9 @@ gghc_declarator *gghc_declarator_end(gghc_ctx ctx)
   ctx->declarator_stack = obj_stack->prev;
 
   assert(obj);
+  if ( ! obj->type )
+    obj->type = obj->declaration->type;
+
   return obj;
 }
 
