@@ -47,13 +47,15 @@ gghc_declarator *gghc_declarator_begin(gghc_ctx ctx)
   obj->declaration = ctx->current_declaration;
   obj->type = obj->declaration->type;
 
+  fprintf(stderr, "   %3d gghc_declarator_begin(%p) => %p\n", obj_stack->depth, ctx, obj);
+
   return obj;
 }
 
 gghc_declarator *gghc_declarator_end(gghc_ctx ctx)
 {
   gghc_declarator *obj = ctx->current_declarator;
-  gghc_obj_stack *obj_stack = ctx->declaration_stack;
+  gghc_obj_stack *obj_stack = ctx->declarator_stack;
 
   assert(obj_stack);
   ctx->current_declarator = obj_stack->obj;
