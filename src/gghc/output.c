@@ -71,16 +71,20 @@ void _gghc_pragma(ggrt_ctx rtctx, struct ggrt_pragma_t *obj)
   char *out = ggrt_escape_string(ctx->rt, obj->text);
   char *rep;
 
+  if ( strncmp(obj->text, "gghc:yydebug", strlen("gghc:yydebug")) == 0 ) {
+    int v = atoi(obj->text + strlen("gghc:yydebug") + 1);
+    ctx->_yydebug = v;
+  } else if ( strncmp(obj->text, "gghc:lexdebug", strlen("gghc:lexdebug")) == 0 ) {
+    int v = atoi(obj->text + strlen("gghc:lexdebug") + 1);
+    ctx->_lexdebug = v;
+  }
+
   if ( mode_sexpr(ctx) ) {
     rep = ssprintf("(gghc:pragma \"%s\")\n", out);
     eprintf(ctx->body_out, "  %s", rep);
   }
   if ( mode_c(ctx) ) {
     abort();
-  }
-  if ( strncmp(obj->text, "gghc:yydebug", strlen("gghc:yydebug")) == 0 ) {
-    int v = atoi(obj->text + strlen("gghc:yydebug") + 1);
-    ctx->_yydebug = v;
   }
 }
 
