@@ -538,7 +538,8 @@ void _gghc_func(ggrt_ctx rtctx, ggrt_type_t *ft)
 
   if ( mode_sexpr(ctx) ) {
     for ( argi = 0; argi < ft->nelems; argi ++ ) {
-      argtypes = ssprintf("%s %s", argtypes, ft->elems[argi]->cb_data[0]);
+      ggrt_type_t *arg_type = ft->elems[argi]->type;
+      argtypes = ssprintf("%s %s", argtypes, arg_type->cb_data[0]);
     }
     if ( strcmp(argtypes, "(gghc:type \"void\")") == 0 ) {
       argtypes = "";
