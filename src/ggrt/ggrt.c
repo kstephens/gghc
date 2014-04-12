@@ -262,8 +262,6 @@ ggrt_type_t *ggrt_array(ggrt_ctx ctx, ggrt_type_t *t, size_t len)
   if ( ctx->cb._array )
     ctx->cb._array(ctx, at);
 
-  // fprintf(stderr, "    ggrt_array(%p, %d) => %p\n", t, (int) len, at);
-
   return at;
 }
 
@@ -408,8 +406,6 @@ ggrt_type_t *_ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
   if ( name && *name )
     ggrt_symbol_table_add_(ctx, sym_tab, name, st, 0);
 
-  fprintf(stderr, "  _ggrt_struct(%s, %s) => %p\n", s_or_u, name, st);
-
   return st;
 }
 
@@ -436,8 +432,6 @@ ggrt_type_t *ggrt_struct_forward(ggrt_ctx ctx, const char *s_or_u, const char *n
   assert(name && *name);
   st = _ggrt_struct(ctx, s_or_u, name);
   
-  fprintf(stderr, "  ggrt_struct_forward(%s, %s) => %p\n", s_or_u, name, st);
-
   if ( ctx->cb._struct_forward )
     ctx->cb._struct_forward(ctx, st);
 
@@ -639,7 +633,6 @@ ggrt_parameter_t *ggrt_parameter(ggrt_ctx ctx, ggrt_type_t *type, const char *na
   ggrt_parameter_t *p = ggrt_malloc(sizeof(*p));
   p->type = type;
   p->name = ggrt_strdup(name);
-  // fprintf(stderr, "  ggrt_parameter(%p, %p, %s) => %p\n", ctx, type, name, p);
   return p;
 }
 
