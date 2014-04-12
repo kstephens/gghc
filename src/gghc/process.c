@@ -160,6 +160,10 @@ void gghc_process_files(gghc_ctx ctx)
     fprintf(ctx->header_out, "\n  gghc_begin_module(\"%s\");\n\n", ctx->files);
   }
 
+  if ( ctx->_cpp_output ) {
+    gghc_system(ctx, ssprintf("cp '%s' '%s'", ctx->cpp_out_filename, ctx->_cpp_output));
+  }
+
   /**************************************/
   /* Parse the preprocessed input file */
 
@@ -199,6 +203,11 @@ void gghc_process_files(gghc_ctx ctx)
 
   /* Close files */
   gghc_close_files(ctx);
+
+  /* Save cpp output.  May have been triggered by #pragma */
+  if ( ctx->_cpp_output ) {
+    gghc_system(ctx, ssprintf("cp '%s' '%s'", ctx->cpp_out_filename, ctx->_cpp_output));
+  }
 
   /**************************************/
   /* Compile constants. */

@@ -180,6 +180,7 @@ struct gghc_ctx {
   char *output_pathname;
   int _emit_macros;
   int _emit_globals;
+  char *_cpp_output;
 
   /* Processing */
   char *cmd;

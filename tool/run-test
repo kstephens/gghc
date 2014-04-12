@@ -20,7 +20,8 @@ pass=0; fail=0
 base_cmd="$1"; shift
 for i in "$@"
 do
-   cmd="$base_cmd $i > $i.run.out 2> $i.run.err"
+  eval cmd="\"$base_cmd\""
+   cmd="$cmd $i > $i.run.out 2> $i.run.err"
    echo "  Test: $i"
    echo "  Run: $cmd"
    eval $cmd; rtn=$?

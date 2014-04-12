@@ -187,6 +187,10 @@ int gghc_parse_argv(gghc_ctx ctx, int argc, char **argv)
         ctx->_yydebug += incr;
       } else if ( OPT("--mallocdebug") ) {
         ctx->_malloc_debug += incr;
+      } else if ( OPT("--cpp-output") ) {
+        fprintf(stderr, "    #### cpp_output = '%s'\n", val);
+        ctx->_cpp_output = val;
+        argi += val_argd;
       } else if ( OPT("--sexpr") ) {
         ctx->output_mode = gghc_mode_sexpr;
       } else if ( OPT("--C") ) {
