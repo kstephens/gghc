@@ -389,8 +389,13 @@ ggrt_type_t *_ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
   ggrt_module_t *mod = ggrt_current_module(ctx);
   ggrt_type_t *st;
   ggrt_symbol *sym;
+  ggrt_symbol_table *sym_tab;
 
-  if ( name && *name && (sym = ggrt_symbol_table_by_name(ctx, s_or_u[0] == 's' ? mod->st._struct : mod->st._union, name)) ) {
+  assert(s_or_u && (s_or_u[0] == 's' || s_or_u[0] == 'u'));
+
+  sym_tab = s_or_u[0] == 's' ? mod->st._struct : mod->st._union;
+
+  if ( name && *name && (sym = ggrt_symbol_table_by_name(ctx, sym_tab, name)) ) {
     return sym->addr;
   }
 
@@ -401,7 +406,9 @@ ggrt_type_t *_ggrt_struct(ggrt_ctx ctx, const char *s_or_u, const char *name)
   st->elems = ggrt_malloc(sizeof(st->elems[0]) * st->nelems);
 
   if ( name && *name )
-    ggrt_symbol_table_add_(ctx, mod->st._enum, name, 0, st);
+    ggrt_symbol_table_add_(ctx, sym_tab, name, st, 0);
+
+  fprintf(stderr, "  _ggrt_struct(%s, %s) => %p\n", s_or_u, name, st);
 
   return st;
 }
@@ -429,6 +436,8 @@ ggrt_type_t *ggrt_struct_forward(ggrt_ctx ctx, const char *s_or_u, const char *n
   assert(name && *name);
   st = _ggrt_struct(ctx, s_or_u, name);
   
+  fprintf(stderr, "  ggrt_struct_forward(%s, %s) => %p\n", s_or_u, name, st);
+
   if ( ctx->cb._struct_forward )
     ctx->cb._struct_forward(ctx, st);
 
@@ -445,6 +454,8 @@ ggrt_elem_t *ggrt_struct_elem(ggrt_ctx ctx, ggrt_type_t *st, const char *name, g
 
   if ( ! st )
     st = mod->current_struct;
+
+  assert(st);
 
   st->c_sizeof = st->c_alignof = 0;
 
