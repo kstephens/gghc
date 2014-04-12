@@ -1,0 +1,14 @@
+#pragma gghc:yydebug 10
+typedef struct mystruct {
+  int x, *y, z;
+  double (*func)(void);
+  struct {
+    int sx, sy, sz;
+  } substruct;
+  int bits : 4;
+  int a[5][3];
+  struct mystruct *next;
+} mystruct;
+
+void msp_func(struct mystruct *ptr);
+void mspc_func(const struct mystruct *ptr);

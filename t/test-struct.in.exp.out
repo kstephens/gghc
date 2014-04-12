@@ -1,0 +1,15 @@
+(gghc:struct _gghc_type_struct_mystruct "struct" "mystruct"
+(gghc:element "x" (gghc:type "int")
+(gghc:element "y" (gghc:pointer (gghc:type "int"))
+(gghc:element "z" (gghc:type "int")
+(gghc:struct _gghc_type_struct__gghc_unamed_struct_1 "struct" ""
+(gghc:element "sx" (gghc:type "int")
+(gghc:element "sy" (gghc:type "int")
+(gghc:element "sz" (gghc:type "int")
+(gghc:element "substruct" _gghc_type_struct__gghc_unamed_struct_1
+(gghc:element "bits" (gghc:bitfield (gghc:type "int") 4)
+(gghc:element "a" (gghc:array (gghc:array (gghc:type "int") 3) 5)
+(gghc:element "next" (gghc:pointer _gghc_type_struct_mystruct)
+(gghc:typedef "mystruct" _gghc_type_struct_mystruct)
+(gghc:global "msp_func" (gghc:function (gghc:type "void") (gghc:pointer _gghc_type_struct_mystruct)))
+(gghc:global "mspc_func" (gghc:function (gghc:type "void") (gghc:pointer _gghc_type_struct_mystruct)))
