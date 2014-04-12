@@ -113,12 +113,12 @@ ggrt_global_t *ggrt_global(ggrt_ctx ctx, const char *name, ggrt_type_t *type, vo
   ggrt_global_t *obj = ggrt_m_global(ctx, name, type, addr);
   ggrt_symbol *sym;
   obj->_id = ++ mod->_next_id;
-  if ( ctx->cb._global )
-    ctx->cb._global(ctx, obj);
   sym = ggrt_symbol_table_add_(ctx, mod->st._global, name, addr, type);
   sym->value = obj;
   obj->prev = mod->globals;
   mod->globals = obj;
+  if ( ctx->cb._global )
+    ctx->cb._global(ctx, obj);
   return obj;
 }
 
@@ -156,11 +156,10 @@ ggrt_type_t *ggrt_intrinsic(ggrt_ctx ctx, const char *name, size_t c_size)
   }
 
   ggrt_symbol_table_add_(ctx, mod->st._intrinsic, name, t, 0);
+  ggrt_symbol_table_add_(ctx, mod->st._type, name, t, 0);
 
   if ( ctx->cb._intrinsic )
     ctx->cb._intrinsic(ctx, t);
-
-  ggrt_symbol_table_add_(ctx, mod->st._type, name, t, 0);
 
   return t;
 }
