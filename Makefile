@@ -24,7 +24,9 @@ test-local-2 : test-local
 TEST_IN := $(shell ls t/test-*.in)
 
 test-local:
-	tool/run-test "$(PROG) -- $(CC) --" $(TEST_IN)
+	tool/run-test "$(PROG) -- $(CC)    --" $(TEST_IN)
+	tool/run-test "$(PROG) -- $(gcc)   --" $(TEST_IN)
+	tool/run-test "$(PROG) -- $(clang) --" $(TEST_IN)
 
 test-deep : all test
 	@set -ex; for f in $(TEST_INPUTS) ;\
