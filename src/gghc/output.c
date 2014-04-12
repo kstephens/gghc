@@ -451,9 +451,6 @@ void gghc_struct_elem(gghc_ctx hcctx, gghc_declarator *decl)
   }
 
   if ( mode_sexpr(ctx) ) {
-    if ( decl->bit_field_size ) {
-      estype = ssprintf("(gghc:bitfield %s %s)", estype, gghc_constant(ctx, decl->bit_field_size));
-    }
     eprintf(ctx->body_out,
             "    (gghc:element \"%s\" %s\n      (ggch:offsetof %s))\n",
             decl->identifier,
