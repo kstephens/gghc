@@ -605,6 +605,7 @@ void gghc_init_callbacks(gghc_ctx ctx)
 void gghc_emit_declarator(gghc_ctx ctx, gghc_declarator *decl)
 {
   ggrt_type_t *t = decl->type;
+  if ( ! t ) t = decl->declaration->type;
   if ( ! t ) {
     gghc_yyerror(ctx, ssprintf("no type for identifier '%s'", decl->identifier));
   } else if ( ! (decl->identifier && decl->identifier[0]) ) {
