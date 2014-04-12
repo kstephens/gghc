@@ -1,0 +1,10 @@
+(gghc:constant gghc:constant_1 0 "fb_x")
+(gghc:constant gghc:constant_2 2 "fb_y")
+(gghc:constant gghc:constant_3 3 "fb_z")
+(gghc:enum _gghc_type_enum_foobar "foobar") ;; forward
+(gghc:enum _gghc_type_enum_foobar "foobar"
+(gghc:enum-element "fb_x" gghc:constant_1 #| fb_x |# )
+(gghc:enum-element "fb_y" gghc:constant_2 #| fb_y |# )
+(gghc:enum-element "fb_z" gghc:constant_3 #| fb_z |# )
+(gghc:global "foobar_ip" (gghc:pointer _gghc_type_enum_foobar))
+(gghc:global "foobar_i" _gghc_type_enum_foobar)

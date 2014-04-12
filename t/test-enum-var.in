@@ -1,0 +1,5 @@
+extern	enum foobar {
+  fb_x,
+  fb_y = 2,
+  fb_z
+} foobar_i, *foobar_ip;
