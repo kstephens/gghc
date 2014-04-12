@@ -15,14 +15,16 @@ TEST_INPUTS := \
 GARBAGE += bin/* lib/*
 PROG=bin/gghc
 
-test-local : test-local-2
+test-local-2 : test-local
 	$(PROG) --debug --yydebug --yydebug -v -o gen/test.c.gghc.ss       -- $(CC) -- t/test.c
 	$(PROG) --debug -v -o gen/test.c.gghc.gcc.ss   -- gcc   -- t/test.c
 	$(PROG) --debug -v -o gen/test.c.gghc.clang.ss -- clang -- t/test.c
 	rm -rf /tmp/gghc-*-*.*
 
-test-local-2:
-	tool/run-test "$(PROG) -- $(CC) --" t/test-*.in
+TEST_IN := $(shell ls t/test-*.in)
+
+test-local:
+	tool/run-test "$(PROG) -- $(CC) --" $(TEST_IN)
 
 test-deep : all test
 	@set -ex; for f in $(TEST_INPUTS) ;\
