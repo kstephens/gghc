@@ -19,13 +19,13 @@ static void token_msg(gghc_ctx ctx, const char *desc, int indent, mm_buf_state *
   fprintf(ctx->_stderr, "'\n");
 }
 
-static void parse_msg(gghc_ctx ctx, const char *desc, const char *s)
+ static void display_msg(gghc_ctx ctx, const char *desc, const char *s, mm_buf_region *t)
 {
-  mm_buf_region *t = ctx->last_token;
+  if ( ! t ) t = ctx->last_token;
   if ( t ) {
-    fprintf(ctx->_stderr, "gghc: %s%s:%d:%d %s\n",
+    fprintf(ctx->_stderr, "gghc: %s%s:%d:%d: %s\n",
             desc,
-          t->beg.src.filename ? t->beg.src.filename : "UNKNOWN",
+          t->beg.src.filename ? t->beg.src.filename : "<UNKNOWN>",
           t->beg.src.lineno,
           t->beg.src.column,
           s
@@ -35,27 +35,40 @@ static void parse_msg(gghc_ctx ctx, const char *desc, const char *s)
       s.beg = s.end = t->beg.beg;
       s.beg ++;
       while ( s.beg > t->mb->s.beg && *s.beg != '\n' ) s.beg --;
-      s.beg ++;
+      if ( *s.beg == '\n' ) s.beg ++;
+      s.end = s.beg;
       while ( s.end < t->mb->s.end && *s.end != '\n' ) s.end ++;
       s.size = s.end - s.beg;
       token_msg(ctx, " token: ", t->beg.beg - s.beg, &t->beg);
       token_msg(ctx, " line:  ", 0, &s);
     }
   } else {
-    fprintf(ctx->_stderr, "gghc: 0:0:0 %s\n", s);
+    fprintf(ctx->_stderr, "gghc: 0:0:0: %s\n", s);
   }
 }
 
- void gghc_yywarning(gghc_ctx ctx, const char* s)
+ void gghc_yywarning_(gghc_ctx ctx, const char* s, mm_buf_region *t)
 {
-  parse_msg(ctx, "warning: ", s);
+  display_msg(ctx, "warning: ", s, t);
+  ctx->warnings ++;
 }
 
- void gghc_yyerror(gghc_ctx ctx, const char* s)
+void gghc_yywarning(gghc_ctx ctx, const char* s)
 {
-  parse_msg(ctx, "ERROR: ", s);
+  gghc_yywarning_(ctx, s, 0);
+}
+
+ void gghc_yyerror_(gghc_ctx ctx, const char* s, mm_buf_region *t)
+{
+  display_msg(ctx, "ERROR: ", s, t);
   ctx->errors ++;
 }
+
+void gghc_yyerror(gghc_ctx ctx, const char* s)
+{
+  gghc_yyerror_(ctx, s, 0);
+}
+
 
 /****************************************************************************************/
 
@@ -400,6 +413,7 @@ storage_class_specifier_TOKEN
 type_specifier
   : type_specifier_CTX
     {
+      if ( ! $1 ) gghc_yyerror_(ctx, "unknown type", &$<t>1);
       c_declaration->type = $1;
       if ( c_declarator ) c_declarator->type = $1;
       // fprintf(stderr, "  declaration %p, declarator %p type => %p\n", c_declaration, c_declarator, $1);
@@ -679,7 +693,11 @@ identifier_list
 
 type_name
         : type_name_ANSI
-        | GGHC___typeof__ '(' expression ')' { $<type>$ = ggrt_type(ctx->rt, "void"); }
+        | GGHC___typeof__ '(' expression ')'
+            {
+              $<type>$ = ggrt_type(ctx->rt, "void");
+              gghc_yywarning(ctx, "__typeof__(expression) unsupported");
+            }
         ;
 
 type_name_ANSI

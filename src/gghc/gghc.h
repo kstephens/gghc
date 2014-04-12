@@ -167,7 +167,7 @@ struct gghc_ctx {
   const char *parse_filename;
   const char *parse_top_level_filename;
 
-  int errors, fatals;
+  int errors, warnings, fatals;
   int error_code;
 
   /* Options */
