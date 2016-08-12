@@ -6,7 +6,7 @@ CLIBS += -L$(ROOT)/lib
 
 ifeq "$(UNAME_S)" "Darwin"
 CINCS += -I/opt/local/include
-CINCS += -I/opt/local/lib/libffi-3.0.13/include
+CINCS := $(CINCS) -I$(shell ls -d /opt/local/lib/libffi-3.*/include | sort | tail -1)
 #CINCS += -fmacro-backtrace-limit=0
 CLIBS += -L/opt/local/lib
 CLIBS += -L/opt/local/lib/x86_64
